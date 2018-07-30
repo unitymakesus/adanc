@@ -15,7 +15,7 @@ var WebFont = require('webfontloader');
 
 WebFont.load({
  google: {
-   families: ['Lato:300,400,700'],
+   families: ['Montserrat:400,400i,700,700i', 'Material+Icons'],
  },
 });
 
