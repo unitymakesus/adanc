@@ -1,0 +1,43 @@
+footer {
+  background: $color-blue;
+  color: $color-white;
+  padding: 5px 1em;
+  font-weight: 300;
+  padding-top: 1.5em;
+
+  .m4:nth-of-type(2) {
+    text-align: center;
+  }
+
+  .m4:nth-of-type(3) {
+    text-align: right;
+  }
+
+  .row {
+    margin-bottom: 0;
+  }
+
+  .textwidget p {
+    margin: 0;
+  }
+}
+
+.footer-copyright {
+  background: $color-blue-dark;
+  color: $color-white;
+  font-weight: 300;
+  font-size: $size-small;
+  padding: 5px 1em;
+
+  a {
+    color: white;
+  }
+
+  .row {
+    margin-bottom: 0;
+  }
+
+  .m4:nth-of-type(2) {
+    text-align: center;
+  }
+}

@@ -37,11 +37,18 @@ add_action('after_setup_theme', function () {
 
     /**
      * Register navigation menus
-     * @link https://developer.wordpress.org/reference/functions/register_nav_menus/
+     * @
+     link https://developer.wordpress.org/reference/functions/register_nav_menus/
      */
     register_nav_menus([
         'primary_navigation' => __('Primary Navigation', 'sage')
     ]);
+
+    /**
+     * Add custom logo
+     *
+     */
+     add_theme_support('custom-logo');
 
     /**
      * Enable post thumbnails
@@ -85,6 +92,14 @@ add_action('widgets_init', function () {
     register_sidebar([
         'name'          => __('Footer', 'sage'),
         'id'            => 'sidebar-footer'
+    ] + $config);
+    register_sidebar([
+        'name'          => __('Footer2', 'sage'),
+        'id'            => 'sidebar-footer-2'
+    ] + $config);
+    register_sidebar([
+        'name'          => __('Footer3', 'sage'),
+        'id'            => 'sidebar-footer-3'
     ] + $config);
 });
 

@@ -1,0 +1,24 @@
+@mixin button($color1, $color2) {
+  background-color: $color1;
+  background-image: linear-gradient(to bottom right, transparent 0, transparent 50%, $color2 50%, $color2 100%);
+
+  &:hover {
+    background-color: $color2;
+  }
+}
+
+.btn {
+  @include button($color-orange, $color-orange-dark);
+
+  padding: 1em;
+  text-align: center;
+  margin: 1em 0;
+  line-height: 28px;
+  width: 300px;
+  height: 60px;
+  font-size: 18px;
+
+  &:active, &:focus {
+    border: 1px solid black;
+  }
+}

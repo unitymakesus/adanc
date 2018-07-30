@@ -1,5 +1,114 @@
 /** Colors */
-$brand-primary:         #525ddc;
+$color-blue: #006993;
+$color-blue-dark: darken($color-blue, 10%);
+$color-blue-light: #c9d9e3;
+$color-orange: #f68026;
+$color-orange-dark: darken($color-orange, 10%);
+$color-green: #b7d331;
+$color-green-dark: darken($color-green, 10%);
+$color-yellow: #e3b831;
+$color-yellow-dark: darken($color-yellow, 10%);
+$color-gray-dark: #404040;
+$color-gray-medium: #909090;
+$color-gray-light: #dcd8d8;
+$color-black: #000;
+$color-white: #fff;
+
+/** Fonts */
+$font-sans: 'Montserrat', sans-serif;
+
+/** Font Sizes */
+$size-small: 15px;
+$size-regular: 18px;
+$size-medium: 20px;
+$size-large: 30px;
+$size-extralarge: 35px;
 
 /** Box Model  */
-$spacer:                2rem;
+$spacer:  2rem;
+
+/** Modified Grid */
+$xsmall-screen: 600px;
+$xsmall-screen-up: 601px;
+$small-screen-up: 769px;
+$medium-screen-up: 993px;
+$large-screen-up: 1201px;
+$small-screen: 768px;
+$medium-screen: 992px;
+$large-screen: 1200px;
+$small-and-up: "only screen and (min-width : #{$xsmall-screen-up})";
+$xsmall-and-down: "only screen and (max-width : #{$xsmall-screen})";
+
+/** Flow Text  */
+$range : $large-screen - $medium-screen;
+$intervals: 18;
+$interval-size: $range / $intervals;
+
+/** Gradients */
+// Utility mixin from Compass
+@mixin filter-gradient($start-color, $end-color, $orientation: vertical) {
+  $gradient-type: if($orientation == vertical, 0, 1);
+
+  filter: progid:DXImageTransform.Microsoft.gradient(gradientType=#{$gradient-type}, startColorstr='#{ie-hex-str($start-color)}', endColorstr='#{ie-hex-str($end-color)}');
+}
+
+@mixin triangle($direction, $color) {
+  background-image: -o-linear-gradient(to #{$direction}, transparent 0%, transparent 50%, #{$color} 50%);
+  background-image: -moz-linear-gradient(to #{$direction}, transparent 0%, transparent 50%, #{$color} 50%);
+  background-image: -ms-linear-gradient(to #{$direction}, transparent 0%, transparent 50%, #{$color} 50%);
+  background-image: linear-gradient(to #{$direction}, transparent 0%, transparent 50%, #{$color} 50%);
+}
+
+// Rem-calc function from Zurb
+$rem-base: 18px;
+
+@function strip-unit($num) {
+  @return $num / ($num * 0 + 1);
+}
+
+@function convert-to-rem($value, $base-value: $rem-base) {
+  $value: strip-unit($value) / strip-unit($base-value) * 1rem;
+
+  @return $value;
+}
+
+@function rem-calc($values, $base-value: $rem-base) {
+  $max: length($values);
+
+  @if $max == 1 { @return convert-to-rem(nth($values, 1), $base-value); }
+
+  $remValues: ();
+
+  @for $i from 1 through $max {
+    $remValues: append($remValues, convert-to-rem(nth($values, $i), $base-value));
+  }
+
+  @return $remValues;
+}
+
+// em-calc function modified from rem-calc
+$em-base: 18px;
+
+@function strip-unit($num) {
+  @return $num / ($num * 0 + 1);
+}
+
+@function convert-to-em($value, $base-value: $em-base) {
+  $value: strip-unit($value) / strip-unit($base-value) * 1em;
+
+  @return $value;
+}
+
+@function em-calc($values, $base-value: $em-base) {
+  $max: length($values);
+
+  @if $max == 1 { @return convert-to-em(nth($values, 1), $base-value); }
+
+  $emValues: ();
+
+  @for $i from 1 through $max {
+    $emValues: append($emValues, convert-to-em(nth($values, $i), $base-value));
+  }
+
+  @return $emValues;
+}
