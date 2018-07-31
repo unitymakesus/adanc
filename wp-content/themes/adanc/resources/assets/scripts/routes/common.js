@@ -238,5 +238,13 @@ export default {
       document.cookie = 'data_contrast=' + contrast + ';max-age=31536000;path=/';
     });
 
+    // Controls for changing language
+    $('#toggle-espanol input[name="espanol"]').on('change', function() {
+      let espanol = $(this).is(':checked');
+      $('html').attr('data-espanol', espanol);
+      document.cookie = 'data_espanol=' + espanol + ';max-age=31536000;path=/';
+    });
+
+
   },
 };

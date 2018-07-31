@@ -172,7 +172,7 @@
     input {
       &[type="radio"] {
         &:checked + label {
-          background: $color-blue-light;
+          background: $color-blue;
 
           &::after {
             color: $color-white;
@@ -192,9 +192,13 @@
         }
       }
 
+      &[type="radio"]:checked + label::after, [type="radio"].with-gap:checked + label::after {
+        background: transparent;
+      }
+
       &[type="checkbox"] {
         &:checked + label {
-          background: $color-blue-light;
+          background: $color-blue;
 
           &::after {
             background-image: url('../images/icon-contrast-inverse.svg');
@@ -221,25 +225,64 @@
 
     &.toggle-contrast {
       label {
+        &::before {
+          display: none;
+        }
+
         &::after {
           content: '';
-          top: 0;
+          width: 100%;
           height: 100%;
+          top: 40%;
+          transform: translateY(-50%);
+          text-indent: 0;
+          text-align: center;
+          transition: color 0.3s ease;
+          speak: none;
+          border: none;
           background: url('../images/icon-contrast.svg') no-repeat 50% 50%;
+        }
+      }
+    }
+
+    &.toggle-espanol {
+      label {
+        &::before {
+          display: none;
+        }
+
+        &::after {
+          content: 'EÑ';
+          width: 100%;
+          top: 40%;
+          transform: translateY(-50%);
+          text-indent: 0;
+          text-align: center;
+          transition: color 0.3s ease;
+          speak: none;
+          border: none;
         }
       }
     }
 
     &.text-size {
       label {
+        height: 50px;
+
+        &::before {
+          display: none;
+        }
+
         &::after {
           content: 'A';
-          top: 50%;
+          width: 83%;
+          top: 30%;
           transform: translateY(-50%);
           text-indent: 0;
           text-align: center;
           transition: color 0.3s ease;
           speak: none;
+          border: none;
         }
       }
 

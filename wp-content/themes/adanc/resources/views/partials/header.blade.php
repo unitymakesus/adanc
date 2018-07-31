@@ -7,9 +7,12 @@
     </div>
   </div>
 
-  {!! get_search_form(false) !!}
+  <div class="row">
 
-    <a class="logo left" href="{{ home_url('/') }}" rel="home">
+    <div class="col m4">{!! get_search_form(false) !!}</div>
+
+    <div class="col m3 logo-container">
+      <a class="logo left" href="{{ home_url('/') }}" rel="home">
       @if (has_custom_logo())
         @php
           $custom_logo_id = get_theme_mod( 'custom_logo' );
@@ -23,58 +26,61 @@
       @else
         {{ get_bloginfo('name', 'display') }}
       @endif
-    </a>
+      </a>
+    </div>
 
-    <div class="a11y-tools z-depth-2" role="toolbar" aria-label="Accessibility Tools">
-      <div class="container flex flex-end">
-        <a class="espanol">En Espanol</a>
-        <fieldset id="text-size" class="text-size" tabindex="-1">
-          <legend>Change Text Size:</legend>
-          @php
-            $cookie_size = $_COOKIE['data_text_size'];
-            $text_sizes = [
-              [
-                'name' => 'default',
-                'label' => 'Default Text Size'
-              ],[
-                'name' => 'medium',
-                'label' => 'Medium Text Size'
-              ],[
-                'name' => 'large',
-                'label' => 'Large Text Size'
-              ]
-            ];
-          @endphp
-          @foreach ($text_sizes as $size)
-            <div class="{{ $size['name'] }}-size">
-              <input type="radio" name="text-size" id="{{ $size['name'] }}-size" value="{{ $size['name'] }}" <?php if($cookie_size == $size['name']) {echo 'checked';} ?>>
-              <label for="{{ $size['name'] }}-size">{{ $size['label'] }}</label>
-            </div>
-          @endforeach
-        </fieldset>
-        <fieldset id="toggle-contrast" class="toggle-contrast" tabindex="-1">
-          <legend>Toggle Contrast:</legend>
-          @php
-            $cookie_contrast = $_COOKIE['data_contrast'];
-          @endphp
-          <div>
-            <input type="checkbox" name="contrast" id="contrast" value="true" <?php if($cookie_contrast == 'true') {echo 'checked';} ?> />
-            <label for="contrast">High Contrast Mode</label>
+    <div class="col m5">
+      <div class="a11y-tools" role="toolbar" aria-label="Accessibility Tools">
+          <div class="flex flex-end">
+            <fieldset id="text-size" class="text-size" tabindex="-1">
+              <legend>Change Text Size:</legend>
+              @php
+                $cookie_size = $_COOKIE['data_text_size'];
+                $text_sizes = [
+                  [
+                    'name' => 'default',
+                    'label' => 'Default Text Size'
+                  ],[
+                    'name' => 'medium',
+                    'label' => 'Medium Text Size'
+                  ],[
+                    'name' => 'large',
+                    'label' => 'Large Text Size'
+                  ]
+                ];
+              @endphp
+              @foreach ($text_sizes as $size)
+                <div class="{{ $size['name'] }}-size">
+                  <input type="radio" name="text-size" id="{{ $size['name'] }}-size" value="{{ $size['name'] }}" <?php if($cookie_size == $size['name']) {echo 'checked';} ?>>
+                  <label for="{{ $size['name'] }}-size">{{ $size['label'] }}</label>
+                </div>
+              @endforeach
+            </fieldset>
+            <fieldset id="toggle-contrast" class="toggle-contrast" tabindex="-1">
+              <legend>Toggle Contrast:</legend>
+              @php
+                $cookie_contrast = $_COOKIE['data_contrast'];
+              @endphp
+              <div>
+                <input type="checkbox" name="contrast" id="contrast" value="true" <?php if($cookie_contrast == 'true') {echo 'checked';} ?> />
+                <label for="contrast">High Contrast Mode</label>
+              </div>
+            </fieldset>
+            <fieldset id="toggle-espanol" class="toggle-espanol" tabindex="-1">
+              <legend>Ver En Español:</legend>
+              @php
+                $cookie_contrast = $_COOKIE['data_espanol'];
+              @endphp
+              <div>
+                <input type="checkbox" name="espanol" id="espanol" value="true" <?php if($cookie_contrast == 'true') {echo 'checked';} ?> />
+                <label for="espanol">En Espanol</label>
+              </div>
+            </fieldset>
           </div>
-        </fieldset>
-      </div>
+        </div>
     </div>
+  </div>
 </header>
-
-<!-- <div class="navbar nav-primary">
-  @if (has_nav_menu('primary_navigation'))
-    <div class="menu-trigger-wrapper hide-on-large-only">
-      <input type="checkbox" name="menu-trigger" id="menu-trigger" value="true" />
-      <label for="menu-trigger"><i class="material-icons" aria-label="Show navigation menu">menu</i></a>
-    </div>
-    {!! wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'navbar-menu flex flex-center space-between container']) !!}
-  @endif
-</div> -->
 
 <nav class="nav-primary">
   @if (has_nav_menu('primary_navigation'))

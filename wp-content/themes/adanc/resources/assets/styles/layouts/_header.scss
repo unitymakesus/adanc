@@ -1,7 +1,8 @@
 header {
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
+  .logo-container {
+    text-align: right;
+    padding: 0;
+  }
 }
 
 .page-header {

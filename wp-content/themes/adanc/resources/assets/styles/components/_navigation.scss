@@ -74,3 +74,48 @@
 nav ul li.active {
   background-color: $color-blue-dark;
 }
+
+.menu-trigger-wrapper {
+  padding-top: 3px;
+  position: relative;
+  text-align: right;
+  padding-right: 20px;
+  height: 50px;
+
+  [type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  input:focus + label {
+    outline: $color-gray-dark auto 5px;
+  }
+
+  label {
+    display: inline-block;
+    text-decoration: none;
+    height: 50px;
+    width: 50px;
+    text-align: center;
+    color: $color-white;
+
+    i {
+      font-size: 2em;
+      line-height: 1.75em;
+      position: relative;
+      right: 32px;
+    }
+
+    &:hover {
+      color: rgba($color-white, 0.7);
+      cursor: pointer;
+    }
+
+    &::before {
+      top: 16px;
+      left: 10px;
+      display: none;
+    }
+  }
+}

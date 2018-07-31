@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "dd6a59658ce888c1a2d2"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "57ebf5a5bd943a9fc3e1"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -722,11 +722,22 @@
 /******/ 	__webpack_require__.h = function() { return hotCurrentHash; };
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return hotCreateRequire(35)(__webpack_require__.s = 35);
+/******/ 	return hotCreateRequire(37)(__webpack_require__.s = 37);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
+/*!*************************!*\
+  !*** external "jQuery" ***!
+  \*************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports) {
+
+module.exports = jQuery;
+
+/***/ }),
+/* 1 */
 /*!***************************************************************************************************************************************!*\
   !*** /Users/lexinamer/Desktop/Unity/Github/adanc/app/public/wp-content/themes/adanc/node_modules/html-entities/lib/html5-entities.js ***!
   \***************************************************************************************************************************************/
@@ -927,18 +938,40 @@ module.exports = Html5Entities;
 
 
 /***/ }),
-/* 1 */
-/*!*************************!*\
-  !*** external "jQuery" ***!
-  \*************************/
+/* 2 */
+/*!***********************************!*\
+  !*** (webpack)/buildin/module.js ***!
+  \***********************************/
 /*! dynamic exports provided */
 /*! all exports used */
 /***/ (function(module, exports) {
 
-module.exports = jQuery;
+module.exports = function(module) {
+	if(!module.webpackPolyfill) {
+		module.deprecate = function() {};
+		module.paths = [];
+		// module.parent = undefined by default
+		if(!module.children) module.children = [];
+		Object.defineProperty(module, "loaded", {
+			enumerable: true,
+			get: function() {
+				return module.l;
+			}
+		});
+		Object.defineProperty(module, "id", {
+			enumerable: true,
+			get: function() {
+				return module.i;
+			}
+		});
+		module.webpackPolyfill = 1;
+	}
+	return module;
+};
+
 
 /***/ }),
-/* 2 */
+/* 3 */
 /*!*************************************!*\
   !*** ./build/helpers/hmr-client.js ***!
   \*************************************/
@@ -946,7 +979,7 @@ module.exports = jQuery;
 /*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
-var hotMiddlewareScript = __webpack_require__(/*! webpack-hot-middleware/client?noInfo=true&timeout=20000&reload=true */ 3);
+var hotMiddlewareScript = __webpack_require__(/*! webpack-hot-middleware/client?noInfo=true&timeout=20000&reload=true */ 4);
 
 hotMiddlewareScript.subscribe(function (event) {
   if (event.action === 'reload') {
@@ -956,7 +989,7 @@ hotMiddlewareScript.subscribe(function (event) {
 
 
 /***/ }),
-/* 3 */
+/* 4 */
 /*!********************************************************************************!*\
   !*** (webpack)-hot-middleware/client.js?noInfo=true&timeout=20000&reload=true ***!
   \********************************************************************************/
@@ -1260,40 +1293,7 @@ if (module) {
   };
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, "?noInfo=true&timeout=20000&reload=true", __webpack_require__(/*! ./../webpack/buildin/module.js */ 4)(module)))
-
-/***/ }),
-/* 4 */
-/*!***********************************!*\
-  !*** (webpack)/buildin/module.js ***!
-  \***********************************/
-/*! dynamic exports provided */
-/*! all exports used */
-/***/ (function(module, exports) {
-
-module.exports = function(module) {
-	if(!module.webpackPolyfill) {
-		module.deprecate = function() {};
-		module.paths = [];
-		// module.parent = undefined by default
-		if(!module.children) module.children = [];
-		Object.defineProperty(module, "loaded", {
-			enumerable: true,
-			get: function() {
-				return module.l;
-			}
-		});
-		Object.defineProperty(module, "id", {
-			enumerable: true,
-			get: function() {
-				return module.i;
-			}
-		});
-		module.webpackPolyfill = 1;
-	}
-	return module;
-};
-
+/* WEBPACK VAR INJECTION */}.call(exports, "?noInfo=true&timeout=20000&reload=true", __webpack_require__(/*! ./../webpack/buildin/module.js */ 2)(module)))
 
 /***/ }),
 /* 5 */
@@ -1846,8 +1846,8 @@ ansiHTML.reset()
 module.exports = {
   XmlEntities: __webpack_require__(/*! ./lib/xml-entities.js */ 13),
   Html4Entities: __webpack_require__(/*! ./lib/html4-entities.js */ 14),
-  Html5Entities: __webpack_require__(/*! ./lib/html5-entities.js */ 0),
-  AllHtmlEntities: __webpack_require__(/*! ./lib/html5-entities.js */ 0)
+  Html5Entities: __webpack_require__(/*! ./lib/html5-entities.js */ 1),
+  AllHtmlEntities: __webpack_require__(/*! ./lib/html5-entities.js */ 1)
 };
 
 
@@ -2352,7 +2352,9 @@ module.exports = function(hash, moduleMap, options) {
 /* 32 */,
 /* 33 */,
 /* 34 */,
-/* 35 */
+/* 35 */,
+/* 36 */,
+/* 37 */
 /*!***************************************************************************!*\
   !*** multi ./build/util/../helpers/hmr-client.js ./scripts/customizer.js ***!
   \***************************************************************************/
@@ -2360,12 +2362,12 @@ module.exports = function(hash, moduleMap, options) {
 /*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! /Users/lexinamer/Desktop/Unity/Github/adanc/app/public/wp-content/themes/adanc/resources/assets/build/util/../helpers/hmr-client.js */2);
-module.exports = __webpack_require__(/*! ./scripts/customizer.js */36);
+__webpack_require__(/*! /Users/lexinamer/Desktop/Unity/Github/adanc/app/public/wp-content/themes/adanc/resources/assets/build/util/../helpers/hmr-client.js */3);
+module.exports = __webpack_require__(/*! ./scripts/customizer.js */38);
 
 
 /***/ }),
-/* 36 */
+/* 38 */
 /*!*******************************!*\
   !*** ./scripts/customizer.js ***!
   \*******************************/
@@ -2375,7 +2377,7 @@ module.exports = __webpack_require__(/*! ./scripts/customizer.js */36);
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery__ = __webpack_require__(/*! jquery */ 1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery__ = __webpack_require__(/*! jquery */ 0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_jquery___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_jquery__);
 
 
