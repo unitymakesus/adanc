@@ -44,6 +44,30 @@ $range : $large-screen - $medium-screen;
 $intervals: 18;
 $interval-size: $range / $intervals;
 
+/** Button */
+@mixin button($color1, $color2) {
+  background-color: $color1;
+  background-image: linear-gradient(to bottom right, transparent 0, transparent 50%, $color2 50%, $color2 100%);
+  color: $color-white;
+
+  &:hover {
+    background-color: $color2;
+  }
+}
+
+/** List styles */
+@mixin list-type($content) {
+  margin-right: 10px;
+  content: $content;
+  font-size: $size-large;
+  border-radius: 100%;
+  color: $color-orange;
+  width: 1.2em;
+  text-align: center;
+  display: inline-block;
+  font-weight: 400;
+}
+
 /** Gradients */
 // Utility mixin from Compass
 @mixin filter-gradient($start-color, $end-color, $orientation: vertical) {

@@ -3,3 +3,17 @@ header {
   justify-content: space-around;
   align-items: center;
 }
+
+.page-header {
+  height: 400px;
+  position: relative;
+  background-size: cover;
+
+  h1 {
+    position: absolute;
+    bottom: 10px;
+    width: 100%;
+    background: $color-blue-light;
+    padding: 10px;
+  }
+}

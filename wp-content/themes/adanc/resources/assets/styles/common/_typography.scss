@@ -20,3 +20,46 @@ h3 {
 a {
   color: $color-blue;
 }
+
+p {
+  font-size: $size-regular;
+  font-weight: 300;
+  line-height: 1.6em;
+  margin: 1.5em 0;
+}
+
+#content {
+  ol, ul {
+    list-style: none;
+
+    li {
+      margin: 1em 0;
+      font-weight: 300;
+    }
+  }
+
+  ol {
+    counter-reset: item;
+
+    li {
+      counter-increment: item;
+
+      &::before {
+        @include list-type(counter(item) ".");
+      }
+    }
+  }
+
+  ul {
+    padding-left: 40px !important;
+
+    li {
+      margin: 1em 0;
+      font-weight: 300;
+
+      &::before {
+        @include list-type("•");
+      }
+    }
+  }
+}

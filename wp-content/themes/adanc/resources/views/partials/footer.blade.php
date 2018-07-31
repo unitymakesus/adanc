@@ -1,3 +1,9 @@
+@if(! is_front_page() )
+  <div class="footer-cta">
+    <a class="btn"><i class="material-icons right">redeem</i>DONATE</a>
+  </div>
+@endif
+
 <footer class="content-info">
   <div class="row">
     <div class="col s6 m4">

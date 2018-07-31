@@ -41,3 +41,13 @@ footer {
     text-align: center;
   }
 }
+
+.footer-cta {
+  background: $color-blue-light;
+  text-align: center;
+
+  .btn {
+    font-size: 1.5em;
+    line-height: 12px;
+  }
+}

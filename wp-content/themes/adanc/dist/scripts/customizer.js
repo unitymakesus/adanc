@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "f8e228b4b0b3fb2effcf"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "dd6a59658ce888c1a2d2"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -722,7 +722,7 @@
 /******/ 	__webpack_require__.h = function() { return hotCurrentHash; };
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return hotCreateRequire(32)(__webpack_require__.s = 32);
+/******/ 	return hotCreateRequire(35)(__webpack_require__.s = 35);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -2349,7 +2349,10 @@ module.exports = function(hash, moduleMap, options) {
 /* 29 */,
 /* 30 */,
 /* 31 */,
-/* 32 */
+/* 32 */,
+/* 33 */,
+/* 34 */,
+/* 35 */
 /*!***************************************************************************!*\
   !*** multi ./build/util/../helpers/hmr-client.js ./scripts/customizer.js ***!
   \***************************************************************************/
@@ -2358,11 +2361,11 @@ module.exports = function(hash, moduleMap, options) {
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(/*! /Users/lexinamer/Desktop/Unity/Github/adanc/app/public/wp-content/themes/adanc/resources/assets/build/util/../helpers/hmr-client.js */2);
-module.exports = __webpack_require__(/*! ./scripts/customizer.js */33);
+module.exports = __webpack_require__(/*! ./scripts/customizer.js */36);
 
 
 /***/ }),
-/* 33 */
+/* 36 */
 /*!*******************************!*\
   !*** ./scripts/customizer.js ***!
   \*******************************/

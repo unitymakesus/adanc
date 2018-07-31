@@ -113,12 +113,19 @@ export default {
     }
 
     // Toggle mobile sidebar-nav
-    $('.widget_nav_menu').on('click', '#sidebar-nav-trigger', function() {
+    $('#menu-trigger').on('click', function() {
+      $('.nav-primary ul').slideToggle();
+
       if ($('body').hasClass('mobile-aside-nav-active')) {
         hideMobileAsideNav();
       } else {
         showMobileAsideNav();
       }
+    });
+
+    // Toggle mobile dropdown menu_class
+    $('.menu-item-has-children').on('click', function() {
+      $('.sub-menu').slideToggle();
     });
 
     // Only show mobile sidebarnav if an element inside is receiving focus

@@ -32,6 +32,12 @@ body {
   }
 }
 
+.content-wrapper {
+  @media #{$large-and-up} {
+    width: 65%;
+  }
+}
+
 .content {
   position: relative;
   z-index: 3;

@@ -5,5 +5,72 @@
   ul {
     display: flex;
     justify-content: space-around;
+
+    .menu-item-has-children {
+      a {
+        cursor: default;
+      }
+
+      .sub-menu {
+        max-height: 300em;
+        flex-direction: column;
+        position: absolute;
+        z-index: 10;
+        background: $color-blue;
+        transition: max-height 0.3s ease;
+        height: 0;
+        overflow: hidden;
+
+        a {
+          cursor: pointer;
+        }
+      }
+
+      &:hover {
+        .sub-menu {
+          height: auto;
+        }
+      }
+    }
+
+    @media #{$medium-and-down} {
+      flex-direction: column;
+      margin: 0;
+      background: $color-blue;
+      text-align: center;
+      position: relative;
+      z-index: 100;
+      top: -7px;
+      display: none;
+
+      li {
+        width: 100%;
+        background: $color-blue;
+      }
+
+      .menu-item-has-children {
+        a {
+          cursor: pointer;
+        }
+
+        .sub-menu {
+          display: none;
+          max-height: 300em;
+          position: relative;
+
+          li {
+            background: $color-gray-medium;
+          }
+        }
+      }
+
+      .mobilenav-active & {
+        max-height: 300em;
+      }
+    }
   }
+}
+
+nav ul li.active {
+  background-color: $color-blue-dark;
 }
