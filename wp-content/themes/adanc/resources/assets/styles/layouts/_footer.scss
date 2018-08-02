@@ -11,6 +11,10 @@ footer {
 
   .m4:nth-of-type(3) {
     text-align: right;
+
+    @media #{$small-and-down} {
+      text-align: left;
+    }
   }
 
   .row {

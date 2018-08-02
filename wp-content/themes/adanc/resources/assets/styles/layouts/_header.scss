@@ -2,6 +2,11 @@ header {
   .logo-container {
     text-align: right;
     padding: 0;
+
+    @media #{$small-and-down} {
+      display: block;
+      margin: 0 auto;
+    }
   }
 }
 

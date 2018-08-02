@@ -35,4 +35,8 @@
       background-image: url('../images/twitter.svg');
     }
   }
+
+  @media #{$small-and-down} {
+    font-size: 10px;
+  }
 }
