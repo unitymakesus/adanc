@@ -72,7 +72,7 @@
                 $cookie_contrast = $_COOKIE['data_espanol'];
               @endphp
               <div>
-                <input type="checkbox" name="espanol" id="espanol" value="true" <?php if($cookie_contrast == 'true') {echo 'checked';} ?> />
+                <input class="gtranslate" type="checkbox" name="espanol" id="espanol" value="true" <?php if($cookie_contrast == 'true') {echo 'checked';} ?> />
                 <label for="espanol">En Espanol</label>
               </div>
             </fieldset>

@@ -245,6 +245,18 @@ export default {
       document.cookie = 'data_espanol=' + espanol + ';max-age=31536000;path=/';
     });
 
+    // Helper function for translation cookies
+    function getDomainName(hostName) {
+      return hostName.substring(hostName.lastIndexOf(".", hostName.lastIndexOf(".") - 1) + 1);
+    }
 
+    // Set up translation on click
+    $(document).on('click','.gtranslate', function(e) {
+      e.preventDefault();
+      var hostname = window.location.hostname;
+      var domain = getDomainName(hostname);
+      document.cookie = "googtrans=/en/es;path=/;domain=" + domain + ";";
+      location.reload();
+    });
   },
 };

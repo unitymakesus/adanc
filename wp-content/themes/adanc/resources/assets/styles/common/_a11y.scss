@@ -263,6 +263,11 @@
           border: none;
         }
       }
+
+      input[type="checkbox"]:checked + label::after {
+        background-image: none;
+        color: white;
+      }
     }
 
     &.text-size {
