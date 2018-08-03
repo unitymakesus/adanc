@@ -5,11 +5,48 @@
   article {
     margin: 2em 0;
 
-    img {
+    .image-container {
       height: 250px;
+      width: 100%;
+      background: $color-orange;
+    }
+
+    img {
+      height: 100%;
       width: 100%;
       object-fit: cover;
       object-position: top;
     }
   }
+}
+
+.post-image {
+  margin: 0 auto;
+  display: block;
+}
+
+.nextposts {
+  margin-bottom: 4em;
+  display: flex;
+  justify-content: space-between;
+
+  a {
+    font-size: 20px;
+    background: $color-blue;
+    color: white;
+    padding: 10px;
+
+    &:hover {
+      background: $color-blue-dark;
+    }
+  }
+}
+
+.posts-navigation {
+  background: $color-blue;
+  box-shadow: none;
+  text-align: center;
+  width: 60%;
+  margin: 0 auto;
+  margin-bottom: 4em;
 }
