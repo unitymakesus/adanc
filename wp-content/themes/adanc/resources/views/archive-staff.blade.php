@@ -2,7 +2,7 @@
 @section('content')
   <!-- @include('partials.page-header') -->
   <div class="page-header" style="background-image: url('<?php echo get_stylesheet_directory_uri(); ?>/assets/images/staff.jpg')">
-    <h1>{!! App::title() !!}</h1>
+    <h1>Our Staff</h1>
   </div>
 
   @php $posts = $fields['title']; @endphp
