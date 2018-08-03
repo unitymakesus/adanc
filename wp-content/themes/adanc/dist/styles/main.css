@@ -7954,6 +7954,7 @@ header .logo-container {
   height: 400px;
   position: relative;
   background-size: cover;
+  background-position: center;
 }
 
 .page-header h1 {

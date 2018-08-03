@@ -1,6 +1,9 @@
 @extends('layouts.app')
 @section('content')
-  @include('partials.page-header')
+  <!-- @include('partials.page-header') -->
+  <div class="page-header" style="background-image: url('<?php echo get_stylesheet_directory_uri(); ?>/assets/images/staff.jpg')">
+    <h1>{!! App::title() !!}</h1>
+  </div>
 
   @php $posts = $fields['title']; @endphp
     <div class="container content-wrapper">

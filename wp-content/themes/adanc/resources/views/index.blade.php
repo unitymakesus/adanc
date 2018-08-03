@@ -2,6 +2,10 @@
 
 @section('content')
   <!-- @include('partials.page-header') -->
+  <div class="page-header" style="background-image: url('<?php echo get_stylesheet_directory_uri(); ?>/assets/images/blog.jpg')">
+    <h1>{!! App::title() !!}</h1>
+  </div>
+
 
   @if (!have_posts())
     <div class="alert alert-warning">
