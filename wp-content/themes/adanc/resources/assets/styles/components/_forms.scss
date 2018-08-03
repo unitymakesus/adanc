@@ -1,18 +1,51 @@
-input[type=text]:not(.browser-default) {
-  border: 2px solid $color-blue;
-  width: 300px;
-  background-image: none !important;
+.wpcf7 {
+  input[type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+    position: static;
+    opacity: 1;
+  }
 }
 
 #__lpform_email_icon {
   display: none;
 }
 
-.input-field label {
-  left: 5px;
-  top: 5px;
+#signup {
+  input[type=text]:not(.browser-default) {
+    border: 2px solid $color-blue;
+    width: 300px;
+    background-image: none !important;
+  }
+
+  .input-field label {
+    left: 5px;
+    top: 5px;
+  }
+
+  .input-field label:not(.label-icon).active {
+    transform: translateY(-22px) scale(0.8);
+  }
 }
 
-.input-field label:not(.label-icon).active {
-  transform: translateY(-22px) scale(0.8);
+.search-form {
+  input[type=search]:not(.browser-default) {
+    border: 2px solid $color-blue;
+    width: 70%;
+    height: 2em;
+  }
+
+  input[type=text]:not(.browser-default) {
+    border: 2px solid $color-blue;
+    width: 300px;
+    background-image: none !important;
+  }
+
+  .search-submit {
+    background: $color-blue;
+    color: #fff;
+    border: none;
+    border-top: 2px solid $color-blue;
+    height: 2.2em;
+    position: relative;
+    right: 5px;
+  }
 }

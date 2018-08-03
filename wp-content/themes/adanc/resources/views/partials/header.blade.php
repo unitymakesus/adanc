@@ -9,10 +9,10 @@
 
   <div class="row">
 
-    <div class="col m4">{!! get_search_form(false) !!}</div>
+    <div class="col m3">{!! get_search_form(false) !!}</div>
 
-    <div class="col m3 logo-container">
-      <a class="logo left" href="{{ home_url('/') }}" rel="home">
+    <div class="col m3 offset-m1 logo-container">
+      <a class="logo" href="{{ home_url('/') }}" rel="home">
       @if (has_custom_logo())
         @php
           $custom_logo_id = get_theme_mod( 'custom_logo' );
