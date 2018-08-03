@@ -7633,6 +7633,16 @@ html[data-contrast="true"] .single-mc-events time {
 .wpcf7 [type="checkbox"]:checked {
   position: static;
   opacity: 1;
+  pointer-events: auto;
+}
+
+.wpcf7 .wpcf7-checkbox {
+  -webkit-column-count: 2;
+          column-count: 2;
+}
+
+.wpcf7 .wpcf7-checkbox .wpcf7-list-item {
+  display: block;
 }
 
 #__lpform_email_icon {
