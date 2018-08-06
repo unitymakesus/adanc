@@ -15,7 +15,7 @@
       <div class="container content-wrapper">
         <div class="row">
         @foreach($board as $member)
-          <div class="member col s6 m4">
+          <div class="member col s6 m3">
             <img src="{{$member['photo']}}"/>
             <h3>{{$member['name']}}</h3>
             <p>{{$member['role']}}</p>
