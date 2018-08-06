@@ -60,7 +60,6 @@ $interval-size: $range / $intervals;
 
 /** List styles */
 @mixin list-type($content) {
-  margin-right: 10px;
   content: $content;
   font-size: $size-large;
   border-radius: 100%;
@@ -69,6 +68,8 @@ $interval-size: $range / $intervals;
   text-align: center;
   display: inline-block;
   font-weight: 400;
+  position: relative;
+  top: 4px;
 }
 
 /** Gradients */

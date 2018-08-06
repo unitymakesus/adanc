@@ -7054,7 +7054,6 @@ p {
 
 #content ol li,
 #content ul li {
-  margin: 1em 0;
   font-weight: 300;
 }
 
@@ -7067,7 +7066,6 @@ p {
 }
 
 #content ol li::before {
-  margin-right: 10px;
   content: counter(item) ".";
   font-size: 30px;
   border-radius: 100%;
@@ -7076,6 +7074,8 @@ p {
   text-align: center;
   display: inline-block;
   font-weight: 400;
+  position: relative;
+  top: 4px;
 }
 
 #content ul {
@@ -7083,12 +7083,10 @@ p {
 }
 
 #content ul li {
-  margin: 1em 0;
   font-weight: 300;
 }
 
 #content ul li::before {
-  margin-right: 10px;
   content: "\2022";
   font-size: 30px;
   border-radius: 100%;
@@ -7097,6 +7095,8 @@ p {
   text-align: center;
   display: inline-block;
   font-weight: 400;
+  position: relative;
+  top: 4px;
 }
 
 .screen-reader-text {
