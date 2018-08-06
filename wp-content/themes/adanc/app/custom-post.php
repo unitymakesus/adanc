@@ -25,7 +25,7 @@ function staff_post_type() {
     'show_ui' => true,
     'has_archive' => true,
 		'menu_icon' => 'dashicons-admin-users',
-		'supports' => array('title', 'editor', 'thumbnail')
+		'supports' => array('title', 'editor', 'thumbnail', 'page-attributes')
 	) );
 
   register_taxonomy( strtolower($singular), 'staff', array(
@@ -65,7 +65,7 @@ function services_post_type() {
     'show_ui' => true,
     'has_archive' => true,
 		'menu_icon' => 'dashicons-admin-page',
-		'supports' => array('title', 'editor', 'thumbnail')
+		'supports' => array('title', 'editor', 'thumbnail', 'page-attributes')
 	) );
 
   register_taxonomy( strtolower($singular), 'services', array(
