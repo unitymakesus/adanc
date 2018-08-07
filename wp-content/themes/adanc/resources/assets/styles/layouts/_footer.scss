@@ -5,6 +5,11 @@ footer {
   font-weight: 300;
   padding-top: 1.5em;
 
+  html[data-contrast="true"] & {
+    background: $color-black;
+    border-top: 1px solid $color-white;
+  }
+
   .m4:nth-of-type(2) {
     text-align: center;
   }
@@ -33,6 +38,11 @@ footer {
   font-size: $size-small;
   padding: 5px 1em;
 
+  html[data-contrast="true"] & {
+    background: $color-black;
+    border-top: 1px solid $color-white;
+  }
+
   a {
     color: white;
   }
@@ -49,6 +59,10 @@ footer {
 .footer-cta {
   background: $color-blue-light;
   text-align: center;
+
+  html[data-contrast="true"] & {
+    background: $color-black;
+  }
 
   .btn {
     font-size: 1.5em;

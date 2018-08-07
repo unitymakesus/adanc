@@ -76,6 +76,14 @@
   }
 }
 
+nav ul li.active {
+  html[data-contrast=true] & {
+    background: #4a4a4a;
+    border-left: 1px solid #fff;
+    border-right: 1px solid #fff;
+  }
+}
+
 .a11y-tools {
   height: 50px;
   overflow: hidden;
@@ -88,10 +96,6 @@
     .a11y-tools-active & {
       height: 110px;
     }
-  }
-
-  html[data-contrast="true"] & {
-    border-bottom: 1px solid $color-white;
   }
 
   .container {
@@ -382,7 +386,7 @@ html[data-contrast="true"] {
 
   .btn, .social-icons li a, .page-footer .widget_nav_menu .menu li a {
     background: $color-black;
-    border-color: $color-white;
+    border: 2px solid $color-white;
 
     &:hover, &:focus {
       background: $color-white;
@@ -401,6 +405,7 @@ html[data-contrast="true"] {
   }
 
   .banner .logo img {
+    background: url(../../images/adanc-contrast.png) no-repeat;
     background-size: contain;
     display: block;
     box-sizing: border-box;

@@ -19,6 +19,10 @@ h3 {
 
 a {
   color: $color-blue;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 p {

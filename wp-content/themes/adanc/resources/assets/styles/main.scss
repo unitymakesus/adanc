@@ -22,6 +22,7 @@
 @import "~materialize-css/sass/components/forms/forms";
 
 /** Import theme styles */
+@import "common/remcalc";
 @import "common/variables";
 @import "common/global";
 @import "common/typography";

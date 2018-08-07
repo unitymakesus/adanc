@@ -12,14 +12,41 @@
     .btn {
       &:nth-of-type(2) {
         @include button($color-blue, $color-blue-dark);
+
+        html[data-contrast="true"] & {
+          background: $color-black;
+
+          &:hover {
+            background: #fff;
+            color: #000;
+          }
+        }
       }
 
       &:nth-of-type(3) {
         @include button($color-green, $color-green-dark);
+
+        html[data-contrast="true"] & {
+          background: $color-black;
+
+          &:hover {
+            background: #fff;
+            color: #000;
+          }
+        }
       }
 
       &:nth-of-type(4) {
         @include button($color-yellow, $color-yellow-dark);
+
+        html[data-contrast="true"] & {
+          background: $color-black;
+
+          &:hover {
+            background: #fff;
+            color: #000;
+          }
+        }
       }
     }
   }
@@ -27,6 +54,12 @@
   .services {
     background: $color-blue-light;
     padding: 2em 0;
+
+    html[data-contrast="true"] & {
+      background: $color-black;
+      border-top: 1px solid $color-white;
+      border-bottom: 1px solid $color-white;
+    }
 
     .service-item {
       height: 250px;
@@ -44,6 +77,11 @@
         left: 0;
         width: 100%;
         text-align: center;
+
+        html[data-contrast="true"] & {
+          background: $color-black;
+          border: 1px solid $color-white;
+        }
       }
     }
   }

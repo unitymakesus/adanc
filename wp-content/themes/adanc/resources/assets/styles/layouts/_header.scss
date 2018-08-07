@@ -22,5 +22,9 @@ header {
     width: 100%;
     background: $color-blue-light;
     padding: 10px;
+
+    html[data-contrast="true"] & {
+      background: $color-black;
+    }
   }
 }

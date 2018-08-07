@@ -2,6 +2,12 @@
   background: $color-blue;
   font-weight: 300;
 
+  html[data-contrast="true"] & {
+    background: $color-black;
+    color: $color-white;
+    border: 1px solid $color-white;
+  }
+
   ul {
     display: flex;
     justify-content: space-around;
@@ -68,6 +74,10 @@
       }
     }
   }
+}
+
+nav {
+  line-height: 62px;
 }
 
 nav ul li.active {

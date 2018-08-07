@@ -24,6 +24,11 @@
     border: 2px solid $color-blue;
     width: 300px;
     background-image: none !important;
+
+    html[data-contrast="true"] & {
+      background: $color-black;
+      border: 1px solid $color-white;
+    }
   }
 
   .input-field label {
@@ -41,6 +46,13 @@
     border: 2px solid $color-blue;
     width: 70%;
     height: 2em;
+
+    html[data-contrast=true] & {
+      background: #4a4a4a;
+      border: 1px solid #fff;
+      height: 2.1em;
+      padding-top: 2px;
+    }
   }
 
   input[type=text]:not(.browser-default) {
@@ -57,5 +69,12 @@
     height: 2.2em;
     position: relative;
     right: 5px;
+
+    html[data-contrast=true] & {
+      background: #4a4a4a;
+      border: 1px solid #fff;
+      height: 2.33em;
+      bottom: 1px;
+    }
   }
 }
