@@ -6,7 +6,7 @@
 @endphp
 
 <div class="resource" itemscope itemtype="http://schema.org/CreativeWork">
-  <h2 class="h3" itemprop="name"><a href="{{ $link }}" target="_blank" rel="noopener" itemprop="url">{{ the_title() }}</a></h2>
+  <h3 itemprop="name">{{ the_title() }}</h3>
 
   @if (!empty($topic_list))
     @php
@@ -16,17 +16,6 @@
     @endphp
     <div class="meta"><span class="label">Topic:</span>
       {!! implode(', ', $topic_list) !!}
-    </div>
-  @endif
-
-  @if (!empty($type_list))
-    @php
-      foreach ($type_list as &$type) :
-        $type = '<span itemprop="learningResourceType">' . $type . '</span>';
-      endforeach;
-    @endphp
-    <div class="meta"><span class="label">Type:</span>
-      {!! implode(', ', $type_list) !!}
     </div>
   @endif
 

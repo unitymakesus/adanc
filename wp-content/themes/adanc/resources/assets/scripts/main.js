@@ -10,6 +10,7 @@ import Router from './util/Router';
 import common from './routes/common';
 import home from './routes/home';
 import aboutUs from './routes/about';
+import resources from './routes/resources';
 
 // Web font loader
 var WebFont = require('webfontloader');
@@ -28,6 +29,8 @@ const routes = new Router({
   home,
   // About Us page, note the change from about-us to aboutUs.
   aboutUs,
+  // Resources 
+  resources,
 });
 
 // Load Events

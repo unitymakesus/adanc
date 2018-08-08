@@ -1,0 +1,81 @@
+.pagination {
+  background: none;
+
+  @extend .z-depth-0;
+
+  .facetwp-pager-label {
+    color: $color-black;
+    margin: 0;
+  }
+
+  ul li {
+    padding: 0;
+    height: auto;
+
+    &::before {
+      display: none;
+    }
+
+    &.gap {
+      &.before::before {
+        display: inline-block;
+        position: relative;
+        content: '\2026';
+        color: $color-black;
+        margin-right: 6px;
+        left: 0;
+      }
+
+      &.after::after {
+        display: inline-block;
+        position: relative;
+        content: '\2026';
+        color: $color-black;
+        margin-right: 6px;
+        left: 0;
+      }
+    }
+  }
+
+  a, span {
+    background: $color-green;
+    border: 2px solid $color-green;
+    color: $color-white !important;
+    display: inline-block;
+    min-width: 40px;
+    padding: 0 15px !important;
+    height: 40px;
+    line-height: 1.7em !important;
+    font-size: 1.2em;
+    text-decoration: none;
+
+    &:hover, &:focus {
+      background: lighten($color-green, 10%);
+      color: $color-white;
+
+      @extend .z-depth-2;
+    }
+
+    &.active, &.current {
+      background: $color-green-dark;
+      color: $color-white;
+
+      @extend .z-depth-0;
+    }
+
+    html[data-contrast="true"] & {
+      background: $color-black;
+      border-color: $color-white;
+
+      &:hover, &:focus {
+        background: $color-white;
+        color: $color-black !important;
+      }
+
+      &.active, &.current {
+        background: $color-gray-dark;
+        color: $color-white !important;
+      }
+    }
+  }
+}

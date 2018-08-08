@@ -32,6 +32,7 @@ function resources_post_type() {
       'title',
       'author',
       'revisions',
+      'thumbnail',
       'page-attributes',
     ),
     'has_archive' => false,
