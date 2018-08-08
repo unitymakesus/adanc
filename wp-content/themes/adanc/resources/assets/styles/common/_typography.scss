@@ -32,12 +32,14 @@ p {
   margin: 1.5em 0;
 }
 
-#content {
+.content {
   ol, ul {
     list-style: none;
 
     li {
       font-weight: 300;
+      position: relative;
+      margin: 1em;
     }
   }
 
@@ -54,7 +56,7 @@ p {
   }
 
   ul {
-    padding-left: 40px !important;
+    padding-left: 40px;
 
     li {
       font-weight: 300;

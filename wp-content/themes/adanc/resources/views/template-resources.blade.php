@@ -7,7 +7,7 @@
 @section('content')
 @while(have_posts()) @php the_post() @endphp
   @include('partials.page-header')
-  <!-- @include('partials.content-page') -->
+  @include('partials.content-page')
 @endwhile
 
 <section class="border-top" role="region" aria-label="Resources List">
@@ -20,10 +20,11 @@
         {!! do_shortcode('[facetwp counts="true"]') !!}
       </div>
     </div>
-    
+
     <div class="row">
       <div class="col m3 s12">
         {!! do_shortcode ('[facetwp facet="search"]') !!}
+        {!! do_shortcode('[facetwp facet="resource_topic"]') !!}
         {!! do_shortcode('[facetwp facet="resource_source"]') !!}
       </div>
 
@@ -34,7 +35,7 @@
               'post_type' => 'ada-resource',
               'posts_per_page' => 10,
               'facetwp' => true,
-              'orderby' => 'menu_order',
+              'orderby' => 'title',
               'order' => 'ASC'
             ]);
           ?>

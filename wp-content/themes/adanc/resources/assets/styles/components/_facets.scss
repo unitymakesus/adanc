@@ -4,6 +4,7 @@
 
 .facetwp-search-wrap {
   display: block;
+  width: 85%;
 
   .facetwp-btn {
     line-height: 3rem;
@@ -25,8 +26,7 @@
   @extend h3;
 
   font-family: $font-sans;
-  font-weight: bold;
-  margin: 0.75em 0;
+  text-transform: uppercase;
 }
 
 .facetwp-checkbox.facetwp-checkbox {
@@ -58,4 +58,23 @@
   color: $color-gray-medium;
   font-size: 0.8em;
   width: 100%;
+}
+
+.resource {
+  margin: 3em 0;
+}
+
+.resource:first-of-type {
+  margin-top: 0;
+}
+
+.pagination .facetwp-pager ul {
+  padding-left: 0;
+
+  li {
+    &::before {
+      content: "";
+      width: 0;
+    }
+  }
 }

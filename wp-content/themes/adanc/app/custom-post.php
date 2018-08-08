@@ -53,18 +53,6 @@ function resources_post_type() {
 		'rewrite' => true
 	));
 
-  	register_taxonomy('resource-type', 'ada-resource', array(
-  		'labels' => array(
-  			'name' => __( 'Types' ),
-  			'singular_name' => __( 'Type' )
-  		),
-  		'publicly_queryable' => true,
-  		'show_ui' => true,
-  		'show_in_nav_menus' => false,
-  		'hierarchical' => true,
-  		'rewrite' => true
-  	));
-
 	register_taxonomy('resource-source', 'ada-resource', array(
 		'labels' => array(
 			'name' => __( 'Sources' ),

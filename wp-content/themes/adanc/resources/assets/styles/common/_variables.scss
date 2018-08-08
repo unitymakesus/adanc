@@ -61,15 +61,16 @@ $interval-size: $range / $intervals;
 /** List styles */
 @mixin list-type($content) {
   content: $content;
-  font-size: $size-large;
+  font-size: $size-medium;
   border-radius: 100%;
   color: $color-orange;
   width: 1.2em;
   text-align: center;
   display: inline-block;
   font-weight: 400;
-  position: relative;
-  top: 4px;
+  position: absolute;
+  top: -2px;
+  left: -30px;
 
   html[data-contrast="true"] & {
     color: $color-white;
