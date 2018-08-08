@@ -1,5 +1,5 @@
 {{--
-  Template Name: Tools/Resources Page
+  Template Name: TESsTTTTTT
 --}}
 
 @extends('layouts.app')
@@ -22,7 +22,7 @@
     </div>
 
     <div class="facetwp-template">
-      @php
+      <?php
         $resources = new WP_Query([
           'post_type' => 'ada-resource',
           'posts_per_page' => 10,
@@ -30,12 +30,12 @@
           'orderby' => 'menu_order',
           'order' => 'ASC'
         ]);
-      @endphp
+      ?>
 
       @if ($resources->have_posts())
 
         @while ($resources->have_posts())
-          @php ($resources->the_post())
+          @php $resources->the_post() @endphp
           @include('partials.content-single-resource')
         @endwhile
 
@@ -45,7 +45,9 @@
       @else
         <p><?php _e( 'Sorry, no resources matched your criteria.' ); ?></p>
       @endif
-      @php (wp_reset_postdata())@endphp
+      @php wp_reset_postdata() @endphp
+
     </div>
   </section>
+
 @endsection
