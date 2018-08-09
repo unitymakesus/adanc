@@ -4,9 +4,12 @@
     margin-bottom: 2em;
 
     img {
-      width: 100%;
-      height: 400px;
       object-fit: cover;
+
+      @media (min-width: 1481px) {
+        max-height: 500px;
+        width: auto;
+      }
     }
 
     .btn {

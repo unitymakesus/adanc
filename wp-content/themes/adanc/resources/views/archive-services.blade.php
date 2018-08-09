@@ -1,8 +1,8 @@
 @extends('layouts.app')
 @section('content')
   <!-- @include('partials.page-header') -->
-  <div class="page-header" style="background-image: url('<?php echo get_stylesheet_directory_uri(); ?>/assets/images/staff.jpg')">
-    <h1>Our services</h1>
+  <div class="page-header">
+    <h1>Auxiliary Services</h1>
   </div>
 
   @php $posts = $fields['title']; @endphp
@@ -19,6 +19,8 @@
             <h3>{!! get_the_title() !!}</h3>
 
             @php the_content() @endphp
+
+            <a href="{!! get_the_permalink() !!}">Learn More</a>
           </div>
 
         </div>
