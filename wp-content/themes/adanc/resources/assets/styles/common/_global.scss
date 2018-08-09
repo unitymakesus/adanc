@@ -24,6 +24,11 @@ body {
   box-sizing: border-box;
 }
 
+select {
+  display: block;
+  margin-bottom: 2em;
+}
+
 .container {
   @media #{$medium-and-up} {
     width: 95%;

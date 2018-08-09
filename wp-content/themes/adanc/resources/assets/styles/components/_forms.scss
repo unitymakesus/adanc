@@ -1,5 +1,10 @@
 .wpcf7 {
-  input[type="checkbox"]:not(:checked), [type="checkbox"]:checked {
+  h3 {
+    margin-top: 2em;
+  }
+
+  input[type="checkbox"]:not(:checked), input[type="checkbox"]:checked,
+  input[type="radio"]:not(:checked), input[type="radio"]:checked {
     position: static;
     opacity: 1;
     pointer-events: auto;
@@ -11,6 +16,15 @@
 
     .wpcf7-list-item {
       display: block;
+    }
+  }
+
+  .radio-480 {
+    display: block;
+    padding-top: 1em;
+
+    .wpcf7-list-item .first {
+      margin: 0;
     }
   }
 }
