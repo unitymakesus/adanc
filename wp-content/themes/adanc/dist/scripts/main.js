@@ -13205,6 +13205,10 @@ Router.prototype.loadEvents = function loadEvents () {
       document.cookie = "googtrans=/en/es;path=/;domain=" + domain + ";";
       location.reload();
     });
+
+    $(document).ready(function(){
+      $('select').formSelect();
+    });
   },
 });
 

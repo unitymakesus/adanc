@@ -3,12 +3,12 @@
     margin-top: 2em;
   }
 
-  input[type="checkbox"]:not(:checked), input[type="checkbox"]:checked,
-  input[type="radio"]:not(:checked), input[type="radio"]:checked {
-    position: static;
-    opacity: 1;
-    pointer-events: auto;
-  }
+  // [type="checkbox"]:not(:checked), [type="checkbox"]:checked,
+  // [type="radio"]:not(:checked), [type="radio"]:checked {
+  //   position: static;
+  //   opacity: 1;
+  //   pointer-events: auto;
+  // }
 
   .wpcf7-checkbox {
     column-count: 2;

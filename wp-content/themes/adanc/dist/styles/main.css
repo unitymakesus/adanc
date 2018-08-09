@@ -7697,15 +7697,6 @@ html[data-contrast="true"] .wpcf7-submit:hover {
   margin-top: 2em;
 }
 
-.wpcf7 input[type="checkbox"]:not(:checked),
-.wpcf7 input[type="checkbox"]:checked,
-.wpcf7 input[type="radio"]:not(:checked),
-.wpcf7 input[type="radio"]:checked {
-  position: static;
-  opacity: 1;
-  pointer-events: auto;
-}
-
 .wpcf7 .wpcf7-checkbox {
   -webkit-column-count: 2;
           column-count: 2;
