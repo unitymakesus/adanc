@@ -25,6 +25,7 @@
       <div class="col m3 s12">
         {!! do_shortcode ('[facetwp facet="search"]') !!}
         {!! do_shortcode('[facetwp facet="resource_topic"]') !!}
+        {!! do_shortcode('[facetwp facet="resource_type"]') !!}
         {!! do_shortcode('[facetwp facet="resource_source"]') !!}
       </div>
 
@@ -35,8 +36,6 @@
               'post_type' => 'ada-resource',
               'posts_per_page' => 10,
               'facetwp' => true,
-              'orderby' => 'title',
-              'order' => 'ASC'
             ]);
           ?>
 
