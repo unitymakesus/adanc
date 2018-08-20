@@ -53,7 +53,7 @@ function resources_post_type() {
 		'rewrite' => true
 	));
 
-  register_taxonomy('resource-type', 'drnc-resource', array(
+  register_taxonomy('resource-type', 'ada-resource', array(
   'labels' => array(
     'name' => __( 'Types' ),
     'singular_name' => __( 'Type' )
