@@ -13219,15 +13219,17 @@ Router.prototype.loadEvents = function loadEvents () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony default export */ __webpack_exports__["a"] = ({
+/* WEBPACK VAR INJECTION */(function($) {/* harmony default export */ __webpack_exports__["a"] = ({
   init: function init() {
     // JavaScript to be fired on the home page
   },
   finalize: function finalize() {
     // JavaScript to be fired on the home page, after the init JS
+    $('.hero img').before('<div class="blurred" style="background-image:url(' + $('.hero img').attr('src') + ')"></div>');
   },
 });
 
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(0)))
 
 /***/ }),
 /* 11 */

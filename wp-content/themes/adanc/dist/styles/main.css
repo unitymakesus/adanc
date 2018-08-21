@@ -8558,11 +8558,17 @@ body#tinymce {
 .home .hero {
   text-align: center;
   margin-bottom: 2em;
+  position: relative;
+  overflow: hidden;
 }
 
 .home .hero img {
+  position: relative;
   -o-object-fit: cover;
      object-fit: cover;
+  display: block;
+  margin: 0 auto;
+  z-index: 1;
 }
 
 @media (min-width: 1481px) {
@@ -8572,8 +8578,20 @@ body#tinymce {
   }
 }
 
-.home .hero .btn:nth-of-type(2),
-.home .hero .btn-large:nth-of-type(2) {
+.home .hero .blurred {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  -webkit-filter: blur(20px);
+          filter: blur(20px);
+  background-size: cover;
+  z-index: 0;
+}
+
+.home .overview .btn:nth-of-type(2),
+.home .overview .btn-large:nth-of-type(2) {
   background-color: #006993;
   background-image: -webkit-gradient(linear, left top, right bottom, color-stop(0, transparent), color-stop(50%, transparent), color-stop(50%, #004560), to(#004560));
   background-image: -webkit-linear-gradient(top left, transparent 0, transparent 50%, #004560 50%, #004560 100%);
@@ -8582,24 +8600,24 @@ body#tinymce {
   color: #fff;
 }
 
-.home .hero .btn:nth-of-type(2):hover,
-.home .hero .btn-large:nth-of-type(2):hover {
+.home .overview .btn:nth-of-type(2):hover,
+.home .overview .btn-large:nth-of-type(2):hover {
   background-color: #004560;
 }
 
-html[data-contrast="true"] .home .hero .btn:nth-of-type(2),
-html[data-contrast="true"] .home .hero .btn-large:nth-of-type(2) {
+html[data-contrast="true"] .home .overview .btn:nth-of-type(2),
+html[data-contrast="true"] .home .overview .btn-large:nth-of-type(2) {
   background: #000;
 }
 
-html[data-contrast="true"] .home .hero .btn:nth-of-type(2):hover,
-html[data-contrast="true"] .home .hero .btn-large:nth-of-type(2):hover {
+html[data-contrast="true"] .home .overview .btn:nth-of-type(2):hover,
+html[data-contrast="true"] .home .overview .btn-large:nth-of-type(2):hover {
   background: #fff;
   color: #000;
 }
 
-.home .hero .btn:nth-of-type(3),
-.home .hero .btn-large:nth-of-type(3) {
+.home .overview .btn:nth-of-type(3),
+.home .overview .btn-large:nth-of-type(3) {
   background-color: #b7d331;
   background-image: -webkit-gradient(linear, left top, right bottom, color-stop(0, transparent), color-stop(50%, transparent), color-stop(50%, #95ac25), to(#95ac25));
   background-image: -webkit-linear-gradient(top left, transparent 0, transparent 50%, #95ac25 50%, #95ac25 100%);
@@ -8608,24 +8626,24 @@ html[data-contrast="true"] .home .hero .btn-large:nth-of-type(2):hover {
   color: #fff;
 }
 
-.home .hero .btn:nth-of-type(3):hover,
-.home .hero .btn-large:nth-of-type(3):hover {
+.home .overview .btn:nth-of-type(3):hover,
+.home .overview .btn-large:nth-of-type(3):hover {
   background-color: #95ac25;
 }
 
-html[data-contrast="true"] .home .hero .btn:nth-of-type(3),
-html[data-contrast="true"] .home .hero .btn-large:nth-of-type(3) {
+html[data-contrast="true"] .home .overview .btn:nth-of-type(3),
+html[data-contrast="true"] .home .overview .btn-large:nth-of-type(3) {
   background: #000;
 }
 
-html[data-contrast="true"] .home .hero .btn:nth-of-type(3):hover,
-html[data-contrast="true"] .home .hero .btn-large:nth-of-type(3):hover {
+html[data-contrast="true"] .home .overview .btn:nth-of-type(3):hover,
+html[data-contrast="true"] .home .overview .btn-large:nth-of-type(3):hover {
   background: #fff;
   color: #000;
 }
 
-.home .hero .btn:nth-of-type(4),
-.home .hero .btn-large:nth-of-type(4) {
+.home .overview .btn:nth-of-type(4),
+.home .overview .btn-large:nth-of-type(4) {
   background-color: #e3b831;
   background-image: -webkit-gradient(linear, left top, right bottom, color-stop(0, transparent), color-stop(50%, transparent), color-stop(50%, #c69d1b), to(#c69d1b));
   background-image: -webkit-linear-gradient(top left, transparent 0, transparent 50%, #c69d1b 50%, #c69d1b 100%);
@@ -8634,18 +8652,18 @@ html[data-contrast="true"] .home .hero .btn-large:nth-of-type(3):hover {
   color: #fff;
 }
 
-.home .hero .btn:nth-of-type(4):hover,
-.home .hero .btn-large:nth-of-type(4):hover {
+.home .overview .btn:nth-of-type(4):hover,
+.home .overview .btn-large:nth-of-type(4):hover {
   background-color: #c69d1b;
 }
 
-html[data-contrast="true"] .home .hero .btn:nth-of-type(4),
-html[data-contrast="true"] .home .hero .btn-large:nth-of-type(4) {
+html[data-contrast="true"] .home .overview .btn:nth-of-type(4),
+html[data-contrast="true"] .home .overview .btn-large:nth-of-type(4) {
   background: #000;
 }
 
-html[data-contrast="true"] .home .hero .btn:nth-of-type(4):hover,
-html[data-contrast="true"] .home .hero .btn-large:nth-of-type(4):hover {
+html[data-contrast="true"] .home .overview .btn:nth-of-type(4):hover,
+html[data-contrast="true"] .home .overview .btn-large:nth-of-type(4):hover {
   background: #fff;
   color: #000;
 }
@@ -8686,10 +8704,6 @@ html[data-contrast="true"] .home .services .service-item h3,
 html[data-contrast="true"] .home .services .service-item .facet-label {
   background: #000;
   border: 1px solid #fff;
-}
-
-.home .overview h2 {
-  text-align: left;
 }
 
 .home .featured-post img {
