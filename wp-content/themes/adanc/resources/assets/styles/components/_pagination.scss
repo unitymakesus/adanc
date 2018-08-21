@@ -3,9 +3,10 @@
 
   @extend .z-depth-0;
 
-  .facetwp-pager-label {
-    color: $color-black;
+  label {
     margin: 0;
+    display: block;
+    line-height: 1;
   }
 
   ul li {
@@ -22,7 +23,7 @@
         position: relative;
         content: '\2026';
         color: $color-black;
-        margin-right: 40px;
+        margin-right: 20px;
         left: 0;
       }
 

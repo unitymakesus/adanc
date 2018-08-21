@@ -62,6 +62,21 @@
 
 .resource {
   margin: 3em 0;
+  font-weight: 300;
+
+  .meta {
+    .label {
+      font-weight: 500;
+    }
+  }
+
+  .content {
+    margin-top: 1em;
+
+    p {
+      margin-top: 0;
+    }
+  }
 }
 
 .resource:first-of-type {
@@ -72,6 +87,8 @@
   padding-left: 0;
 
   li {
+    margin: 0;
+
     &::before {
       content: "";
       width: 0;

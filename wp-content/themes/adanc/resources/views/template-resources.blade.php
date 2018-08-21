@@ -22,7 +22,7 @@
     <div class="col m9 s12">
       <div class="container">
         <div class="row flex">
-          <div class="col m9 s12">
+          <div class="col m9 s12 flex flex-bottom">
             {!! do_shortcode('[facetwp counts="true"]') !!}
           </div>
           <div class="col m3 s12">
