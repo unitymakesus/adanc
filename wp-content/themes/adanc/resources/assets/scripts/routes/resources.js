@@ -1,6 +1,11 @@
 export default {
   finalize() {
     $(document).on('facetwp-loaded', function() {
+      $('.ajax-video').each(function() {
+        // eslint-disable-next-line no-undef
+        new AblePlayer($(this));
+      });
+      
       /**
        * Add labels above each facet
        */
