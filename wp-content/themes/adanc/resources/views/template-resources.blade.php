@@ -36,6 +36,8 @@
               'post_type' => 'ada-resource',
               'posts_per_page' => 10,
               'facetwp' => true,
+              'orderby' => 'menu_order',
+              'order' => 'ASC'
             ]);
           ?>
 
@@ -53,7 +55,6 @@
             <p><?php _e( 'Sorry, no resources matched your criteria.' ); ?></p>
           @endif
           @php wp_reset_postdata() @endphp
-
         </div>
       </div>
     </div>

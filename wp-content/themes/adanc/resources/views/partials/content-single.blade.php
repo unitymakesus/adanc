@@ -12,5 +12,4 @@
       @php next_post_link( '%link', 'Next Post =>', TRUE ) @endphp
     </div>
   </div>
-  <!-- @php comments_template('/partials/comments.blade.php') @endphp -->
 </article>

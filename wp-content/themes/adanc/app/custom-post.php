@@ -6,18 +6,18 @@ namespace App;
 function resources_post_type() {
   register_post_type( 'ada-resource', array(
     'labels' => array(
-				'name' => 'Resources',
-				'singular_name' => 'Resource',
-				'add_new' => 'Add New',
-				'add_new_item' => 'Add New Resource',
-				'edit' => 'Edit',
-				'edit_item' => 'Edit Resource',
-				'new_item' => 'New Resource',
-				'view_item' => 'View Resource',
-				'search_items' => 'Search Resources',
-				'not_found' =>  'Nothing found in the Database.',
-				'not_found_in_trash' => 'Nothing found in Trash',
-				'parent_item_colon' => ''
+      'name' => 'Resources',
+      'singular_name' => 'Resource',
+      'add_new' => 'Add New',
+      'add_new_item' => 'Add New Resource',
+      'edit' => 'Edit',
+      'edit_item' => 'Edit Resource',
+      'new_item' => 'New Resource',
+      'view_item' => 'View Resource',
+      'search_items' => 'Search Resources',
+      'not_found' =>  'Nothing found in the Database.',
+      'not_found_in_trash' => 'Nothing found in Trash',
+      'parent_item_colon' => ''
     ),
     'public' => true,
     'exclude_from_search' => false,
@@ -32,7 +32,6 @@ function resources_post_type() {
       'title',
       'author',
       'revisions',
-      'thumbnail',
       'page-attributes',
     ),
     'has_archive' => false,
@@ -41,7 +40,7 @@ function resources_post_type() {
     )
   ));
 
-	register_taxonomy('resource-topic',  array('post', 'ada-resource'), array(
+  register_taxonomy('resource-topic',  array('post', 'ada-resource'), array(
 		'labels' => array(
 			'name' => __( 'Topics' ),
 			'singular_name' => __( 'Topic' )
@@ -54,16 +53,16 @@ function resources_post_type() {
 	));
 
   register_taxonomy('resource-type', 'ada-resource', array(
-  'labels' => array(
-    'name' => __( 'Types' ),
-    'singular_name' => __( 'Type' )
-  ),
-  'publicly_queryable' => true,
-  'show_ui' => true,
-  'show_in_nav_menus' => false,
-  'hierarchical' => true,
-  'rewrite' => true
-));
+    'labels' => array(
+      'name' => __( 'Types' ),
+      'singular_name' => __( 'Type' )
+    ),
+    'publicly_queryable' => true,
+    'show_ui' => true,
+    'show_in_nav_menus' => false,
+    'hierarchical' => true,
+    'rewrite' => true
+  ));
 
 	register_taxonomy('resource-source', 'ada-resource', array(
 		'labels' => array(
@@ -80,6 +79,16 @@ function resources_post_type() {
 
 add_action( 'init', __NAMESPACE__.'\\resources_post_type' );
 
+// Redirect all resources single templates to their actual resource
+add_action( 'template_redirect', function() {
+  if ( is_singular('ada-resource') ) {
+    $id = get_the_id();
+    $link = (get_field('uploaded_file', $id) == 1) ? wp_get_attachment_url(get_field('file', $id)) : get_field('link', $id);
+
+    wp_redirect( $link, 301 );
+    exit;
+  }
+});
 
 // Team Post Type
 function staff_post_type() {
