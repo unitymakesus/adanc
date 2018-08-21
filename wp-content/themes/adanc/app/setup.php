@@ -94,7 +94,7 @@ add_action('after_setup_theme', function () {
     function gutenberg_editor_styles() {
       wp_enqueue_style( 'ada-gutenberg-style', asset_path('styles/main.css') );
     }
-    add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\\gutenberg_editor_styles' );
+    // add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\\gutenberg_editor_styles' );
 }, 20);
 
 /**
