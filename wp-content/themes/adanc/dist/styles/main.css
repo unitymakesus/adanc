@@ -2285,7 +2285,9 @@ dfn {
  * contexts in Firefox 4+, Safari, and Chrome.
  */
 
-h1 {
+h1,
+.page-header h1,
+.page-header h2 {
   font-size: 2em;
   margin: 0.67em 0;
 }
@@ -4715,6 +4717,8 @@ html {
 }
 
 h1,
+.page-header h1,
+.page-header h2,
 h2,
 h3,
 .facet-label,
@@ -4726,6 +4730,8 @@ h6 {
 }
 
 h1 a,
+.page-header h1 a,
+.page-header h2 a,
 h2 a,
 h3 a,
 .facet-label a,
@@ -4735,7 +4741,9 @@ h6 a {
   font-weight: inherit;
 }
 
-h1 {
+h1,
+.page-header h1,
+.page-header h2 {
   font-size: 4.2rem;
   line-height: 110%;
   margin: 2.1rem 0 1.68rem 0;
@@ -7038,7 +7046,9 @@ img {
   background: #f2f7d9;
 }
 
-h1 {
+h1,
+.page-header h1,
+.page-header h2 {
   font-size: 1.94444rem;
   text-transform: uppercase;
   text-align: center;
@@ -7593,6 +7603,8 @@ html[data-contrast="true"] input[type="text"] {
 }
 
 html[data-contrast="true"] h1,
+html[data-contrast="true"] .page-header h2,
+.page-header html[data-contrast="true"] h2,
 html[data-contrast="true"] h2,
 html[data-contrast="true"] h3,
 html[data-contrast="true"] .facet-label,
@@ -7867,6 +7879,21 @@ ul.wp-block-gallery {
 
 ul.wp-block-gallery li::before {
   display: none;
+}
+
+.alignfull,
+.alignwide {
+  margin-left: calc(-100vw / 2 + 100% / 2);
+  margin-right: calc(-100vw / 2 + 100% / 2);
+  max-width: 100vw;
+}
+
+@media only screen and (min-width: 950px) {
+  .alignwide {
+    margin-left: -125px;
+    margin-right: -125px;
+    max-width: 950px;
+  }
 }
 
 /** Captions */
@@ -8302,7 +8329,9 @@ nav a:active {
   text-decoration: underline;
 }
 
-.page-header h1 {
+.page-header h1,
+.page-header h2,
+.page-header h2 {
   bottom: 10px;
   width: 100%;
   padding: 10px;
@@ -8312,7 +8341,9 @@ nav a:active {
   background: #c9d9e3;
 }
 
-html[data-contrast="true"] .page-header h1 {
+html[data-contrast="true"] .page-header h1,
+html[data-contrast="true"] .page-header h2,
+html[data-contrast="true"] .page-header h2 {
   background: #000;
 }
 
@@ -8440,7 +8471,8 @@ html[data-contrast="true"] .footer-cta {
   margin-right: 0;
 }
 
-.template-resources .page-header h1 {
+.template-resources .page-header h1,
+.template-resources .page-header h2 {
   margin-bottom: 0;
 }
 
@@ -8454,6 +8486,10 @@ html[data-contrast="true"] .footer-cta {
   display: flex;
   -ms-flex-wrap: wrap;
       flex-wrap: wrap;
+}
+
+.post-container .col.col {
+  margin-left: 0;
 }
 
 .post-container article {
@@ -8473,6 +8509,10 @@ html[data-contrast="true"] .footer-cta {
      object-fit: cover;
   -o-object-position: top;
      object-position: top;
+}
+
+.single .entry-title {
+  text-transform: none;
 }
 
 .post-image {
