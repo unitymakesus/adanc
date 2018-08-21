@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
   <!-- @include('partials.page-header') -->
-  <div class="page-header" style="background-image: url('<?php echo get_stylesheet_directory_uri(); ?>/assets/images/staff.jpg')">
+  <div class="page-header">
     <h1>Our Staff</h1>
   </div>
 
