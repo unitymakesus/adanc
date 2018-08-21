@@ -71,13 +71,7 @@
             <div class="row">
               <h2>{{ $information['newsletter_title'] }}</h2>
               <p>{{ $information['newsletter_description'] }}</p>
-              <form id="signup">
-                <div class="input-field">
-                  <input name="email" type="text" />
-                  <label for="email" class="">Email</label>
-                  <button class="formbtn">Join</button>
-                </div>
-              </form>
+              {!! do_shortcode('[ctct form="1611"]') !!}
             </div>
           @endif
         </div>

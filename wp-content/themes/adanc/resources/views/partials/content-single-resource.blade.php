@@ -6,7 +6,7 @@
 @endphp
 
 <div class="resource" itemscope itemtype="http://schema.org/CreativeWork">
-  <h3 class="h3" itemprop="name"><a href="{{ $link }}" target="_blank" rel="noopener" itemprop="url">{{ the_title() }}</a></h3>
+  <h3 itemprop="name"><a href="{{ $link }}" target="_blank" rel="noopener" itemprop="url">{{ the_title() }}</a></h3>
 
   @if (!empty($topic_list))
     @php
