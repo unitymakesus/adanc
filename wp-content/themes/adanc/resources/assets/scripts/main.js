@@ -17,7 +17,7 @@ var WebFont = require('webfontloader');
 
 WebFont.load({
  google: {
-   families: ['Montserrat:300,400,400i,700,700i', 'Material+Icons'],
+   families: ['Montserrat:300,400,400i,500,500i', 'Material+Icons'],
  },
 });
 
@@ -29,7 +29,7 @@ const routes = new Router({
   home,
   // About Us page, note the change from about-us to aboutUs.
   aboutUs,
-  // Resources 
+  // Resources
   resources,
 });
 

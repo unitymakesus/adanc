@@ -91,12 +91,13 @@ class FacetWP_Indexer
         global $wpdb;
 
         $term = get_term( $term_id, $taxonomy );
+        $slug = FWP()->helper->safe_value( $term->slug );
 
         $wpdb->query( $wpdb->prepare( "
             UPDATE {$wpdb->prefix}facetwp_index
             SET facet_value = %s, facet_display_value = %s
             WHERE facet_source = %s AND term_id = %d",
-            $term->slug, $term->name, "tax/$taxonomy", $term_id
+            $slug, $term->name, "tax/$taxonomy", $term_id
         ) );
     }
 
@@ -318,6 +319,7 @@ class FacetWP_Indexer
 
         // Indexing complete
         if ( $this->index_all ) {
+            update_option( 'facetwp_last_indexed', time() );
             update_option( 'facetwp_transients', '' );
             update_option( 'facetwp_indexing', '' );
         }
@@ -386,7 +388,7 @@ class FacetWP_Indexer
                 $output[] = $params;
 
                 // Automatically index implicit parents
-                if ( 'hierarchy' == $facet['type'] || ( ! empty( $facet['hierarchical'] ) && 'yes' == $facet['hierarchical'] ) ) {
+                if ( 'hierarchy' == $facet['type'] || FWP()->helper->facet_is( $facet, 'hierarchical', 'yes' ) ) {
                     while ( $depth > 0 ) {
                         $term_id = $term_info['parent_id'];
                         $term_info = $hierarchy[ $term_id ];

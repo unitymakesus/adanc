@@ -11,6 +11,17 @@ header {
   }
 }
 
+header, nav {
+  a {
+    text-decoration: none;
+
+    &:hover, &:focus, &:active {
+      color: $color-white;
+      text-decoration: underline;
+    }
+  }
+}
+
 .page-header {
   h1 {
     bottom: 10px;

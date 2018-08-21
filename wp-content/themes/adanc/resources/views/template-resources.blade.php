@@ -11,25 +11,25 @@
 @endwhile
 
 <section class="border-top" role="region" aria-label="Resources List">
-  <div class="container">
-    <div class="row flex">
-      <div class="col m6 s12">
-        {!! do_shortcode('[facetwp sort="true"]') !!}
-      </div>
-      <div class="col m6 s12 right-align flex flex-bottom">
-        {!! do_shortcode('[facetwp counts="true"]') !!}
-      </div>
+  <div class="row">
+    <div class="col m3 s12 background-green">
+      {!! do_shortcode ('[facetwp facet="search"]') !!}
+      {!! do_shortcode('[facetwp facet="resource_topic"]') !!}
+      {!! do_shortcode('[facetwp facet="resource_type"]') !!}
+      {!! do_shortcode('[facetwp facet="resource_source"]') !!}
     </div>
 
-    <div class="row">
-      <div class="col m3 s12">
-        {!! do_shortcode ('[facetwp facet="search"]') !!}
-        {!! do_shortcode('[facetwp facet="resource_topic"]') !!}
-        {!! do_shortcode('[facetwp facet="resource_type"]') !!}
-        {!! do_shortcode('[facetwp facet="resource_source"]') !!}
-      </div>
+    <div class="col m9 s12">
+      <div class="container">
+        <div class="row flex">
+          <div class="col m9 s12">
+            {!! do_shortcode('[facetwp counts="true"]') !!}
+          </div>
+          <div class="col m3 s12">
+            {!! do_shortcode('[facetwp sort="true"]') !!}
+          </div>
+        </div>
 
-      <div class="col m9 s12">
         <div class="facetwp-template">
           <?php
             $resources = new WP_Query([

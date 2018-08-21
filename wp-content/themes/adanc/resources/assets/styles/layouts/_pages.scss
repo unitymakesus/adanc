@@ -18,9 +18,17 @@
 .staff-member {
   margin: 2em 0;
 
-  #bio-facts {
+  h2, h3 {
+    margin: 0;
+  }
+
+  .bio-facts {
+    h3 {
+      color: $color-orange-dark;
+    }
+
     ul {
-      padding-left: 0 !important;
+      // padding-left: 0 !important;
       margin: 0;
     }
 
@@ -32,13 +40,15 @@
         margin-right: 0;
       }
     }
-
-    p {
-      text-decoration: underline;
-    }
   }
 }
 
-hr:last-of-type {
-  display: none;
+.template-resources {
+  .page-header h1 {
+    margin-bottom: 0;
+  }
+
+  .facetwp-sort select {
+    margin-bottom: 0;
+  }
 }

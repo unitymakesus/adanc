@@ -145,3 +145,7 @@ img {
 .page .main {
   margin-bottom: 2rem;
 }
+
+.background-green {
+  background: lighten($color-green, 30%);
+}

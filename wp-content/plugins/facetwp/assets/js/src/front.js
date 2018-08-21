@@ -2,6 +2,10 @@ window.FWP = window.FWP || {};
 
 (function($) {
 
+    function isset(obj) {
+        return 'undefined' !== typeof obj;
+    }
+
     var defaults = {
         'facets': {},
         'template': null,
@@ -11,8 +15,7 @@ window.FWP = window.FWP || {};
         'is_bfcache': false,
         'auto_refresh': true,
         'soft_refresh': false,
-        'static_facet': null,
-        'used_facets': {},
+        'frozen_facets':{},
         'facet_type': {},
         'loaded': false,
         'jqXHR': false,
@@ -22,7 +25,7 @@ window.FWP = window.FWP || {};
     };
 
     for (var prop in defaults) {
-        if ('undefined' === typeof FWP[prop]) {
+        if (! isset(FWP[prop])) {
             FWP[prop] = defaults[prop];
         }
     }
@@ -61,9 +64,24 @@ window.FWP = window.FWP || {};
     }
 
 
+    FWP.helper.debounce = function(func, wait) {
+        var timeout;
+        return function() {
+            var context = this;
+            var args = arguments;
+            var later = function() {
+                timeout = null;
+                func.apply(context, args);
+            }
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        }
+    }
+
+
     FWP.helper.serialize = function(obj, prefix) {
         var str = [];
-        var prefix = ('undefined' !== typeof prefix) ? prefix : '';
+        var prefix = isset(prefix) ? prefix : '';
         for (var p in obj) {
             if ('' != obj[p]) { // This must be "!=" instead of "!=="
                 str.push(prefix + encodeURIComponent(p) + '=' + encodeURIComponent(obj[p]));
@@ -86,6 +104,7 @@ window.FWP = window.FWP || {};
 
 
     FWP.helper.detect_loop = function(node) {
+        var curNode = null;
         var iterator = document.createNodeIterator(node, NodeFilter.SHOW_COMMENT, FWP.helper.node_filter, false);
         while (curNode = iterator.nextNode()) {
             if (8 === curNode.nodeType && 'fwp-loop' === curNode.nodeValue) {
@@ -132,16 +151,22 @@ window.FWP = window.FWP || {};
         }
 
         // Preload?
-        if (! FWP.loaded && ! FWP.is_bfcache && 'undefined' !== typeof FWP_JSON.preload_data) {
+        if (! FWP.loaded && ! FWP.is_bfcache && isset(FWP_JSON.preload_data)) {
             FWP.render(FWP_JSON.preload_data);
         }
         else {
             FWP.fetch_data();
         }
 
+        // Unfreeze any soft-frozen facets
+        $.each(FWP.frozen_facets, function(name, freeze_type) {
+            if ('hard' !== freeze_type) {
+                delete FWP.frozen_facets[name];
+            }
+        });
+
         // Cleanup
         FWP.paged = 1;
-        FWP.static_facet = null;
         FWP.soft_refresh = false;
         FWP.is_refresh = false;
         FWP.is_reset = false;
@@ -165,7 +190,7 @@ window.FWP = window.FWP || {};
             // Support custom loader
             var do_loader = true;
             if (FWP.loaded) {
-                if (FWP.soft_refresh || facet_name === FWP.static_facet || 'undefined' !== typeof FWP.used_facets[facet_name]) {
+                if (FWP.soft_refresh || isset(FWP.frozen_facets[facet_name])) {
                     do_loader = false;
                 }
             }
@@ -295,14 +320,11 @@ window.FWP = window.FWP || {};
                 if ('paged' === obj) {
                     FWP.paged = val;
                 }
-                else if ('per_page' === obj) {
-                    FWP.extras.per_page = val;
-                }
-                else if ('sort' === obj) {
-                    FWP.extras.sort = val;
+                else if ('per_page' === obj || 'sort' === obj) {
+                    FWP.extras[obj] = val;
                 }
                 else if ('' !== val) {
-                    var type = ('undefined' !== typeof FWP.facet_type[obj]) ? FWP.facet_type[obj] : '';
+                    var type = isset(FWP.facet_type[obj]) ? FWP.facet_type[obj] : '';
                     if ('search' === type || 'autocomplete' === type) {
                         FWP.facets[obj] = decodeURIComponent(val);
                     }
@@ -315,6 +337,21 @@ window.FWP = window.FWP || {};
     }
 
 
+    FWP.build_post_data = function() {
+        return {
+            'facets': JSON.stringify(FWP.facets),
+            'frozen_facets': FWP.frozen_facets,
+            'http_params': FWP_HTTP,
+            'template': FWP.template,
+            'extras': FWP.extras,
+            'soft_refresh': FWP.soft_refresh ? 1 : 0,
+            'is_bfcache': FWP.is_bfcache ? 1 : 0,
+            'first_load': FWP.loaded ? 0 : 1,
+            'paged': FWP.paged
+        };
+    }
+
+
     FWP.fetch_data = function() {
         // Abort pending requests
         if (FWP.jqXHR && FWP.jqXHR.readyState !== 4) {
@@ -323,24 +360,12 @@ window.FWP = window.FWP || {};
 
         var endpoint = ('wp' === FWP.template) ? document.URL : FWP_JSON.ajaxurl;
 
-        // dataType is "text" for better JSON error handling
-        FWP.jqXHR = $.ajax(endpoint, {
+        var settings = {
             type: 'POST',
-            dataType: 'text',
+            dataType: 'text', // for better JSON error handling
             data: {
                 action: 'facetwp_refresh',
-                data: {
-                    'facets': JSON.stringify(FWP.facets),
-                    'static_facet': FWP.static_facet,
-                    'used_facets': FWP.used_facets,
-                    'http_params': FWP_HTTP,
-                    'template': FWP.template,
-                    'extras': FWP.extras,
-                    'soft_refresh': FWP.soft_refresh ? 1 : 0,
-                    'is_bfcache': FWP.is_bfcache ? 1 : 0,
-                    'first_load': FWP.loaded ? 0 : 1,
-                    'paged': FWP.paged
-                }
+                data: FWP.build_post_data()
             },
             success: function(response) {
                 try {
@@ -365,7 +390,10 @@ window.FWP = window.FWP || {};
                     }
                 }
             }
-        });
+        };
+
+        settings = wp.hooks.applyFilters('facetwp/ajax_settings', settings );
+        FWP.jqXHR = $.ajax(endpoint, settings);
     }
 
 
@@ -414,17 +442,17 @@ window.FWP = window.FWP || {};
         });
 
         // Populate the counts
-        if ('undefined' !== typeof response.counts) {
+        if (isset(response.counts)) {
             $('.facetwp-counts').html(response.counts);
         }
 
         // Populate the pager
-        if ('undefined' !== typeof response.pager) {
+        if (isset(response.pager)) {
             $('.facetwp-pager').html(response.pager);
         }
 
         // Populate the "per page" box
-        if ('undefined' !== typeof response.per_page) {
+        if (isset(response.per_page)) {
             $('.facetwp-per-page').html(response.per_page);
             if ('default' !== FWP.extras.per_page) {
                 $('.facetwp-per-page-select').val(FWP.extras.per_page);
@@ -432,7 +460,7 @@ window.FWP = window.FWP || {};
         }
 
         // Populate the sort box
-        if ('undefined' !== typeof response.sort) {
+        if (isset(response.sort)) {
             $('.facetwp-sort').html(response.sort);
             $('.facetwp-sort-select').val(FWP.extras.sort);
         }
@@ -463,14 +491,21 @@ window.FWP = window.FWP || {};
     }
 
 
-    FWP.reset = function(facet_name) {
+    FWP.reset = function(facet_name, facet_value) {
         FWP.parse_facets();
 
-        if ('undefined' !== typeof facet_name) {
-            FWP.facets[facet_name] = [];
-
-            if ('undefined' !== typeof FWP.used_facets) {
-                delete FWP.used_facets[facet_name];
+        if (isset(facet_name)) {
+            var values = FWP.facets[facet_name];
+            if (isset(facet_value) && values.length > 1) {
+                var arr_idx = values.indexOf(facet_value);
+                if (-1 < arr_idx) {
+                    values.splice(arr_idx, 1);
+                    FWP.facets[facet_name] = values;
+                }
+            }
+            else {
+                FWP.facets[facet_name] = [];
+                delete FWP.frozen_facets[facet_name];
             }
         }
         else {
@@ -479,8 +514,10 @@ window.FWP = window.FWP || {};
             });
 
             FWP.extras.sort = 'default';
-            FWP.used_facets = {};
+            FWP.frozen_facets = {};
         }
+
+        wp.hooks.doAction('facetwp/reset');
 
         FWP.is_reset = true;
         FWP.refresh();
@@ -537,7 +574,7 @@ window.FWP = window.FWP || {};
             wp.hooks.addAction('facetwp/loaded', function() {
                 var selections = '';
                 $.each(FWP.facets, function(key, val) {
-                    if (val.length < 1 || 'undefined' === typeof FWP.settings.labels[key]) {
+                    if (val.length < 1 || ! isset(FWP.settings.labels[key])) {
                         return true; // skip this facet
                     }
 
@@ -551,7 +588,7 @@ window.FWP = window.FWP || {};
                     if ('string' === typeof choices) {
                         choices = [{ value: '', label: choices }];
                     }
-                    else if ('undefined' === typeof choices[0].label) {
+                    else if (! isset(choices[0].label)) {
                         choices = [{ value: '', label: choices[0] }];
                     }
 
@@ -580,27 +617,12 @@ window.FWP = window.FWP || {};
             var facet_name = $(this).closest('li').attr('data-facet');
             var facet_value = $(this).attr('data-value');
 
-            FWP.parse_facets();
-            FWP.is_reset = true;
-
             if ('' != facet_value) {
-                var arr = FWP.facets[facet_name];
-                var arr_idx = arr.indexOf(facet_value);
-                if (-1 < arr_idx) {
-                    arr.splice(arr_idx, 1);
-                    FWP.facets[facet_name] = arr;
-                }
+                FWP.reset(facet_name, facet_value);
             }
             else {
-                FWP.facets[facet_name] = [];
+                FWP.reset(facet_name);
             }
-
-            if ('undefined' !== typeof FWP.used_facets) {
-                delete FWP.used_facets[facet_name]; // slider support
-            }
-
-            delete FWP.facets['paged']; // remove "paged" from URL
-            FWP.refresh();
         });
 
         // Pagination

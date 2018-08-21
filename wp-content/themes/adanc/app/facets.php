@@ -26,7 +26,6 @@ add_filter( 'facetwp_index_row', function( $params, $class ) {
         // skip the default indexing query
         return false;
     }
-    error_log(print_r($params, true));
     return $params;
 }, 10, 2 );
 

@@ -35,6 +35,15 @@
   }
 }
 
+ul.wp-block-gallery {
+  padding: 0;
+  list-style: none;
+
+  li::before {
+    display: none;
+  }
+}
+
 /** Captions */
 
 // TODO: .wp-caption {}

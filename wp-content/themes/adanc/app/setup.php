@@ -74,6 +74,27 @@ add_action('after_setup_theme', function () {
      * @see resources/assets/styles/layouts/_tinymce.scss
      */
     add_editor_style(asset_path('styles/main.css'));
+
+    /**
+    * Add support for Gutenberg.
+    *
+    * @link https://wordpress.org/gutenberg/handbook/reference/theme-support/
+    */
+    // add_theme_support( 'gutenberg', array(
+    //     // Theme supports wide images, galleries and videos.
+    //     'wide-images' => true,
+    // ) );
+    add_theme_support( 'align-wide' );
+    add_theme_support( 'disable-custom-colors' );
+    add_theme_support( 'wp-block-styles' );
+
+    /**
+     * Enqueue editor styles for Gutenberg
+     */
+    function gutenberg_editor_styles() {
+      wp_enqueue_style( 'ada-gutenberg-style', asset_path('styles/main.css') );
+    }
+    add_action( 'enqueue_block_editor_assets', __NAMESPACE__ . '\\gutenberg_editor_styles' );
 }, 20);
 
 /**
