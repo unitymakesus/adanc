@@ -23,23 +23,27 @@
   }
 }
 
-.formbtn {
-  @include button($color-orange, $color-orange-dark);
-
-  height: 3.2rem;
+.ctct-form {
   position: relative;
-  left: -6px;
-  top: -1px;
-  border: none;
 
-  &:active, &:focus {
-    border: 1px solid black;
-    background: $color-orange;
-  }
+  #ctct-submitted {
+    @include button($color-orange, $color-orange-dark);
 
-  html[data-contrast="true"] & {
-    background: $color-black;
-    border: 1px solid $color-white;
+    height: 2.5rem;
+    border: none;
+    position: absolute;
+    top: 39px;
+    right: 0;
+
+    &:active, &:focus {
+      border: 1px solid black;
+      background: $color-orange;
+    }
+
+    html[data-contrast="true"] & {
+      background: $color-black;
+      border: 1px solid $color-white;
+    }
   }
 }
 
