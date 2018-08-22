@@ -450,10 +450,10 @@ Router.prototype.loadEvents = function loadEvents () {
 /* WEBPACK VAR INJECTION */(function($) {/* harmony default export */ __webpack_exports__["a"] = ({
   finalize: function finalize() {
     $(document).on('facetwp-loaded', function() {
-      $('.ajax-video').each(function() {
-        // eslint-disable-next-line no-undef
-        // new AblePlayer($(this));
-      });
+      // $('.ajax-video').each(function() {
+      //   // eslint-disable-next-line no-undef
+      //   // new AblePlayer($(this));
+      // });
 
       /**
        * Add labels above each facet
