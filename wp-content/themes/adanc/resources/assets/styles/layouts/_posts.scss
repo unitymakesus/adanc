@@ -30,6 +30,12 @@
   }
 }
 
+.entry-title {
+  a:hover, a:focus {
+    color: $color-blue;
+  }
+}
+
 .post-image {
   margin: 0 auto;
   display: block;

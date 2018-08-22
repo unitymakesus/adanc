@@ -14,14 +14,42 @@
     display: flex;
     justify-content: space-around;
 
+    html[data-contrast=true] & {
+      background: #4a4a4a;
+      border: 1px solid #fff;
+
+      &:hover {
+        background: #4a4a4a;
+      }
+    }
+
     .menu-item-has-children {
       a {
         cursor: default;
+
+        html[data-contrast=true] & {
+          background: #4a4a4a;
+          color: $color-white;
+          border: 1px solid #fff;
+
+          &:hover {
+            background: #4a4a4a;
+          }
+        }
       }
 
       .sub-menu {
         a {
           cursor: pointer;
+
+          html[data-contrast=true] & {
+            background: $color-black;
+            border: 1px solid #fff;
+
+            &:hover {
+              background: #4a4a4a;
+            }
+          }
         }
       }
 

@@ -55,7 +55,6 @@ ul.wp-block-gallery {
   .alignwide {
     margin-left: -125px;
     margin-right: -125px;
-    max-width: 950px;
   }
 }
 
@@ -77,4 +76,20 @@ ul.wp-block-gallery {
   border: 0;
   color: #000;
   background: #fff;
+}
+
+// WP Video Gutenberg
+.is-type-video {
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.25%;
+
+  iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
 }

@@ -11,13 +11,13 @@
     </section>
 
     <section class="overview" aria-label="overview">
-      <div class="container">
+      <div class="container main-description">
         <h1>{!! App::title() !!}</h1>
         @if($overview)
           <p>{{ $overview['description'] }}</p>
           @if(($overview['button']))
             @foreach($overview['button'] as $button)
-                <a class="btn" href="{{$button['button_link']}}">{{$button['button_label']}}</a>
+                <a class="btn" href="{{$button['button_link']}}"><span>{{$button['button_label']}}</span></a>
             @endforeach
           @endif
         @endif

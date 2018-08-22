@@ -409,9 +409,10 @@ html[data-contrast="true"] {
     background-size: contain;
     display: block;
     box-sizing: border-box;
-    padding-left: 100%;
     padding-top: 27.65%;
     overflow: hidden;
+    float: right;
+    height: 70px;
   }
 
   .events-list.events-list time, .single-mc-events time {

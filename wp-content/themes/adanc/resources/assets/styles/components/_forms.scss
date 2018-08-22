@@ -62,6 +62,8 @@
 }
 
 .search-form {
+  position: relative;
+
   input[type=search]:not(.browser-default) {
     border: 2px solid $color-blue;
     width: 70%;
@@ -83,7 +85,7 @@
 
   .search-submit {
     background: $color-blue;
-    color: #fff;
+    color: $color-blue;
     border: none;
     border-top: 2px solid $color-blue;
     height: 2.2em;
@@ -95,7 +97,22 @@
       border: 1px solid #fff;
       height: 2.33em;
       bottom: 1px;
+      color: #4a4a4a;
     }
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 28px;
+    right: 40px;
+    width: 28px;
+    height: 28px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    background-image: url('../images/icon-search-white.svg');
+    pointer-events: none;
   }
 }
 
