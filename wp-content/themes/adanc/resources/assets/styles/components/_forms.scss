@@ -10,12 +10,29 @@
     pointer-events: auto;
   }
 
+  input:not([type]), input[type=text]:not(.browser-default), input[type=password]:not(.browser-default), input[type=email]:not(.browser-default), input[type=url]:not(.browser-default), input[type=time]:not(.browser-default), input[type=date]:not(.browser-default), input[type=datetime]:not(.browser-default), input[type=datetime-local]:not(.browser-default), input[type=tel]:not(.browser-default), input[type=number]:not(.browser-default), input[type=search]:not(.browser-default), textarea.materialize-textarea {
+    border: 1px solid $color-blue-dark;
+    font-weight: 300;
+  }
+
+  .wpcf7-list-item-label {
+    font-weight: 300;
+    font-family: $font-sans;
+    font-size: 14px;
+  }
+
   .wpcf7-checkbox {
-    column-count: 2;
     display: block;
 
     .wpcf7-list-item {
       display: block;
+      margin: 0;
+    }
+  }
+
+  .wpcf7-radio {
+    .wpcf7-list-item {
+      margin: 0 1em 0 0;
     }
   }
 
