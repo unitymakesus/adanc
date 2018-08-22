@@ -7668,7 +7668,9 @@ html[data-contrast="true"] .single-mc-events time {
 }
 
 .btn:hover,
-.btn-large:hover {
+.btn-large:hover,
+.btn:focus,
+.btn-large:focus {
   background-color: #e06609;
 }
 
@@ -7708,7 +7710,8 @@ html[data-contrast="true"] .btn-large {
   right: 0;
 }
 
-.ctct-form #ctct-submitted:hover {
+.ctct-form #ctct-submitted:hover,
+.ctct-form #ctct-submitted:focus {
   background-color: #e06609;
 }
 
@@ -7737,7 +7740,8 @@ html[data-contrast="true"] .wpcf7-submit {
   border: 1px solid #fff;
 }
 
-html[data-contrast="true"] .wpcf7-submit:hover {
+html[data-contrast="true"] .wpcf7-submit:hover,
+html[data-contrast="true"] .wpcf7-submit:focus {
   background: #fff;
   color: #000;
 }
@@ -8067,7 +8071,8 @@ nav ul li.active {
   right: 32px;
 }
 
-.menu-trigger-wrapper label:hover {
+.menu-trigger-wrapper label:hover,
+.menu-trigger-wrapper label:focus {
   color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
 }
@@ -8564,7 +8569,8 @@ html[data-contrast="true"] .footer-cta {
   padding: 10px;
 }
 
-.nextposts a:hover {
+.nextposts a:hover,
+.nextposts a:focus {
   background: #004560;
 }
 
@@ -8631,7 +8637,9 @@ body#tinymce {
 }
 
 .home .overview .btn:nth-of-type(2):hover,
-.home .overview .btn-large:nth-of-type(2):hover {
+.home .overview .btn-large:nth-of-type(2):hover,
+.home .overview .btn:nth-of-type(2):focus,
+.home .overview .btn-large:nth-of-type(2):focus {
   background-color: #004560;
 }
 
@@ -8657,7 +8665,9 @@ html[data-contrast="true"] .home .overview .btn-large:nth-of-type(2):hover {
 }
 
 .home .overview .btn:nth-of-type(3):hover,
-.home .overview .btn-large:nth-of-type(3):hover {
+.home .overview .btn-large:nth-of-type(3):hover,
+.home .overview .btn:nth-of-type(3):focus,
+.home .overview .btn-large:nth-of-type(3):focus {
   background-color: #95ac25;
 }
 
@@ -8683,7 +8693,9 @@ html[data-contrast="true"] .home .overview .btn-large:nth-of-type(3):hover {
 }
 
 .home .overview .btn:nth-of-type(4):hover,
-.home .overview .btn-large:nth-of-type(4):hover {
+.home .overview .btn-large:nth-of-type(4):hover,
+.home .overview .btn:nth-of-type(4):focus,
+.home .overview .btn-large:nth-of-type(4):focus {
   background-color: #c69d1b;
 }
 
@@ -8734,6 +8746,13 @@ html[data-contrast="true"] .home .services .service-item h3,
 html[data-contrast="true"] .home .services .service-item .facet-label {
   background: #000;
   border: 1px solid #fff;
+}
+
+.home .services .service-item:hover h3,
+.home .services .service-item:hover .facet-label,
+.home .services .service-item:focus h3,
+.home .services .service-item:focus .facet-label {
+  text-decoration: underline;
 }
 
 .home .featured-post img {
