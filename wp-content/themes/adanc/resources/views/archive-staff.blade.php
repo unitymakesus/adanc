@@ -10,21 +10,21 @@
       @while (have_posts()) @php the_post() @endphp
       <div class="staff-member member">
         <div class="row">
-          <div class="col m3" id="bio-pic">
+          <div class="col m3 bio-pic">
             <img src="{!! get_the_post_thumbnail_url($id, 'medium') !!}"/>
           </div>
 
           <div class="col m9">
             <div class="row">
               <div class="col m12">
-                <h3>{!! get_the_title() !!}</h3>
+                <h2>{!! get_the_title() !!}</h2>
               </div>
             </div>
 
             <div class="row">
-              <div class="col m5" id="bio-info">
+              <div class="col m5 bio-info">
                 @if (!empty($title = get_field('title')))
-                  <p>{{$title}}</p>
+                  <h3>{{$title}}</h3>
                 @endif
 
                 <p>919.833.1117
@@ -46,9 +46,9 @@
                 @endif
               </div>
 
-              <div class="col m7" id="bio-facts">
+              <div class="col m7 bio-facts">
                 @if (!empty($facts = get_field('facts')))
-                  <p>Interesting Facts</p>
+                  <h3>Interesting Facts</h3>
                   {!! $facts !!}
                 @endif
               </div>

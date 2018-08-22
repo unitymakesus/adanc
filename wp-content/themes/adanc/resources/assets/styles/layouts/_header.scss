@@ -11,8 +11,21 @@ header {
   }
 }
 
+header, nav {
+  a {
+    text-decoration: none;
+
+    &:hover, &:focus, &:active {
+      color: $color-white;
+      text-decoration: underline;
+    }
+  }
+}
+
 .page-header {
-  h1 {
+  h1, h2 {
+    @extend h1;
+
     bottom: 10px;
     width: 100%;
     padding: 10px;

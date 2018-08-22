@@ -1,3 +1,7 @@
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 500;
+}
+
 h1 {
   font-size: $size-extralarge;
   text-transform: uppercase;
@@ -7,21 +11,30 @@ h1 {
 
 h2 {
   font-size: $size-large;
-  text-transform: uppercase;
-  text-align: center;
+  font-weight: 500;
+  // text-transform: uppercase;
+  // text-align: center;
   color: $color-blue;
 }
 
 h3 {
+  font-weight: 500;
   font-size: $size-medium;
   color: $color-blue;
 }
 
 a {
   color: $color-blue;
+  text-decoration: underline;
+  transition: all 0.3s;
 
-  &:hover, &:focus {
-    text-decoration: underline;
+  &:hover, &:active {
+    text-decoration-style: double;
+    color: $color-blue-dark;
+
+    html[data-contrast="true"] & {
+      color: $color-white;
+    }
   }
 }
 
@@ -30,6 +43,12 @@ p {
   font-weight: 300;
   line-height: 1.6em;
   margin: 1.5em 0;
+}
+
+blockquote {
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 
 .content {

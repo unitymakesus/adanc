@@ -156,6 +156,11 @@
         var $wrap = $(this).closest('.fs-wrap');
         var do_close = false;
 
+        // prevent selections
+        if ($wrap.hasClass('fs-disabled')) {
+            return;
+        }
+
         if ($wrap.hasClass('multiple')) {
             var selected = [];
 
@@ -268,7 +273,8 @@
 
         // toggle the dropdown on space
         if ($target.hasClass('fs-wrap')) {
-            if (32 == e.which) {
+            if (32 == e.which || 13 == e.which) {
+                e.preventDefault();
                 $target.find('.fs-label').trigger('click');
                 return;
             }

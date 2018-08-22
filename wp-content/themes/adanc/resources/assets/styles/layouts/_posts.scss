@@ -2,6 +2,10 @@
   display: flex;
   flex-wrap: wrap;
 
+  .col.col {
+    margin-left: 0;
+  }
+
   article {
     margin: 2em 0;
 
@@ -17,6 +21,12 @@
       object-fit: cover;
       object-position: top;
     }
+  }
+}
+
+.single {
+  .entry-title {
+    text-transform: none;
   }
 }
 

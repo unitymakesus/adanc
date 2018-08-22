@@ -3,15 +3,10 @@
 class FacetWP_Facet_Proximity_Core extends FacetWP_Facet
 {
 
-    /**
-     * The ordered array of post IDs
-     */
+    /* (array) Ordered array of post IDs */
     public $ordered_posts = array();
 
-
-    /**
-     * An array containing each post ID and its distance
-     */
+    /* (array) Associative array containing each post ID and its distance */
     public $distance = array();
 
 
@@ -41,6 +36,19 @@ class FacetWP_Facet_Proximity_Core extends FacetWP_Facet
 
         $radius_options = array( 10, 25, 50, 100, 250 );
 
+        // Grab the radius UI
+        $radius_ui = empty( $facet['radius_ui'] ) ? 'dropdown' : $facet['radius_ui'];
+
+        // Grab radius options from the UI
+        if ( ! empty( $facet['radius_options'] ) ) {
+            $radius_options = explode( ',', preg_replace( '/\s+/', '', $facet['radius_options'] ) );
+        }
+
+        // Grab default radius from the UI
+        if ( empty( $chosen_radius ) && ! empty( $facet['radius_default'] ) ) {
+            $chosen_radius = (float) $facet['radius_default'];
+        }
+
         // Support dynamic radius
         if ( ! empty( $chosen_radius ) && 0 < $chosen_radius ) {
             if ( ! in_array( $chosen_radius, $radius_options ) ) {
@@ -52,16 +60,38 @@ class FacetWP_Facet_Proximity_Core extends FacetWP_Facet
 
         ob_start();
 ?>
-        <input type="text" id="facetwp-location" value="<?php echo esc_attr( $location_name ); ?>" placeholder="<?php _e( 'Enter location', 'fwp' ); ?>" />
+        <input type="text" class="facetwp-location" value="<?php echo esc_attr( $location_name ); ?>" placeholder="<?php _e( 'Enter location', 'fwp' ); ?>" />
 
-        <select id="facetwp-radius">
+        <?php if ( 'dropdown' == $radius_ui ) : ?>
+
+        <select class="facetwp-radius facetwp-radius-dropdown">
             <?php foreach ( $radius_options as $radius ) : ?>
             <?php $selected = ( $chosen_radius == $radius ) ? ' selected' : ''; ?>
             <option value="<?php echo $radius; ?>"<?php echo $selected; ?>><?php echo "$radius $unit"; ?></option>
             <?php endforeach; ?>
         </select>
 
-        <div style="display:none">
+        <?php elseif ( 'slider' == $radius_ui ) : ?>
+
+        <div class="facetwp-radius-wrap">
+            <input class="facetwp-radius facetwp-radius-slider" type="range"
+                min="<?php echo $facet['radius_min']; ?>"
+                max="<?php echo $facet['radius_max']; ?>"
+                value="<?php echo $chosen_radius; ?>"
+            />
+            <div class="facetwp-radius-label">
+                <span class="facetwp-radius-dist"><?php echo $chosen_radius; ?></span>
+                <span class="facetwp-radius-unit"><?php echo $facet['unit']; ?></span>
+            </div>
+        </div>
+
+        <?php elseif ( 'none' == $radius_ui ) : ?>
+
+        <input class="facetwp-radius facetwp-hidden" value="<?php echo $chosen_radius; ?>" />
+
+        <?php endif; ?>
+
+        <div class="facetwp-hidden">
             <input type="text" class="facetwp-lat" value="<?php echo esc_attr( $lat ); ?>" />
             <input type="text" class="facetwp-lng" value="<?php echo esc_attr( $lng ); ?>" />
         </div>
@@ -123,35 +153,6 @@ class FacetWP_Facet_Proximity_Core extends FacetWP_Facet
 
 
     /**
-     * Output admin scripts
-     */
-    function admin_scripts() {
-?>
-<script>
-(function($) {
-    wp.hooks.addAction('facetwp/load/proximity', function($this, obj) {
-        $this.find('.facet-source').val(obj.source);
-        $this.find('.facet-source-other').val(obj.source_other);
-        $this.find('.facet-unit').val(obj.unit);
-    });
-
-    wp.hooks.addFilter('facetwp/save/proximity', function(obj, $this) {
-        obj['source'] = $this.find('.facet-source').val();
-        obj['source_other'] = $this.find('.facet-source-other').val();
-        obj['unit'] = $this.find('.facet-unit').val();
-        return obj;
-    });
-
-    wp.hooks.addAction('facetwp/change/proximity', function($this) {
-        $this.closest('.facetwp-row').find('.facet-source-other').trigger('change');
-    });
-})(jQuery);
-</script>
-<?php
-    }
-
-
-    /**
      * Output front-end scripts
      */
     function front_scripts() {
@@ -167,7 +168,7 @@ class FacetWP_Facet_Proximity_Core extends FacetWP_Facet
             // hook
             $api_key = apply_filters( 'facetwp_gmaps_api_key', $api_key );
 
-            FWP()->display->assets['gmaps'] = '//maps.googleapis.com/maps/api/js?libraries=places&key=' . $api_key;
+            FWP()->display->assets['gmaps'] = '//maps.googleapis.com/maps/api/js?libraries=places&key=' . trim( $api_key );
         }
 
         // Pass extra options into Places Autocomplete
@@ -181,40 +182,84 @@ class FacetWP_Facet_Proximity_Core extends FacetWP_Facet
      * Output admin settings HTML
      */
     function settings_html() {
-        $sources = FWP()->helper->get_data_sources();
 ?>
-        <tr>
-            <td>
-                <?php _e('Other data source', 'fwp'); ?>:
+        <div class="facetwp-row">
+            <div>
+                <?php _e('Longitude', 'fwp'); ?>:
                 <div class="facetwp-tooltip">
                     <span class="icon-question">?</span>
-                    <div class="facetwp-tooltip-content"><?php _e( 'Use a separate value for the longitude?', 'fwp' ); ?></div>
+                    <div class="facetwp-tooltip-content"><?php _e( '(Optional) use a separate longitude field', 'fwp' ); ?></div>
                 </div>
-            </td>
-            <td>
-                <select class="facet-source-other">
-                    <option value=""><?php _e( 'None', 'fwp' ); ?></option>
-                    <?php foreach ( $sources as $group ) : ?>
-                    <optgroup label="<?php echo $group['label']; ?>">
-                        <?php foreach ( $group['choices'] as $val => $label ) : ?>
-                        <option value="<?php echo esc_attr( $val ); ?>"><?php echo esc_html( $label ); ?></option>
-                        <?php endforeach; ?>
-                    </optgroup>
-                    <?php endforeach; ?>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td>
+            </div>
+            <div>
+                <data-sources
+                    :facet="facet"
+                    :selected="facet.source_other"
+                    :sources="$root.data_sources"
+                    settingName="source_other">
+                </data-sources>
+            </div>
+        </div>
+        <div class="facetwp-row">
+            <div>
                 <?php _e( 'Unit of measurement', 'fwp' ); ?>:
-            </td>
-            <td>
+            </div>
+            <div>
                 <select class="facet-unit">
                     <option value="mi"><?php _e( 'Miles', 'fwp' ); ?></option>
                     <option value="km"><?php _e( 'Kilometers', 'fwp' ); ?></option>
                 </select>
-            </td>
-        </tr>
+            </div>
+        </div>
+        <div class="facetwp-row">
+            <div>
+                <?php _e( 'Radius UI', 'fwp' ); ?>:
+            </div>
+            <div>
+                <select class="facet-radius-ui">
+                    <option value="dropdown"><?php _e( 'Dropdown', 'fwp' ); ?></option>
+                    <option value="slider"><?php _e( 'Slider', 'fwp' ); ?></option>
+                    <option value="none"><?php echo _e( 'None', 'fwp' ); ?></option>
+                </select>
+            </div>
+        </div>
+        <div class="facetwp-row" v-show="facet.radius_ui == 'dropdown'">
+            <div>
+                <?php _e( 'Radius options', 'fwp' ); ?>:
+                <div class="facetwp-tooltip">
+                    <span class="icon-question">?</span>
+                    <div class="facetwp-tooltip-content">
+                        A comma-separated list of radius choices
+                    </div>
+                </div>
+            </div>
+            <div>
+                <input type="text" class="facet-radius-options" value="10, 25, 50, 100, 250" />
+            </div>
+        </div>
+        <div class="facetwp-row" v-show="facet.radius_ui == 'slider'">
+            <div>
+                <?php _e( 'Slider range', 'fwp' ); ?>:
+                <div class="facetwp-tooltip">
+                    <span class="icon-question">?</span>
+                    <div class="facetwp-tooltip-content">
+                        Set the lower and upper limits
+                    </div>
+                </div>
+            </div>
+            <div>
+                <input type="number" class="facet-radius-min" value="1" />
+                <input type="number" class="facet-radius-max" value="50" />
+            </div>
+        </div>
+        <div class="facetwp-row">
+            <div>
+                <?php _e( 'Default radius', 'fwp' ); ?>:
+            </div>
+            <div>
+                <input type="number" class="facet-radius-default" value="25" />
+            </div>
+        </div>
 <?php
     }
 

@@ -14,12 +14,17 @@
     @if($board)
       <div class="container content-wrapper">
         <div class="row">
+        @php $i = 0; @endphp
         @foreach($board as $member)
+          @if($i % 4 === 0)
+            </div><div class="row">
+          @endif
           <div class="member col s6 m3">
             <img src="{{$member['photo']}}"/>
             <h3>{{$member['name']}}</h3>
             <p>{{$member['role']}}</p>
           </div>
+          @php $i++; @endphp
         @endforeach
         </div>
       </div>

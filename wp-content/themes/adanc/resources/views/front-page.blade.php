@@ -8,6 +8,9 @@
   @while(have_posts()) @php the_post() @endphp
     <section class="hero" aria-label="hero">
       <img src="{!! get_the_post_thumbnail_url($id, 'full') !!}"/>
+    </section>
+
+    <section class="overview" aria-label="overview">
       <div class="container">
         <h1>{!! App::title() !!}</h1>
         @if($overview)

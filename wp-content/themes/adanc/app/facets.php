@@ -26,7 +26,6 @@ add_filter( 'facetwp_index_row', function( $params, $class ) {
         // skip the default indexing query
         return false;
     }
-    error_log(print_r($params, true));
     return $params;
 }, 10, 2 );
 
@@ -106,7 +105,7 @@ add_filter( 'facetwp_pager_html', function( $output, $params ) {
   if ( 1 < $total_pages ) {
     $text_page      = __( 'Page', 'fwp' );
     $text_of        = __( 'of', 'fwp' );
-    $output = '<p class="facetwp-pager-label">' . "$text_page $page $text_of $total_pages</p>";
+    $output = '<label>' . "$text_page $page $text_of $total_pages</label>";
     $output .= '<ul>';
     $gap_before = '';
     $gap_after = '';

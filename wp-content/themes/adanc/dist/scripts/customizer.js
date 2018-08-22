@@ -722,7 +722,11 @@
 /******/ 	__webpack_require__.h = function() { return hotCurrentHash; };
 /******/
 /******/ 	// Load entry module and return exports
+<<<<<<< HEAD
 /******/ 	return hotCreateRequire(45)(__webpack_require__.s = 45);
+=======
+/******/ 	return __webpack_require__(__webpack_require__.s = 11);
+>>>>>>> 223b0d2d14552d54aaf949be4708b61ba75bf370
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -2164,6 +2168,7 @@ Html4Entities.prototype.encodeNonASCII = function(str) {
     return result;
 };
 
+<<<<<<< HEAD
 /**
  * @param {String} str
  * @returns {String}
@@ -2330,6 +2335,12 @@ module.exports = function(hash, moduleMap, options) {
     }
   }
 };
+=======
+/***/ 11:
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(12);
+>>>>>>> 223b0d2d14552d54aaf949be4708b61ba75bf370
 
 
 /***/ }),
@@ -2373,6 +2384,7 @@ module.exports = function(hash, moduleMap, options) {
 __webpack_require__(/*! /Users/lexinamer/Desktop/Unity/Github/adanc/app/public/wp-content/themes/adanc/resources/assets/build/util/../helpers/hmr-client.js */3);
 module.exports = __webpack_require__(/*! ./scripts/customizer.js */46);
 
+<<<<<<< HEAD
 
 /***/ }),
 /* 46 */
@@ -2381,6 +2393,9 @@ module.exports = __webpack_require__(/*! ./scripts/customizer.js */46);
   \*******************************/
 /*! no exports provided */
 /*! all exports used */
+=======
+/***/ 12:
+>>>>>>> 223b0d2d14552d54aaf949be4708b61ba75bf370
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
