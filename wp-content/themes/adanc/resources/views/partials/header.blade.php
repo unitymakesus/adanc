@@ -1,17 +1,10 @@
 <a href="#main" class="screen-reader-text">Skip to content</a>
 <header class="banner" role="banner">
-  <div class="hide-on-med-and-up">
-    <div class="a11y-tools-trigger-wrapper">
-      <input type="checkbox" name="a11y-tools-trigger" id="a11y-tools-trigger" value="true" />
-      <label for="a11y-tools-trigger"><i class="material-icons" aria-label="Show accessibility tools">accessibility_new</i></a>
-    </div>
-  </div>
-
   <div class="row">
 
-    <div class="col m3">{!! get_search_form(false) !!}</div>
+    <div class="col xl4 m4 s12">{!! get_search_form(false) !!}</div>
 
-    <div class="col m3 offset-m1 logo-container">
+    <div class="col xl3 m5 s12 logo-container">
       <a class="logo" href="{{ home_url('/') }}" rel="home">
       @if (has_custom_logo())
         @php
@@ -29,7 +22,12 @@
       </a>
     </div>
 
-    <div class="col m5">
+    <div class="col xl5 s12">
+      <div class="a11y-tools-trigger-wrapper">
+        <input type="checkbox" name="a11y-tools-trigger" id="a11y-tools-trigger" value="true" />
+        <label for="a11y-tools-trigger"><i class="material-icons" aria-label="Show accessibility tools">accessibility_new</i></a>
+      </div>
+      
       <div class="a11y-tools" role="toolbar" aria-label="Accessibility Tools">
           <div class="flex flex-end">
             <fieldset id="text-size" class="text-size" tabindex="-1">

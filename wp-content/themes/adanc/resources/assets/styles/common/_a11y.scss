@@ -20,19 +20,29 @@
 }
 
 .a11y-tools-trigger-wrapper {
+  display: none;
   position: absolute;
   right: 5%;
   top: 5px;
   transition: top 0.3s ease;
 
-  @media #{$small-and-down} {
-    .a11y-tools-active & {
-      top: 125px;
-    }
+  @media #{$large-and-down} {
+    display: block;
+    top: -5px;
   }
 
   input:focus + label {
     outline: $color-gray-dark auto 5px;
+  }
+
+  input[type="checkbox"]:checked {
+    background: $color-blue-dark;
+
+    + label::before {
+      width: 0;
+      height: 0;
+      border: 0;
+    }
   }
 
   label {
@@ -44,6 +54,13 @@
     text-align: center;
     cursor: pointer;
     transition: background 0.3s ease;
+
+    &::before {
+      content: "";
+      width: 0;
+      height: 0;
+      border: 0;
+    }
 
     i {
       position: absolute;
@@ -84,17 +101,25 @@ nav ul li.active {
   }
 }
 
+.a11y-tools-active .a11y-tools {
+  top: -10px;
+}
+
 .a11y-tools {
   height: 50px;
   transition: height 0.3s ease;
   position: relative;
 
-  @media #{$small-and-down} {
-    height: 0;
-
-    .a11y-tools-active & {
-      height: 110px;
-    }
+  @media #{$large-and-down} {
+    height: auto;
+    height: 75px;
+    position: absolute;
+    top: -300px;
+    overflow: hidden;
+    background: $color-blue-dark;
+    color: $color-white;
+    padding: 10px;
+    width: 75%;
   }
 
   .container {
@@ -147,7 +172,7 @@ nav ul li.active {
         color: $color-black;
       }
 
-      &:hover {
+      &:hover, &:focus, &:active {
         background: $color-gray-medium;
 
         &::after {

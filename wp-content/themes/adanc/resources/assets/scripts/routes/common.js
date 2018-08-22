@@ -132,12 +132,10 @@ export default {
 
     // Toggle a11y toolbar
     $('#a11y-tools-trigger').on('change', function() {
-      if (mDown.matches) {
-        if ($(this).prop('checked')) {
-          showA11yToolbar();
-        } else {
-          hideA11yToolbar();
-        }
+      if ($(this).prop('checked')) {
+        showA11yToolbar();
+      } else {
+        hideA11yToolbar();
       }
     });
 

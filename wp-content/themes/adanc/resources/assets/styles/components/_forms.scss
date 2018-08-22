@@ -80,6 +80,7 @@
 
 .search-form {
   position: relative;
+  width: 300px;
 
   input[type=search]:not(.browser-default) {
     border: 2px solid $color-blue;
@@ -116,6 +117,10 @@
       bottom: 1px;
       color: #4a4a4a;
     }
+
+    @media #{$small-and-down} {
+      height: 2.24em;
+    }
   }
 
   &::after {
@@ -130,6 +135,10 @@
     background-position: center;
     background-image: url('../images/icon-search-white.svg');
     pointer-events: none;
+
+    @media #{$small-and-down} {
+      bottom: 25px;
+    }
   }
 }
 

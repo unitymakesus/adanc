@@ -16,8 +16,14 @@ h2 {
 }
 
 h3 {
-  font-weight: 500;
+  font-weight: 300;
   font-size: $size-medium;
+  color: $color-blue;
+}
+
+h4 {
+  font-weight: 300;
+  font-size: $size-regular-medium;
   color: $color-blue;
 }
 

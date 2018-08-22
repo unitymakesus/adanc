@@ -4,7 +4,8 @@ header {
     padding: 0;
     padding-right: 0 !important;
 
-    @media #{$small-and-down} {
+    @media #{$large-and-down} {
+      text-align: center;
       display: block;
       margin: 0 auto;
     }
