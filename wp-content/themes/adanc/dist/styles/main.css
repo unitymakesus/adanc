@@ -7048,6 +7048,18 @@ img {
 
 h1,
 .page-header h1,
+.page-header h2,
+h2,
+h3,
+.facet-label,
+h4,
+h5,
+h6 {
+  font-weight: 500;
+}
+
+h1,
+.page-header h1,
 .page-header h2 {
   font-size: 1.94444rem;
   text-transform: uppercase;
@@ -7129,7 +7141,7 @@ blockquote {
   width: 1.2em;
   text-align: center;
   display: inline-block;
-  font-weight: 400;
+  font-weight: 500;
   position: absolute;
   top: -2px;
   left: -30px;
@@ -7155,7 +7167,7 @@ html[data-contrast="true"] .content ol li::before {
   width: 1.2em;
   text-align: center;
   display: inline-block;
-  font-weight: 400;
+  font-weight: 500;
   position: absolute;
   top: -2px;
   left: -30px;
@@ -7260,7 +7272,6 @@ html[data-contrast=true] nav ul li.active {
 
 .a11y-tools {
   height: 50px;
-  overflow: hidden;
   -webkit-transition: height 0.3s ease;
   -o-transition: height 0.3s ease;
   transition: height 0.3s ease;
@@ -7305,6 +7316,7 @@ html[data-contrast=true] nav ul li.active {
 .a11y-tools fieldset legend {
   width: 65px;
   font-size: 12px;
+  font-weight: 300;
   padding-top: 8px;
 }
 
@@ -7916,6 +7928,8 @@ ul.wp-block-gallery li::before {
 .nav-primary {
   background: #006993;
   font-weight: 300;
+  position: relative;
+  z-index: 50;
 }
 
 html[data-contrast="true"] .nav-primary {
@@ -7936,47 +7950,57 @@ html[data-contrast="true"] .nav-primary {
   cursor: default;
 }
 
-.nav-primary ul .menu-item-has-children .sub-menu {
-  max-height: 300em;
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-      -ms-flex-direction: column;
-          flex-direction: column;
-  position: absolute;
-  z-index: 10;
-  background: #006993;
-  -webkit-transition: max-height 0.3s ease;
-  -o-transition: max-height 0.3s ease;
-  transition: max-height 0.3s ease;
-  height: 0;
-  overflow: hidden;
-}
-
 .nav-primary ul .menu-item-has-children .sub-menu a {
   cursor: pointer;
 }
 
-.nav-primary ul .menu-item-has-children:hover .sub-menu {
+.nav-primary ul .menu-item-has-children:hover .sub-menu,
+.nav-primary ul .menu-item-has-children:focus .sub-menu,
+.nav-primary ul .menu-item-has-children.hover .sub-menu {
   height: auto;
+}
+
+@media only screen and (min-width: 993px) {
+  .nav-primary ul .sub-menu {
+    max-height: 300em;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    position: absolute;
+    z-index: 10;
+    background: #006993;
+    -webkit-transition: max-height 0.3s ease;
+    -o-transition: max-height 0.3s ease;
+    transition: max-height 0.3s ease;
+    height: 0;
+    overflow: hidden;
+  }
 }
 
 @media only screen and (max-width: 992px) {
   .nav-primary ul {
     -webkit-box-orient: vertical;
     -webkit-box-direction: normal;
-        -ms-flex-direction: column;
-            flex-direction: column;
+        -ms-flex-flow: nowrap column;
+            flex-flow: nowrap column;
     margin: 0;
+    width: 100%;
+    -webkit-transition: max-height 0.3s ease;
+    -o-transition: max-height 0.3s ease;
+    transition: max-height 0.3s ease;
+    max-height: 0;
+    overflow: hidden;
     background: #006993;
     text-align: center;
-    position: relative;
-    z-index: 100;
-    display: none;
   }
 
   .nav-primary ul li {
     width: 100%;
-    background: #006993;
+  }
+
+  .nav-primary ul li.hover .sub-menu {
+    max-height: 300em;
   }
 
   .nav-primary ul .menu-item-has-children a {
@@ -7984,13 +8008,16 @@ html[data-contrast="true"] .nav-primary {
   }
 
   .nav-primary ul .menu-item-has-children .sub-menu {
-    display: none;
-    max-height: 300em;
-    position: relative;
+    max-height: 0;
+    overflow: hidden;
+    -webkit-transition: max-height 0.3s ease;
+    -o-transition: max-height 0.3s ease;
+    transition: max-height 0.3s ease;
+    background: #c9d9e3;
   }
 
-  .nav-primary ul .menu-item-has-children .sub-menu li {
-    background: #909090;
+  .nav-primary ul .menu-item-has-children .sub-menu a {
+    color: #404040;
   }
 
   .mobilenav-active .nav-primary ul {
@@ -8350,7 +8377,6 @@ html[data-contrast="true"] .page-header h2 {
 footer {
   background: #006993;
   color: #fff;
-  padding: 5px 1em;
   font-weight: 300;
   padding-top: 1.5em;
 }
@@ -8387,7 +8413,8 @@ footer .textwidget p {
   color: #fff;
   font-weight: 300;
   font-size: 0.83333rem;
-  padding: 5px 1em;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 html[data-contrast="true"] .footer-copyright {
@@ -8557,7 +8584,6 @@ body#tinymce {
 
 .home .hero {
   text-align: center;
-  margin-bottom: 2em;
   position: relative;
   overflow: hidden;
 }
@@ -8588,6 +8614,10 @@ body#tinymce {
           filter: blur(20px);
   background-size: cover;
   z-index: 0;
+}
+
+.home .overview {
+  padding: 2em 0;
 }
 
 .home .overview .btn:nth-of-type(2),

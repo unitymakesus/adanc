@@ -1,6 +1,6 @@
 // import external dependencies
 import 'jquery';
-import 'materialize-css';
+// import 'materialize-css';
 
 // Import everything from autoload
 import "./autoload/**/*"
@@ -17,7 +17,7 @@ var WebFont = require('webfontloader');
 
 WebFont.load({
  google: {
-   families: ['Montserrat:300,400,400i,500,500i', 'Material+Icons'],
+   families: ['Montserrat:300,300i,500,500i', 'Material+Icons'],
  },
 });
 

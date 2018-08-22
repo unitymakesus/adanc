@@ -86,7 +86,6 @@ nav ul li.active {
 
 .a11y-tools {
   height: 50px;
-  overflow: hidden;
   transition: height 0.3s ease;
   position: relative;
 
@@ -122,6 +121,7 @@ nav ul li.active {
     legend {
       width: 65px;
       font-size: 12px;
+      font-weight: 300;
       padding-top: 8px;
 
       @media #{$xsmall-and-down} {

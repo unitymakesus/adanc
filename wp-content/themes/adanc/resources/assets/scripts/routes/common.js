@@ -12,23 +12,9 @@ export default {
         $(this).children('a').attr('aria-current', 'page');
       }
     });
-    // Sidebar navigation
-    $('.widget_nav_menu .menu-item').each(function() {
-      if ($(this).hasClass('current-page-ancestor')) {
-        $(this).children('a').attr('aria-current', 'true');
-      }
-      if ($(this).hasClass('current-menu-item')) {
-        $(this).children('a').attr('aria-current', 'page');
-      }
-    });
-
-    /**
-     * Add mobile trigger for sidebar navigation
-     */
-    $('.sidebar .widget_nav_menu > div[class*="menu-"]').prepend('<button class="sidebar-nav-trigger hide-on-med-and-up" id="sidebar-nav-trigger">Select Page <i class="material-icons">keyboard_arrow_down</i></button>');
   },
   finalize() {
-    const smDown = window.matchMedia( "(max-width: 768px)" );
+    const mDown = window.matchMedia( "(max-width: 992px)" );
 
     // Activate search box
     function activateSearch() {
@@ -90,46 +76,17 @@ export default {
       });
     }
 
-    // Show mobile sidebar-nav
-    function showMobileAsideNav() {
-      $('body').addClass('mobile-aside-nav-active');
-
-      // Enable focus of nav items using tabindex
-      $('.widget_nav_menu').each(function() {
-        var el = $(this);
-        $('a', el).attr('tabindex', '0');
-      });
-    }
-
-    // Hide mobile sidebar-nav
-    function hideMobileAsideNav() {
-      $('body').removeClass('mobile-aside-nav-active');
-
-      // Disable focus of nav items using tabindex
-      $('.widget_nav_menu').each(function() {
-        var el = $(this);
-        $('a', el).attr('tabindex', '-1');
-      });
-    }
-
-    // Toggle mobile sidebar-nav
-    $('#menu-trigger').on('click', function() {
-      $('.nav-primary ul').slideToggle();
-
-      if ($('body').hasClass('mobile-aside-nav-active')) {
-        hideMobileAsideNav();
+    // Toggle mobile nav
+    $('#menu-trigger').on('change focusout', function() {
+      if ($(this).prop('checked')) {
+        showMobileNav();
       } else {
-        showMobileAsideNav();
+        hideMobileNav();
       }
     });
 
-    // Toggle mobile dropdown menu_class
-    $('.menu-item-has-children').on('click', function() {
-      $('.sub-menu').slideToggle();
-    });
-
-    // Only show mobile sidebarnav if an element inside is receiving focus
-    $('.widget_nav_menu').each(function() {
+    // Only show mobile nav if an element inside is receiving focus
+    $('.navbar-menu').each(function () {
       var el = $(this);
 
       $('a', el).on('focus', function() {
@@ -137,12 +94,13 @@ export default {
       }).on('focusout', function() {
         $(this).parents('li').removeClass('hover');
 
-        if (smDown.matches) {
-          setTimeout(function() {
-            if ($(':focus').closest('ul.menu').length == 0) {
-              hideMobileAsideNav();
+        if (mDown.matches) {
+          setTimeout(function () {
+            if ($(':focus').closest('#menu-primary-menu').length == 0) {
+              $('#menu-trigger').prop('checked', false);
+              hideMobileNav();
             }
-          });
+          }, 200);
         }
       });
     });
@@ -172,38 +130,9 @@ export default {
       }, 200);
     });
 
-    // Toggle mobile nav
-    $('#menu-trigger').on('change focusout', function() {
-      if ($(this).prop('checked')) {
-        showMobileNav();
-      } else {
-        hideMobileNav();
-      }
-    });
-
-    // Only show mobile nav if an element inside is receiving focus
-    $('.navbar-menu').each(function () {
-      var el = $(this);
-
-      $('a', el).on('focus', function() {
-        $(this).parents('li').addClass('hover');
-      }).on('focusout', function() {
-        $(this).parents('li').removeClass('hover');
-
-        if (smDown.matches) {
-          setTimeout(function () {
-            if ($(':focus').closest('#menu-primary-menu').length == 0) {
-              $('#menu-trigger').prop('checked', false);
-              hideMobileNav();
-            }
-          }, 200);
-        }
-      });
-    });
-
     // Toggle a11y toolbar
     $('#a11y-tools-trigger').on('change', function() {
-      if (smDown.matches) {
+      if (mDown.matches) {
         if ($(this).prop('checked')) {
           showA11yToolbar();
         } else {
@@ -215,7 +144,7 @@ export default {
     // Make a11y toolbar keyboard accessible
     $('.a11y-tools').on('focusout', 'input', function() {
       setTimeout(function () {
-        if (smDown.matches) {
+        if (mDown.matches) {
           if ($(':focus').closest('.a11y-tools').length == 0) {
             $('#a11y-tools-trigger').prop('checked', false);
             hideA11yToolbar();
@@ -257,10 +186,6 @@ export default {
       var domain = getDomainName(hostname);
       document.cookie = "googtrans=/en/es;path=/;domain=" + domain + ";";
       location.reload();
-    });
-
-    $(document).ready(function(){
-      $('select').formSelect();
     });
   },
 };

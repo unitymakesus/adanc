@@ -1,7 +1,6 @@
 .home {
   .hero {
     text-align: center;
-    margin-bottom: 2em;
     position: relative;
     overflow: hidden;
 
@@ -31,6 +30,8 @@
   }
 
   .overview {
+    padding: 2em 0;
+
     .btn {
       &:nth-of-type(2) {
         @include button($color-blue, $color-blue-dark);

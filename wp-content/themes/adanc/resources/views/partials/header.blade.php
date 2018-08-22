@@ -88,6 +88,6 @@
       <input type="checkbox" name="menu-trigger" id="menu-trigger" value="true" />
       <label for="menu-trigger"><i class="material-icons" aria-label="Show navigation menu">menu</i></a>
     </div>
-    {!! wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'nav']) !!}
+    {!! wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'navbar-menu']) !!}
   @endif
 </nav>
