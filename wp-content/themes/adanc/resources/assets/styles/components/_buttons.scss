@@ -26,14 +26,19 @@
 .ctct-form {
   position: relative;
 
+  .ctct-email {
+    border: 1px solid $color-blue-dark !important;
+  }
+
   #ctct-submitted {
     @include button($color-orange, $color-orange-dark);
 
-    height: 2.5rem;
+    height: 3rem;
     border: none;
     position: absolute;
-    top: 39px;
-    right: 0;
+    top: 57px;
+    right: -1px;
+    padding: 0 20px;
 
     &:active, &:focus {
       border: 1px solid black;

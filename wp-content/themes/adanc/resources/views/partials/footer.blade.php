@@ -1,6 +1,6 @@
 @if(! is_front_page() )
   <div class="footer-cta">
-    <a class="btn" href="/contribute/"><i class="material-icons right">redeem</i>DONATE</a>
+    <a class="btn" href="/donate/"><i class="material-icons right">redeem</i>DONATE</a>
   </div>
 @endif
 
