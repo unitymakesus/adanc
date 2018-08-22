@@ -53,7 +53,7 @@ $interval-size: $range / $intervals;
   background-image: linear-gradient(to bottom right, transparent 0, transparent 50%, $color2 50%, $color2 100%);
   color: $color-white;
 
-  &:hover {
+  &:hover, &:focus {
     background-color: $color2;
   }
 }

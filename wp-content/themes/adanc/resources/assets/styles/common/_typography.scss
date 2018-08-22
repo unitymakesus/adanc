@@ -20,7 +20,7 @@ h3 {
 a {
   color: $color-blue;
 
-  &:hover {
+  &:hover, &:focus {
     text-decoration: underline;
   }
 }

@@ -32,7 +32,7 @@
         }
       }
 
-      &:hover {
+      &:hover, &:focus {
         .sub-menu {
           height: auto;
         }
@@ -116,7 +116,7 @@ nav ul li.active {
       right: 32px;
     }
 
-    &:hover {
+    &:hover, &:focus {
       color: rgba($color-white, 0.7);
       cursor: pointer;
     }
