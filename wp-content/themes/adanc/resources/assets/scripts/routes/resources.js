@@ -3,9 +3,9 @@ export default {
     $(document).on('facetwp-loaded', function() {
       $('.ajax-video').each(function() {
         // eslint-disable-next-line no-undef
-        new AblePlayer($(this));
+        // new AblePlayer($(this));
       });
-      
+
       /**
        * Add labels above each facet
        */
