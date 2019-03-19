@@ -27,9 +27,9 @@
                   <h3>{{$title}}</h3>
                 @endif
 
-                <p>919.833.1117
+                <p>
                 @if (!empty($extension = get_field('extension')))
-                  Ext. {{$extension}}
+                  {{$extension}}
                 @endif
                 </p>
 
