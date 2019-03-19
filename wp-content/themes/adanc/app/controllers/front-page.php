@@ -20,6 +20,6 @@ class FrontPage extends Controller
   }
 
   public function callout(){
-    return get_field('calout');
+    return get_field('callout');
   }
 }

@@ -71,11 +71,11 @@
             @if($callout)
             <div class="row">
               <h2>{{ $callout['callout_title'] }}</h2>
-              {{ $callout['callout_info'] }}
+              {!! $callout['callout_info'] !!}
               <a class="btn" href="{{ $callout['callout_link'] }}">Learn More</a>
             </div>
             @endif
-            
+
           </div>
           <div class="col s12 m5 offset-m2">
             @if($information)
