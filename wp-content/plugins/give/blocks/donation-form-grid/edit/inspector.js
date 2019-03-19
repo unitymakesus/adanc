@@ -3,71 +3,100 @@
  */
 const { __ } = wp.i18n;
 const { InspectorControls } = wp.editor;
-const { PanelBody } = wp.components;
-const { Component } = wp.element;
+const { PanelBody, SelectControl, ToggleControl, TextControl } = wp.components;
 
 /**
  * Internal dependencies
  */
-import GiveToggleControl from '../../components/toggle-control/index';
-import GiveSelectControl from '../../components/select-control/index';
 import giveFormOptions from '../data/options';
 
 /**
  * Render Inspector Controls
 */
-class Inspector extends Component {
-	constructor( props ) {
-		super( props );
 
-		this.saveSetting = this.saveSetting.bind( this );
-	}
+const Inspector = ( { attributes, setAttributes } ) => {
+	const { formsPerPage, formIDs, excludedFormIDs, orderBy, order, categories, tags, columns, showTitle, showExcerpt, showGoal, showFeaturedImage, displayType } = attributes;
+	const saveSetting = ( name, value ) => {
+		setAttributes( {
+			[ name ]: value,
+		} );
+	};
 
-	saveSetting( event ) {
-		const name = event.target.name;
-
-		this.props.setAttributes(
-			'checkbox' === event.target.type ?
-				{ [ name ]: ! this.props.attributes[ name ] } :
-				{ [ name ]: event.target.value }
-		);
-	}
-
-	render() {
-		return (
-			<InspectorControls key="inspector">
-				<PanelBody title={ __( 'Settings' ) }>
-					<GiveSelectControl
-						label={ __( 'Columns' ) }
-						name="columns"
-						value={ this.props.attributes.columns }
-						options={ giveFormOptions.columns }
-						onChange={ this.saveSetting } />
-					<GiveToggleControl
-						name="showExcerpt"
-						label={ __( 'Show Excerpt' ) }
-						checked={ !! this.props.attributes.showExcerpt }
-						onChange={ this.saveSetting } />
-					<GiveToggleControl
-						name="showGoal"
-						label={ __( 'Show Goal' ) }
-						checked={ !! this.props.attributes.showGoal }
-						onChange={ this.saveSetting } />
-					<GiveToggleControl
-						name="showFeaturedImage"
-						label={ __( 'Show Featured Image' ) }
-						checked={ !! this.props.attributes.showFeaturedImage }
-						onChange={ this.saveSetting } />
-					<GiveSelectControl
-						label={ __( 'Display Type' ) }
-						name="displayType"
-						value={ this.props.attributes.displayType }
-						options={ giveFormOptions.displayType }
-						onChange={ this.saveSetting } />
-				</PanelBody>
-			</InspectorControls>
-		);
-	}
-}
+	return (
+		<InspectorControls key="inspector">
+			<PanelBody title={ __( 'Form Grid Settings' ) }>
+				<TextControl
+					name="formsPerPage"
+					label={ __( 'Forms Per Page' ) }
+					value={ formsPerPage }
+					onChange={ ( value ) => saveSetting( 'formsPerPage', value ) }/>
+				<TextControl
+					name="formIDs"
+					label={ __( 'Form IDs' ) }
+					value={ formIDs }
+					onChange={ ( value ) => saveSetting( 'formIDs', value ) }/>
+				<TextControl
+					name="excludedFormIDs"
+					label={ __( 'Excluded Form IDs' ) }
+					value={ excludedFormIDs }
+					onChange={ ( value ) => saveSetting( 'excludedFormIDs', value ) }/>
+				<SelectControl
+					label={ __( 'Order By' ) }
+					name="orderBy"
+					value={ orderBy }
+					options={ giveFormOptions.orderBy }
+					onChange={ ( value ) => saveSetting( 'orderBy', value ) } />
+				<SelectControl
+					label={ __( 'Order' ) }
+					name="order"
+					value={ order }
+					options={ giveFormOptions.order }
+					onChange={ ( value ) => saveSetting( 'order', value ) } />
+				<TextControl
+					name="categories"
+					label={ __( 'Categories' ) }
+					value={ categories }
+					onChange={ ( value ) => saveSetting( 'categories', value ) }/>
+				<TextControl
+					name="tags"
+					label={ __( 'Tags' ) }
+					value={ tags }
+					onChange={ ( value ) => saveSetting( 'tags', value ) }/>
+				<SelectControl
+					label={ __( 'Columns' ) }
+					name="columns"
+					value={ columns }
+					options={ giveFormOptions.columns }
+					onChange={ ( value ) => saveSetting( 'columns', value ) } />
+				<ToggleControl
+					name="showTitle"
+					label={ __( 'Show Title' ) }
+					checked={ !! showTitle }
+					onChange={ ( value ) => saveSetting( 'showTitle', value ) } />
+				<ToggleControl
+					name="showExcerpt"
+					label={ __( 'Show Excerpt' ) }
+					checked={ !! showExcerpt }
+					onChange={ ( value ) => saveSetting( 'showExcerpt', value ) } />
+				<ToggleControl
+					name="showGoal"
+					label={ __( 'Show Goal' ) }
+					checked={ !! showGoal }
+					onChange={ ( value ) => saveSetting( 'showGoal', value ) } />
+				<ToggleControl
+					name="showFeaturedImage"
+					label={ __( 'Show Featured Image' ) }
+					checked={ !! showFeaturedImage }
+					onChange={ ( value ) => saveSetting( 'showFeaturedImage', value ) } />
+				<SelectControl
+					label={ __( 'Display Type' ) }
+					name="displayType"
+					value={ displayType }
+					options={ giveFormOptions.displayType }
+					onChange={ ( value ) => saveSetting( 'displayType', value ) } />
+			</PanelBody>
+		</InspectorControls>
+	);
+};
 
 export default Inspector;

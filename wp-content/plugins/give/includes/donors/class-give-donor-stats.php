@@ -6,7 +6,7 @@
  *
  * @package     Give
  * @subpackage  Classes/Donor/Stats
- * @copyright   Copyright (c) 2018, WordImpress
+ * @copyright   Copyright (c) 2018, GiveWP
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       2.2.0
  */
@@ -61,7 +61,7 @@ class Give_Donor_Stats {
 		global $wpdb;
 		$donation_id_col = Give()->payment_meta->get_meta_type() . '_id';
 
-		$donated_amount = '';
+		$donated_amount = 0;
 
 		if ( empty( $args['donor'] ) ) {
 			return $donated_amount;
@@ -86,7 +86,7 @@ class Give_Donor_Stats {
 		if ( ! empty( $donated_amounts ) ) {
 			foreach ( $donated_amounts as $donation ) {
 				// Do not include anonymous donation in calculation.
-				if( give_is_anonymous_donation( $donation['id']) ){
+				if ( give_is_anonymous_donation( $donation['id'] ) ) {
 					continue;
 				}
 

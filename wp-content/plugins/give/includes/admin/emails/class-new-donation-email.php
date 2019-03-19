@@ -7,7 +7,7 @@
  *
  * @package     Give
  * @subpackage  Classes/Emails
- * @copyright   Copyright (c) 2016, WordImpress
+ * @copyright   Copyright (c) 2016, GiveWP
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       2.0
  */
@@ -47,7 +47,7 @@ if ( ! class_exists( 'Give_New_Donation_Email' ) ) :
 				'notification_status'   => 'enabled',
 				'form_metabox_setting'  => true,
 				'default_email_subject' => esc_attr__( 'New Donation - #{payment_id}', 'give' ),
-				'default_email_message' => give_get_default_donation_notification_email(),
+				'default_email_message' => ( false !== give_get_option( 'new-donation_email_message' ) ) ? give_get_option( 'new-donation_email_message' ) : give_get_default_donation_notification_email(),
 				'default_email_header'  => __( 'New Donation!', 'give' ),
 			) );
 

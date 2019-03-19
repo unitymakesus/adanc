@@ -6,7 +6,7 @@
  *
  * @package     Give
  * @subpackage  Classes/Give_MetaBox_Form_Data
- * @copyright   Copyright (c) 2016, WordImpress
+ * @copyright   Copyright (c) 2016, GiveWP
  * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
  * @since       1.8
  */
@@ -318,7 +318,7 @@ class Give_MetaBox_Form_Data {
 						),
 						array(
 							'name'    => __( 'Anonymous Donations', 'give' ),
-							'desc'    => __( 'Do you want to provide donors the ability mark himself/herself anonymous while giving. This will prevent their information from appearing publicly on your website but you will still receive their information for your records in the admin panel.', 'give' ),
+							'desc'    => __( 'Do you want to provide donors the ability mark themselves anonymous while giving. This will prevent their information from appearing publicly on your website but you will still receive their information for your records in the admin panel.', 'give' ),
 							'id'      => "{$prefix}anonymous_donation",
 							'type'    => 'radio_inline',
 							'default' => 'global',
@@ -329,8 +329,8 @@ class Give_MetaBox_Form_Data {
 							),
 						),
 						array(
-							'name'    => __( 'Donor Comment', 'give' ),
-							'desc'    => __( 'Would you like donors to give option to add his/her thought while donaitng.', 'give' ),
+							'name'    => __( 'Donor Comments', 'give' ),
+							'desc'    => __( 'Do you want to provide donors the ability to add a comment to their donation? The comment will display publicly on the donor wall if they do not select to give anonymously.', 'give' ),
 							'id'      => "{$prefix}donor_comment",
 							'type'    => 'radio_inline',
 							'default' => 'global',
@@ -1012,6 +1012,9 @@ class Give_MetaBox_Form_Data {
 				}// End if().
 			}// End foreach().
 		}// End if().
+
+		// Update the goal progress for donation form.
+		give_update_goal_progress( $post_id );
 
 		// Fire action after saving form meta.
 		do_action( 'give_post_process_give_forms_meta', $post_id, $post );

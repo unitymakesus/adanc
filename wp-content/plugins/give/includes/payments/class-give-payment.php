@@ -4,7 +4,7 @@
  *
  * @package     Give
  * @subpackage  Classes/Give_Payment
- * @copyright   Copyright (c) 2016, WordImpress
+ * @copyright   Copyright (c) 2016, GiveWP
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       1.5
  */
@@ -660,7 +660,7 @@ final class Give_Payment {
 		}
 
 		// @todo: payment data exist here only for backward compatibility
-		// issue: https://github.com/WordImpress/Give/issues/1132
+		// issue: https://github.com/impress-org/give/issues/1132
 		$payment_data = array(
 			'price'        => $this->total,
 			'date'         => $this->date,
@@ -701,13 +701,6 @@ final class Give_Payment {
 
 			$donor = new stdClass;
 
-			/**
-			 * Filter donor class after the donation is completed and before customer table is updated.
-			 *
-			 * @since 1.8.13
-			 */
-			$donor = apply_filters( 'give_update_donor_information', $donor, $payment_id, $payment_data, $args );
-
 			if ( did_action( 'give_pre_process_donation' ) && is_user_logged_in() ) {
 				$donor = new Give_Donor( get_current_user_id(), true );
 
@@ -733,6 +726,19 @@ final class Give_Payment {
 
 			}
 
+			/**
+			 * Filters the donor object after donation is completed but before donor table is updated.
+			 *
+			 * @since 1.8.13
+			 * @since 2.4.2  Moved location of filter to occur after donor is hydrated.
+			 *
+			 * @param Give_Donor $donor        Donor object.
+			 * @param int        $payment_id   Payment ID.
+			 * @param array      $payment_data Payment data array.
+			 * @param array      $args         Payment args.
+			 */
+			$donor = apply_filters( 'give_update_donor_information', $donor, $payment_id, $payment_data, $args );
+
 			// Update Donor Meta once donor is created.
 			$donor->update_meta( '_give_donor_first_name', $this->first_name );
 			$donor->update_meta( '_give_donor_last_name', $this->last_name );
@@ -744,7 +750,7 @@ final class Give_Payment {
 
 			$this->payment_meta = apply_filters( 'give_payment_meta', $this->payment_meta, $payment_data );
 
-			/*
+			/**
 			 * _give_payment_meta backward compatibility.
 			 *
 			 * @since 2.0.1
@@ -755,7 +761,7 @@ final class Give_Payment {
 			);
 
 			if ( ! empty( $custom_payment_meta ) ) {
-				give_doing_it_wrong( '_give_payment_meta', __( 'This custom meta key deprecated. We are not using this meta key for storing payment meta but your custom meta data will be store because we added backward compatibility. Please change your logic because in future we can remove it.', 'give' ), '2.0.0' );
+				give_doing_it_wrong( '_give_payment_meta', __( 'This custom meta key has been deprecated for performance reasons. Your custom meta data will still be stored but we recommend updating your code to store meta keys individually.', 'give' ), '2.0.0' );
 
 				$this->update_meta( '_give_payment_meta', array_map( 'maybe_unserialize', $custom_payment_meta ) );
 			}
@@ -948,9 +954,10 @@ final class Give_Payment {
 
 					case 'date':
 						$args = array(
-							'ID'        => $this->ID,
-							'post_date' => $this->date,
-							'edit_date' => true,
+							'ID'            => $this->ID,
+							'post_date'     => date( 'Y-m-d H:i:s', strtotime( $this->date ) ),
+							'post_date_gmt' => get_gmt_from_date( $this->date ),
+							'edit_date'     => true,
 						);
 
 						wp_update_post( $args );

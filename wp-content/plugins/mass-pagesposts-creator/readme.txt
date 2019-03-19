@@ -4,10 +4,10 @@ Plugin URI: http://multidots.com/
 Author: dots
 Author URI: http://multidots.com/
 Contributors: dots, mayurk,thedotstore
-Stable tag: 1.2.6
+Stable tag: 1.2.7
 Tags: bulk, mass, multiple, amount, volume, quantity, posts, pages
 Requires at least: 3.8
-Tested up to: 4.9.6
+Tested up to: 5.1
 Donate link: 
 Copyright: (c) 2015-2016 Multidots Solutions PVT LTD (info@multidots.com) 
 License: GPLv3 or later
@@ -113,6 +113,11 @@ No, As default functionality you can assign parent to only pages.
 Automatic updates should work great for you.  As always, though, we recommend backing up your site prior to making any updates just to be sure nothing goes wrong.
 
 == Changelog ==
+
+= 1.2.7 - 25.01.2019 =
+* Minor bug fix
+* Plugin logo large display issue fixed.
+* Compatible with WordPress Version 5.1
 
 = 1.2.6 - 08.06.2018 =
 * Minor bug fix

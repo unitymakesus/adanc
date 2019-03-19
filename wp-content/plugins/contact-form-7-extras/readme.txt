@@ -1,10 +1,10 @@
 # Contact Form 7 Controls
 
-Contributors: kasparsd, buzztone   
-Tags: Contact Form 7, cf7, admin, backend, redirect, tracking, google analytics, ga, simple, interface, dashboard, recaptcha   
-Requires at least: 4.6   
-Tested up to: 4.9.7   
-Stable tag: 0.6.1   
+Contributors: kasparsd, buzztone
+Tags: Contact Form 7, cf7, admin, backend, redirect, tracking, google analytics, ga, simple, interface, dashboard, recaptcha
+Requires at least: 4.6
+Tested up to: 5.0
+Stable tag: 0.6.2
 
 Simple controls for some of the advanced Contact Form 7 plugin functionality.
 
@@ -54,6 +54,11 @@ The "[Storage for Contact Form 7](https://codecanyon.net/item/storage-for-contac
 
 ## Changelog
 
+### 0.6.2 (December 4, 2018)
+
+- Add support for automatic [`gtag.js` Google Analytics tracking](https://support.google.com/analytics/answer/7538414).
+- Marked as tested with WordPress 5.0.
+
 ### 0.6.1 (July 29, 2018)
 
 - Fix the missing `formEventEnabled()` function.
@@ -62,7 +67,7 @@ The "[Storage for Contact Form 7](https://codecanyon.net/item/storage-for-contac
 
 - Set the minimum supported version of WordPress [to 4.6 for the community translations to work](https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#loading-text-domain).
 - Reformat code to match the WordPress coding standards.
-- Introduce developer tooling and automated checks for PHP syntax errors and coding standards.  
+- Introduce developer tooling and automated checks for PHP syntax errors and coding standards.
 
 ### 0.5.1 (July 26, 2018)
 

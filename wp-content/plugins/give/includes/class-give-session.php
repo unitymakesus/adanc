@@ -4,7 +4,7 @@
  *
  * @package     Give
  * @subpackage  Classes/Give_Session
- * @copyright   Copyright (c) 2016, WordImpress
+ * @copyright   Copyright (c) 2016, GiveWP
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       1.0
  */
@@ -156,8 +156,7 @@ class Give_Session {
 			: 30 * 60 * 24; // Default expiration time is 12 hours
 
 		$this->set_cookie_name();
-		$this->cookie_name = $this->get_cookie_name( 'session' );
-		$cookie            = $this->get_session_cookie();
+		$cookie = $this->get_session_cookie();
 
 		if ( ! empty( $cookie ) ) {
 			$this->donor_id           = $cookie[0];
@@ -214,7 +213,7 @@ class Give_Session {
 	 */
 	public function get_session_cookie() {
 		$session      = array();
-		$cookie_value = isset( $_COOKIE[ $this->cookie_name ] ) ? give_clean( $_COOKIE[ $this->cookie_name ] ) : false; // @codingStandardsIgnoreLine.
+		$cookie_value = isset( $_COOKIE[ $this->cookie_name ] ) ? give_clean( $_COOKIE[ $this->cookie_name ] ) : $this->__handle_ajax_cookie(); // @codingStandardsIgnoreLine.
 
 		if ( empty( $cookie_value ) || ! is_string( $cookie_value ) ) {
 			return $session;
@@ -234,7 +233,42 @@ class Give_Session {
 			return $session;
 		}
 
-		return array( $donor_id, $session_expiration, $session_expiring, $cookie_hash );
+		/**
+		 * Filter the session cookie data
+		 *
+		 * @since 2.2.6
+		 */
+		$cookie_data = apply_filters(
+			'give_get_session_cookie',
+			array( $donor_id, $session_expiration, $session_expiring, $cookie_hash )
+		);
+
+		return $cookie_data;
+	}
+
+
+	/**
+	 * Load session cookie by ajax
+	 *
+	 * @since 2.2.6
+	 * @access private
+	 *
+	 * @return array|bool|string
+	 */
+	private function __handle_ajax_cookie(){
+		$cookie = false;
+
+		// @see https://github.com/impress-org/give/issues/3705
+		if (
+			empty( $cookie_value )
+			&& wp_doing_ajax()
+			&& isset( $_GET['action'] )
+			&& 'get_receipt' === $_GET['action']
+		) {
+			$cookie = isset( $_GET[$this->cookie_name] ) ? give_clean( $_GET[$this->cookie_name] ) : false;
+		}
+
+		return $cookie;
 	}
 
 
@@ -256,11 +290,28 @@ class Give_Session {
 	 * @since  2.2.0
 	 * @access private
 	 *
-	 * @return string Cookie name.
+	 * @return void
 	 */
 	private function set_cookie_name() {
-		$this->cookie_name       = apply_filters( 'give_session_cookie', 'wp_give_session_' . COOKIEHASH );
-		$this->nonce_cookie_name = 'wp_give_session_reset_nonce_' . COOKIEHASH;
+		/**
+		 * Filter the cookie name
+		 *
+		 * @since 2.2.0
+		 *
+		 * @param string $cookie_name Cookie name.
+		 * @param string $cookie_type Cookie type session or nonce.
+		 */
+		$this->cookie_name       = apply_filters(
+			'give_session_cookie',
+			'wp-give_session_' . COOKIEHASH, // Cookie name.
+			'session' // Cookie type.
+		);
+
+		$this->nonce_cookie_name = apply_filters(
+			'give_session_cookie',
+			'wp-give_session_reset_nonce_' . COOKIEHASH, // Cookie name.
+			'nonce' // Cookie type.
+		);
 	}
 
 	/**
@@ -271,8 +322,8 @@ class Give_Session {
 	 * @since  1.0
 	 * @access public
 	 *
-	 * @param  string $key     Session key.
-	 * @param mixed   $default default value.
+	 * @param string $key     Session key.
+	 * @param mixed  $default default value.
 	 *
 	 * @return string|array      Session variable.
 	 */
@@ -352,10 +403,10 @@ class Give_Session {
 	 * @since  2.2.0
 	 * @access public
 	 *
-	 * @return string Formatted expiration date string.
+	 * @return string|bool Formatted expiration date string.
 	 */
 	public function get_session_expiration() {
-		return $this->session_expiration;
+		return $this->has_session() ? $this->session_expiration :false;
 	}
 
 	/**
@@ -524,7 +575,7 @@ class Give_Session {
 	 * @return string Session ID.
 	 */
 	public function get_id() {
-		return $this->get_cookie_name('session');
+		return $this->get_cookie_name( 'session' );
 	}
 
 	/**

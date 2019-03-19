@@ -4,7 +4,7 @@
  *
  * @package     Give
  * @subpackage  Classes/Give_Donors_Gravatars
- * @copyright   Copyright (c) 2016, WordImpress
+ * @copyright   Copyright (c) 2016, GiveWP
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       1.0
  */
@@ -87,9 +87,7 @@ class Give_Donor_Wall_Widget extends WP_Widget {
 			echo $before_title . $title . $after_title;
 		}
 
-		$gravatars = new Give_Donor_Wall();
-
-		echo $gravatars->gravatars( get_the_ID(), null ); // remove title
+		echo Give_Donor_Wall::get_instance()->gravatars( get_the_ID(), null ); // remove title
 
 		// Used by themes. Closes the widget
 		echo $after_widget;

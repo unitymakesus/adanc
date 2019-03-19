@@ -135,8 +135,7 @@ function constant_contact_maybe_display_review_notification() {
 	$dismissed = get_option( 'ctct-review-dismissed', array() );
 	if ( isset( $dismissed['count'] ) && '1' === $dismissed['count'] ) {
 		$fourteen_days = strtotime( '-14 days' );
-		if ( isset( $dismissed['time'] ) &&
-		     $dismissed['time'] < $fourteen_days
+		if ( isset( $dismissed['time'] ) && $dismissed['time'] < $fourteen_days
 		) {
 			return true;
 		} else {
@@ -146,8 +145,7 @@ function constant_contact_maybe_display_review_notification() {
 
 	if ( isset( $dismissed['count'] ) && '2' === $dismissed['count'] ) {
 		$thirty_days = strtotime( '-30 days' );
-		if ( isset( $dismissed['time'] ) &&
-		     $dismissed['time'] < $thirty_days
+		if ( isset( $dismissed['time'] ) && $dismissed['time'] < $thirty_days
 		) {
 			return true;
 		} else {
@@ -190,7 +188,7 @@ function constant_contact_optin_ajax_handler() {
 		wp_send_json_success( array( 'opted-in' => 'off' ) );
 	}
 
-	$options = get_option( constant_contact()->settings->key );
+	$options                        = get_option( constant_contact()->settings->key );
 	$options['_ctct_data_tracking'] = $response['optin'];
 	update_option( constant_contact()->settings->key, $options );
 
@@ -207,7 +205,7 @@ add_action( 'wp_ajax_constant_contact_optin_ajax_handler', 'constant_contact_opt
 function constant_contact_privacy_ajax_handler() {
 
 	$response = $_REQUEST;
-	$agreed = sanitize_text_field( $response['privacy_agree'] );
+	$agreed   = sanitize_text_field( $response['privacy_agree'] );
 	update_option( 'ctct_privacy_policy_status', $agreed );
 
 	wp_send_json_success( array( 'updated' => 'true' ) );
@@ -227,8 +225,8 @@ function constant_contact_review_ajax_handler() {
 
 		switch ( $action ) {
 			case 'dismissed':
-				$dismissed          = get_option( 'ctct-review-dismissed', array() );
-				$dismissed['time']  = time();
+				$dismissed         = get_option( 'ctct-review-dismissed', array() );
+				$dismissed['time'] = current_time( 'timestamp' );
 				if ( empty( $dismissed['count'] ) ) {
 					$dismissed['count'] = '1';
 				} elseif ( isset( $dismissed['count'] ) && '2' === $dismissed['count'] ) {
@@ -258,6 +256,8 @@ add_action( 'wp_ajax_constant_contact_review_ajax_handler', 'constant_contact_re
  * Process potential custom Constant Contact Forms action urls.
  *
  * @since 1.2.3
+ *
+ * @return bool|array
  */
 function ctct_custom_form_action_processing() {
 	if ( empty( $_POST ) || ! isset( $_POST['ctct-id'] ) ) {
@@ -280,7 +280,7 @@ add_action( 'wp_head', 'ctct_custom_form_action_processing' );
  * @return bool
  */
 function ctct_has_forms() {
-	$args = array(
+	$args  = array(
 		'post_type'      => 'ctct_forms',
 		'post_status'    => 'publish',
 		'posts_per_page' => 1,
@@ -313,7 +313,7 @@ function constant_contact_has_redirect_uri( $form_id = 0 ) {
  * @return bool
  */
 function constant_contact_check_timestamps( $maybe_spam, $data ) {
-	$current = time();
+	$current    = current_time( 'timestamp' );
 	$difference = $current - $data['ctct_time'];
 	if ( $difference <= 5 ) {
 		return true;
@@ -327,7 +327,7 @@ add_filter( 'constant_contact_maybe_spam', 'constant_contact_check_timestamps', 
  *
  * @since 1.3.6
  *
- * @param string $url
+ * @param string $url URL to tidy.
  * @return string
  */
 function constant_contact_clean_url( $url = '' ) {
@@ -351,7 +351,7 @@ function constant_contact_clean_url( $url = '' ) {
  * @return bool
  */
 function constant_contact_debugging_enabled() {
-	$debugging_enabled = ctct_get_settings_option( '_ctct_logging' );
+	$debugging_enabled = ctct_get_settings_option( '_ctct_logging', '' );
 
 	return (
 		( defined( 'CONSTANT_CONTACT_DEBUG_MAIL' ) && CONSTANT_CONTACT_DEBUG_MAIL ) ||
@@ -364,12 +364,19 @@ function constant_contact_debugging_enabled() {
  *
  * @since 1.3.7
  *
- * @param strint       $log_name   Component that the log item is for.
+ * @throws Exception Exception.
+ *
+ * @param string       $log_name   Component that the log item is for.
  * @param string       $error      The error to log.
  * @param mixed|string $extra_data Any extra data to add to the log.
+ * @return null
  */
 function constant_contact_maybe_log_it( $log_name, $error, $extra_data = '' ) {
 	if ( ! constant_contact_debugging_enabled() ) {
+		return;
+	}
+
+	if ( ! is_writable( constant_contact()->logger_location ) ) {
 		return;
 	}
 
@@ -382,4 +389,225 @@ function constant_contact_maybe_log_it( $log_name, $error, $extra_data = '' ) {
 	}
 	// Log status of error.
 	$logger->addInfo( $error, $extra );
+}
+
+/**
+ * Check spam through Akismet.
+ * It will build Akismet query string and call Akismet API.
+ * Akismet response return 'true' for spam submission.
+ *
+ * Akismet integration props to GiveWP. We appreciate the initial work.
+ *
+ * @since 1.4.0
+ *
+ * @param bool  $is_spam Current status of the submission.
+ * @param array $data    Array of submission data.
+ * @return bool
+ */
+function constant_contact_akismet( $is_spam, $data ) {
+
+	// Bail out, If spam.
+	if ( $is_spam ) {
+		return $is_spam;
+	}
+
+	$email = false;
+	$fname = $lname = $name = '';
+	foreach ( $data as $key => $value ) {
+		if ( 'email' === substr( $key, 0, 5 ) ) {
+			$email = $value;
+		}
+		if ( 'first_name' === substr( $key, 0, 10 ) ) {
+			$fname = $value;
+		}
+		if ( 'last_name' === substr( $key, 0, 9 ) ) {
+			$lname = $value;
+		}
+	}
+
+	if ( $fname ) {
+		$name = $fname;
+	}
+	if ( $lname ) {
+		$name .= ' ' . $lname;
+	}
+
+	// Bail out, if Akismet key not exist.
+	if ( ! constant_contact_check_akismet_key() ) {
+		return $is_spam;
+	}
+
+	// Build args array.
+	$args = array();
+
+	$args['comment_author']       = $name;
+	$args['comment_author_email'] = $email;
+	$args['blog']                 = get_option( 'home' );
+	$args['blog_lang']            = get_locale();
+	$args['blog_charset']         = get_option( 'blog_charset' );
+	$args['user_ip']              = $_SERVER['REMOTE_ADDR'];
+	$args['user_agent']           = $_SERVER['HTTP_USER_AGENT'];
+	$args['referrer']             = $_SERVER['HTTP_REFERER'];
+	$args['comment_type']         = 'contact-form';
+
+	$ignore = array( 'HTTP_COOKIE', 'HTTP_COOKIE2', 'PHP_AUTH_PW' );
+
+	foreach ( $_SERVER as $key => $value ) {
+		if ( ! in_array( $key, (array) $ignore ) ) {
+			$args[ "{$key}" ] = $value;
+		}
+	}
+
+	// It will return Akismet spam detect API response.
+	$is_spam = constant_contact_akismet_spam_check( $args );
+
+	return $is_spam;
+}
+add_filter( 'constant_contact_maybe_spam', 'constant_contact_akismet', 10, 2 );
+
+/**
+ * Check Akismet API Key.
+ *
+ * @since 1.4.0
+ *
+ * @return bool
+ */
+function constant_contact_check_akismet_key() {
+	if ( is_callable( array( 'Akismet', 'get_api_key' ) ) ) { // Akismet v3.0.
+		return (bool) Akismet::get_api_key();
+	}
+
+	if ( function_exists( 'akismet_get_key' ) ) {
+		return (bool) akismet_get_key();
+	}
+
+	return false;
+}
+
+/**
+ * Detect spam through Akismet Comment API.
+ *
+ * @since 1.4.0
+ *
+ * @param array $args Array of arguments.
+ * @return bool|mixed
+ */
+function constant_contact_akismet_spam_check( $args ) {
+	global $akismet_api_host, $akismet_api_port;
+
+	$spam         = false;
+	$query_string = http_build_query( $args );
+
+	if ( is_callable( array( 'Akismet', 'http_post' ) ) ) { // Akismet v3.0.
+		$response = Akismet::http_post( $query_string, 'comment-check' );
+	} else {
+		$response = akismet_http_post( $query_string, $akismet_api_host,
+			'/1.1/comment-check', $akismet_api_port );
+	}
+
+	// It's spam if response status is true.
+	if ( 'true' === $response[1] ) {
+		$spam = true;
+	}
+
+	return $spam;
+}
+
+/**
+ * Check whether or not emails should be disabled.
+ *
+ * @since 1.4.0
+ *
+ * @param int $form_id Current form ID being submitted to.
+ *
+ * @return mixed
+ */
+function constant_contact_emails_disabled( $form_id = 0 ) {
+
+	// Assume we can.
+	$disabled = false;
+
+	// Check for a setting for the form itself.
+	$form_disabled = get_post_meta( $form_id, '_ctct_disable_emails_for_form', true );
+	if ( 'on' === $form_disabled ) {
+		$disabled = true;
+	}
+
+	// Check for our global setting.
+	$global_form_disabled = ctct_get_settings_option( '_ctct_disable_email_notifications', '' );
+	if ( 'on' === $global_form_disabled ) {
+		$disabled = true;
+	}
+
+	/**
+	 * Filters whether or not emails should be disabled.
+	 *
+	 * @since 1.4.0
+	 *
+	 * @param bool $disabled Whether or not emails are disabled.
+	 * @param int  $form_id  Form ID being submitted to.
+	 */
+	return apply_filters( 'constant_contact_emails_disabled', $disabled, $form_id );
+}
+
+/**
+ * Get a list of font sizes to use in a dropdown menu for user customization.
+ *
+ * @since 1.4.0
+ *
+ * @return array The font sizes to use in a dropdown.
+ */
+function constant_contact_get_font_dropdown_sizes() {
+	return array(
+		'12px' => '12 pixels',
+		'13px' => '13 pixels',
+		'14px' => '14 pixels',
+		'15px' => '15 pixels',
+		'16px' => '16 pixels',
+		'17px' => '17 pixels',
+		'18px' => '18 pixels',
+		'19px' => '19 pixels',
+		'20px' => '20 pixels',
+	);
+}
+
+/**
+ * Retrieve a CSS customization setting for a given form.
+ *
+ * Provide the post meta key or global setting key to retrieve.
+ *
+ * @since 1.4.0
+ *
+ * @param int    $form_id           Form ID to fetch data for.
+ * @param string $customization_key Key to fetch value for.
+ * @return string.
+ */
+function constant_contact_get_css_customization( $form_id, $customization_key = '' ) {
+
+	$form_id  = absint( $form_id );
+	$form_css = get_post_meta( $form_id );
+
+	if ( is_array( $form_css ) && array_key_exists( $customization_key, $form_css ) ) {
+		if ( ! empty( $form_css[ $customization_key ][0] ) ) {
+			return $form_css[ $customization_key ][0];
+		}
+	}
+
+	$global_setting = ctct_get_settings_option( $customization_key );
+
+	return ( ! empty( $global_setting ) ) ? $global_setting : '';
+}
+
+function constant_contact_privacy_policy_content() {
+	$policy_output = wp_remote_get( 'https://www.endurance.com/privacy' );
+	if ( ! is_wp_error( $policy_output ) && 200 === wp_remote_retrieve_response_code( $policy_output ) ) {
+		$content = wp_remote_retrieve_body( $policy_output );
+		preg_match( '/<body[^>]*>(.*?)<\/body>/si', $content, $match );
+		$output = preg_replace( '@<(script|style)[^>]*?>.*?</\\1>@si', '', $match[1] );
+		preg_match_all( '@<section class="container privacy-center-container">.*?</section>@si', $output, $final );
+
+		return $final[0][0] . $final[0][2];
+	}
+
+	return '';
 }

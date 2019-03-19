@@ -4,7 +4,7 @@
  *
  * @package     Give
  * @subpackage  Functions
- * @copyright   Copyright (c) 2016, WordImpress
+ * @copyright   Copyright (c) 2016, GiveWP
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       1.0
  */
@@ -95,8 +95,8 @@ function give_akismet( $spam ) {
 	// Build args array.
 	$args = array();
 
-	$args['comment_author']       = isset( $_POST['give_first'] ) ? strip_tags( trim( $_POST['give_first'] ) ) : '';
-	$args['comment_author_email'] = isset( $_POST['give_email'] ) ? $_POST['give_email'] : false;
+	$args['comment_author']       = isset( $_POST['give_first'] ) ? give_clean( $_POST['give_first'] ) : '';
+	$args['comment_author_email'] = isset( $_POST['give_email'] ) ? sanitize_email( $_POST['give_email'] ) : false;
 	$args['blog']                 = get_option( 'home' );
 	$args['blog_lang']            = get_locale();
 	$args['blog_charset']         = get_option( 'blog_charset' );
@@ -104,6 +104,15 @@ function give_akismet( $spam ) {
 	$args['user_agent']           = $_SERVER['HTTP_USER_AGENT'];
 	$args['referrer']             = $_SERVER['HTTP_REFERER'];
 	$args['comment_type']         = 'contact-form';
+
+	$form_id = isset( $_POST['give-form-id'] ) ? absint( $_POST['give-form-id'] ) : 0;
+
+	// Pass Donor comment if enabled.
+	if ( give_is_donor_comment_field_enabled( $form_id ) ) {
+		$give_comment = isset( $_POST['give_comment'] ) ? give_clean( $_POST['give_comment'] ) : '';
+
+		$args['comment_content'] = $give_comment;
+	}
 
 	$ignore = array( 'HTTP_COOKIE', 'HTTP_COOKIE2', 'PHP_AUTH_PW' );
 
@@ -181,14 +190,14 @@ function give_akismet_spam_check( $args ) {
  * @return array
  */
 function give_bc_v1817_iranian_currency_code( $currencies ) {
-	if ( ! give_has_upgrade_completed( 'v1817_update_donation_iranian_currency_code' ) ) {
-		$currencies['RIAL'] = $currencies['IRR'];
-	}
+	$currencies['RIAL'] = $currencies['IRR'];
 
 	return $currencies;
 }
 
-add_filter( 'give_currencies', 'give_bc_v1817_iranian_currency_code', 0 );
+if ( ! give_has_upgrade_completed( 'v1817_update_donation_iranian_currency_code' ) ) {
+	add_filter( 'give_currencies', 'give_bc_v1817_iranian_currency_code', 0 );
+}
 
 
 /**

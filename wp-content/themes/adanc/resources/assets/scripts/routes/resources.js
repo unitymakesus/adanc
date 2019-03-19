@@ -6,6 +6,13 @@ export default {
       //   // new AblePlayer($(this));
       // });
 
+      // eslint-disable-next-line no-undef
+      if (FWP.loaded) {
+        $('html, body').animate({
+          scrollTop: $('.facetwp-template').offset().top,
+        }, 500);
+      }
+
       /**
        * Add labels above each facet
        */

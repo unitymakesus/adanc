@@ -87,3 +87,29 @@ th b {color: red;}
 #subscribemppcno{
 	width: 140px !important;
 }
+.version_logo_img {
+    max-width: 150px;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+p.mass_page_post_creator_overview {
+    max-width: 100% !important;
+    margin-left: auto;
+    margin-right: auto;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.mass_page_post_creator_content_ul ul li {
+    margin-left: 3%;
+    list-style: initial;
+    line-height: 23px;
+}
+.about-integrations{margin-top: 15px;}
+.mppc h1{ font-size: 2.1em;}
+img#loader_gif {
+    width: 25px;
+    vertical-align: middle;
+    margin-left: 10px;
+}

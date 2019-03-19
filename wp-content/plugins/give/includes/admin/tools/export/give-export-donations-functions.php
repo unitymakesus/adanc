@@ -190,10 +190,13 @@ function give_export_donation_form_search_args( $args ) {
 	}
 
 	$fields = isset( $_POST['fields'] ) ? $_POST['fields'] : null;
-	parse_str( $fields );
+
+	// Using parse_str() function without the result parameter is highly DISCOURAGED and DEPRECATED as of PHP 7.2.
+	$fields_result_array = array();
+	parse_str( $fields, $fields_result_array );
 
 	if ( ! empty( $give_forms_categories ) || ! empty( $give_forms_tags ) ) {
-		$args['posts_per_page'] = -1;
+		$args['posts_per_page'] = - 1;
 	}
 
 	if ( ! empty( $give_forms_categories ) && ! empty( $give_forms_tags ) ) {
@@ -450,6 +453,14 @@ function give_export_donation_standard_fields() {
 									<input type="checkbox" checked
 									       name="give_give_donations_export_option[address]"
 									       id="give-export-address"><?php _e( 'Donor\'s Billing Address', 'give' ); ?>
+								</label>
+							</li>
+
+							<li>
+								<label for="give-export-comment">
+									<input type="checkbox" checked
+									       name="give_give_donations_export_option[comment]"
+									       id="give-export-comment"><?php _e( 'Donor\'s Comment', 'give' ); ?>
 								</label>
 							</li>
 

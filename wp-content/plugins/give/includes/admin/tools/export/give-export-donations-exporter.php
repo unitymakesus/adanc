@@ -6,7 +6,7 @@
  *
  * @package     Give
  * @subpackage  Admin/Reports
- * @copyright   Copyright (c) 2016, WordImpress
+ * @copyright   Copyright (c) 2016, GiveWP
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       2.1
  */
@@ -97,8 +97,8 @@ class Give_Export_Donations_CSV extends Give_Batch_Export {
 		$this->tags       = ! empty( $request['give_forms_tags'] ) ? (array) $request['give_forms_tags'] : array();
 		$this->form_id    = $this->get_form_ids( $request );
 		$this->price_id   = isset( $request['give_price_option'] ) && ( 'all' !== $request['give_price_option'] && '' !== $request['give_price_option'] ) ? absint( $request['give_price_option'] ) : null;
-		$this->start      = isset( $request['start'] ) ? sanitize_text_field( $request['start'] ) : '';
-		$this->end        = isset( $request['end'] ) ? sanitize_text_field( $request['end'] ) : '';
+		$this->start      = isset( $request['start'] ) ? date( 'Y-m-d', strtotime( $request['start'] ) ) : '';
+		$this->end        = isset( $request['end'] ) ? date( 'Y-m-d', strtotime( $request['end'] ) ) : '';
 		$this->status     = isset( $request['status'] ) ? sanitize_text_field( $request['status'] ) : 'complete';
 
 		/**
@@ -199,6 +199,9 @@ class Give_Export_Donations_CSV extends Give_Batch_Export {
 					$cols['address_zip']     = __( 'Zip', 'give' );
 					$cols['address_country'] = __( 'Country', 'give' );
 					break;
+				case 'comment':
+					$cols['comment'] = __( 'Donor Comment', 'give' );
+					break;
 				case 'donation_total':
 					$cols['donation_total'] = __( 'Donation Total', 'give' );
 					break;
@@ -254,7 +257,7 @@ class Give_Export_Donations_CSV extends Give_Batch_Export {
 		 *
 		 * @since 2.1
 		 *
-		 * @param array $cols columns name for CSV
+		 * @param array $cols    columns name for CSV
 		 * @param array $columns columns select by admin to export
 		 */
 		return (array) apply_filters( 'give_export_donation_get_columns_name', $cols, $columns );
@@ -278,10 +281,10 @@ class Give_Export_Donations_CSV extends Give_Batch_Export {
 		// Date query.
 		if ( ! empty( $this->start ) || ! empty( $this->end ) ) {
 			if ( ! empty( $this->start ) ) {
-				$defaults['date_query'][0]['after'] = date( 'Y-n-d 00:00:00', strtotime( $this->start ) );
+				$defaults['date_query'][0]['after'] = "{$this->start} 00:00:00";
 			}
 			if ( ! empty( $this->end ) ) {
-				$defaults['date_query'][0]['before'] = date( 'Y-n-d 00:00:00', strtotime( $this->end ) );
+				$defaults['date_query'][0]['before'] = "{$this->end} 23:59:59";
 			}
 		}
 
@@ -361,6 +364,11 @@ class Give_Export_Donations_CSV extends Give_Batch_Export {
 					$data[ $i ]['address_state']   = isset( $address['state'] ) ? $address['state'] : '';
 					$data[ $i ]['address_zip']     = isset( $address['zip'] ) ? $address['zip'] : '';
 					$data[ $i ]['address_country'] = isset( $address['country'] ) ? $address['country'] : '';
+				}
+
+				if ( ! empty( $columns['comment'] ) ) {
+					$comment               = give_get_donor_donation_comment( $payment->ID, $payment->donor_id );
+					$data[ $i ]['comment'] = ! empty( $comment ) ? $comment->comment_content : '';
 				}
 
 				if ( ! empty( $columns['donation_total'] ) ) {
@@ -486,9 +494,9 @@ class Give_Export_Donations_CSV extends Give_Batch_Export {
 				 * @since 2.1
 				 *
 				 * @param array Donation data
-				 * @param Give_Payment $payment Instance of Give_Payment
-				 * @param array $columns Donation data $columns that are not being merge
-				 * @param Give_Export_Donations_CSV $this Instance of Give_Export_Donations_CSV
+				 * @param Give_Payment              $payment Instance of Give_Payment
+				 * @param array                     $columns Donation data $columns that are not being merge
+				 * @param Give_Export_Donations_CSV $this    Instance of Give_Export_Donations_CSV
 				 *
 				 * @return array Donation data
 				 */

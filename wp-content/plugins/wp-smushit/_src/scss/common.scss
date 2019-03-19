@@ -16,7 +16,9 @@
 	}
 
 	.wp-smush-send {
-		display: block;
+		display: inline-block;
+		float: left;
+		margin-right: 5px;
 	}
 
 	.spinner {
@@ -54,10 +56,6 @@
 
 /** Settings Page **/
 
-.wp-smush-submit-wrap {
-	padding: 4px;
-}
-
 .smush-submit-note {
 	color: #9B9B9B;
 	float: left;
@@ -65,15 +63,7 @@
 	font-size: 13px;
 	line-height: 22px;
 	margin-top: 4px;
-}
-
-input#wp-smush-save-settings {
-	float: right;
-	margin: 0;
-}
-
-.wp-smush-welcome #wp-smush-save-settings {
-	float: right;
+	margin-right: 4px;
 }
 
 .currently-smushing .smush-status {
@@ -157,13 +147,19 @@ label.setting.smush-stats .smush-wrap,
 	font-size: 11px;
 }
 
+.smush-skipped {
+	display: flex;
+	align-items: center;
+	align-content: center;
+}
+
 .smush-skipped.error {
 	color: #C41921;
 }
 
 .smush-skipped .dashicons-editor-help {
 	cursor: pointer;
-	margin-top: -2px;
+	margin-top: -3px;
 }
 
 /** Help Tip **/
@@ -247,9 +243,14 @@ label.setting.smush-stats .smush-wrap,
 	}
 }
 
+.column-smushit div.smush-status-links,
 .attachment-details .setting div.smush-status-links {
-	float: none;
+	float: left;
 	text-align: left;
+
+	.wp-smush-action {
+		margin-right: 5px;
+	}
 }
 
 div.attachment-details .setting div.smush-status-links.smush-status-links div.smush-stats-wrapper {
@@ -331,7 +332,6 @@ ol.smush-recommendation-list li {
 
 /** Image Remaining **/
 div.wp-smush-remaining,
-div.wp-smush-dir-remaining,
 div.wp-smush-dir-limit,
 div.smush-s3-setup-message,
 div.wp-smush-s3support-alert,
@@ -378,11 +378,6 @@ div.wp-smush-dir-limit {
 	margin: 20px 0;
 }
 
-.smush-final-log {
-	margin-left: 0;
-	padding: 10px;
-}
-
 .wp-smush-ajax-error {
 	color: black;
 	font-size: 14px;
@@ -402,24 +397,6 @@ ul.smush-pro-features {
 
 li.smush-pro-feature-row {
 	margin-bottom: 20px;
-}
-
-div.smush-pro-feature-title,
-div.smush-pro-feature-desc {
-	padding-left: 30px;
-	position: relative;
-}
-
-div.smush-pro-feature-title {
-	font-size: 15px;
-	font-weight: 500;
-	line-height: 30px;
-}
-
-div.smush-pro-feature-desc {
-	color: #888888;
-	font-size: 13px;
-	line-height: 22px;
 }
 
 div.smush-pro-link-wrap {
@@ -612,11 +589,6 @@ div.wp-smush-resize-note {
 	font-weight: 400;
 }
 
-.smush-final-log.notice.notice-warning {
-	max-height: 200px;
-	overflow: auto;
-}
-
 /** Override WP Footer Styling, Hide it on WPMU pages only, if we really need to **/
 .wp-admin #wpfooter {
 	display: block;
@@ -638,16 +610,6 @@ div.wp-smush-dir-desc {
 
 /** Image List **/
 
-.wp-smush-image-list {
-	line-height: 1.5;
-}
-
-span.wp-smush-li-path {
-	cursor: pointer;
-	font-weight: 500;
-	position: relative;
-}
-
 div.wp-smush-scan-result {
 	background: white;
 }
@@ -663,52 +625,6 @@ div.wp-smush-scan-result div.content {
 	width: 100%;
 }
 
-li.wp-smush-image-ele span.wp-smush-image-path {
-	padding: 4px 0 3px;
-}
-
-.wp-smush-image-ele-status {
-	color: #C6C6C6;
-	display: inline-block;
-	height: 23px;
-	line-height: 1;
-	margin-right: 10px;
-	overflow: hidden;
-	position: relative;
-	width: 22px;
-	vertical-align: middle;
-}
-
-.wp-smush-image-ele-status:before,
-.smush-pro-feature-title:before {
-	box-shadow: none;
-	content: url("../images/image.svg");
-	font-family: 'WPMU-DEV-App-Icons';
-	font-size: 20px;
-	font-style: normal;
-	font-variant: normal;
-	font-weight: normal;
-	height: 22px;
-	line-height: 22px;
-	margin-left: 1px;
-	margin-top: -11px;
-	opacity: 1;
-	position: absolute;
-	speak: none;
-	transition-duration: 0.2s;
-	transition-property: color, opacity;
-	text-transform: none;
-	top: 50%;
-	vertical-align: middle;
-	width: 22px;
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-}
-
-li.wp-smush-image-ele.in-progress .wp-smush-image-ele-status {
-	display: none;
-}
-
 div.wp-smush-info.notice {
 	font-size: 15px;
 	letter-spacing: -0.015em;
@@ -717,7 +633,7 @@ div.wp-smush-info.notice {
 }
 
 /* Bulk Smush button*/
-button.wp-smush-all.wp-smush-button {
+button.wp-smush-all {
 	float: right;
 }
 

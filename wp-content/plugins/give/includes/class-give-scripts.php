@@ -173,14 +173,11 @@ class Give_Scripts {
 		$this->admin_localize_scripts();
 	}
 
-
 	/**
 	 * Load admin plugin page related scripts, styles andd localize param
 	 *
-	 *
 	 * @since  2.2.0
 	 * @access private
-	 *
 	 */
 	private function plugin_equeue_scripts() {
 		wp_enqueue_style( 'plugin-deactivation-survey-css' );
@@ -195,6 +192,7 @@ class Give_Scripts {
 			'please_fill_field'               => __( 'Error: Please fill the field.', 'give' ),
 
 		);
+
 		wp_localize_script( 'plugin-deactivation-survey-js', 'give_vars', $localized_data );
 	}
 
@@ -209,6 +207,7 @@ class Give_Scripts {
 		// Price Separators.
 		$thousand_separator = give_get_price_thousand_separator();
 		$decimal_separator  = give_get_price_decimal_separator();
+		$number_decimals    = give_get_price_decimals();
 
 		// Localize strings & variables for JS.
 		$localized_data = array(
@@ -216,6 +215,10 @@ class Give_Scripts {
 			'give_version'                      => GIVE_VERSION,
 			'thousands_separator'               => $thousand_separator,
 			'decimal_separator'                 => $decimal_separator,
+			'number_decimals'                   => $number_decimals, // Use this for number of decimals instead of `currency_decimals`.
+			'currency_decimals'                 => $number_decimals, // If you find usage of this variable then replace it with `number_decimals`.
+			'currency_sign'                     => give_currency_filter( '' ),
+			'currency_pos'                      => isset( $give_options['currency_position'] ) ? $give_options['currency_position'] : 'before',
 			'quick_edit_warning'                => __( 'Not available for variable priced forms.', 'give' ),
 			'delete_payment'                    => __( 'Are you sure you want to <strong>permanently</strong> delete this donation?', 'give' ),
 			'delete_payment_note'               => __( 'Are you sure you want to delete this note?', 'give' ),
@@ -225,15 +228,14 @@ class Give_Scripts {
 			'disconnect_user'                   => __( 'Are you sure you want to disconnect the user from this donor?', 'give' ),
 			'one_option'                        => __( 'Choose a form', 'give' ),
 			'one_or_more_option'                => __( 'Choose one or more forms', 'give' ),
-			'currency_sign'                     => give_currency_filter( '' ),
-			'currency_pos'                      => isset( $give_options['currency_position'] ) ? $give_options['currency_position'] : 'before',
-			'currency_decimals'                 => give_get_price_decimals(),
 			'ok'                                => __( 'Ok', 'give' ),
 			'cancel'                            => __( 'Cancel', 'give' ),
 			'success'                           => __( 'Success', 'give' ),
 			'error'                             => __( 'Error', 'give' ),
 			'close'                             => __( 'Close', 'give' ),
 			'confirm'                           => __( 'Confirm', 'give' ),
+			'copied'                            => __( 'Copied!', 'give' ),
+			'shortcode_not_copy'                => __( 'Shortcode could not be copied.', 'give' ),
 			'confirm_action'                    => __( 'Confirm Action', 'give' ),
 			'confirm_deletion'                  => __( 'Confirm Deletion', 'give' ),
 			'confirm_delete_donation'           => __( 'Confirm Delete Donation', 'give' ),
@@ -251,6 +253,7 @@ class Give_Scripts {
 			'reset_stats_warn'                  => __( 'Are you sure you want to reset Give? This process is <strong><em>not reversible</em></strong> and will delete all data regardless of test or live mode. Please be sure you have a recent backup before proceeding.', 'give' ),
 			'delete_test_donor'                 => __( 'Are you sure you want to delete all the test donors? This process will also delete test donations as well.', 'give' ),
 			'delete_import_donor'               => __( 'Are you sure you want to delete all the imported donors? This process will also delete imported donations as well.', 'give' ),
+			'delete_donations_only'             => __( 'Are you sure you want to delete all the donations in the specfied date range?', 'give' ),
 			'price_format_guide'                => sprintf( __( 'Please enter amount in monetary decimal ( %1$s ) format without thousand separator ( %2$s ) .', 'give' ), $decimal_separator, $thousand_separator ),
 			/* translators : %s: Donation form options metabox */
 			'confirm_before_remove_row_text'    => __( 'Do you want to delete this item?', 'give' ),
@@ -266,7 +269,7 @@ class Give_Scripts {
 			'donors_bulk_action'                => array(
 				'no_donor_selected'  => array(
 					'title' => __( 'No donors selected', 'give' ),
-					'desc'  => __( 'You must choose at least one or more donors to delete.', 'give' )
+					'desc'  => __( 'You must choose at least one or more donors to delete.', 'give' ),
 				),
 				'no_action_selected' => array(
 					'title' => __( 'No action selected', 'give' ),
@@ -321,7 +324,12 @@ class Give_Scripts {
 			'chosen_add_title_prefix'           => __( 'No result found. Press enter to add', 'give' ),
 			'db_update_nonce'                   => wp_create_nonce( Give_Updates::$background_updater->get_identifier() ),
 			'ajax'                              => give_test_ajax_works(),
-			'date_format'                       => give_get_localized_date_format_to_js(),
+			'donor_note_confirm_msg'            => __( 'Please confirm you would like to add a donor note. An email notification will be sent to the donor with the note. If you do not want to notify the donor you may add a private note or disable the donor note email.', 'give' ),
+			'email_notification'            => array(
+				'donor_note' => array(
+					'status' => Give_Email_Notification_Util::is_email_notification_active( Give_Email_Notification::get_instance('donor-note' ) )
+				)
+			),
 		);
 
 		wp_localize_script( 'give-admin-scripts', 'give_vars', $localized_data );
@@ -373,7 +381,9 @@ class Give_Scripts {
 	public function public_enqueue_scripts() {
 
 		// Call Babel Polyfill with common handle so that it is compatible with plugins and themes.
-		if ( ! wp_script_is( 'babel-polyfill', 'enqueued' ) ) {
+		if ( ! wp_script_is( 'babel-polyfill', 'enqueued' )
+		     && give_is_setting_enabled( give_get_option( 'babel_polyfill_script', 'enabled' ) )
+		) {
 			wp_enqueue_script(
 				'babel-polyfill',
 				GIVE_PLUGIN_URL . 'assets/dist/js/babel-polyfill.js',
@@ -434,7 +444,7 @@ class Give_Scripts {
 					'payment-mode'           => __( 'Please select payment mode.', 'give' ),
 					'give_first'             => __( 'Please enter your first name.', 'give' ),
 					'give_email'             => __( 'Please enter a valid email address.', 'give' ),
-					'give_user_login'        => __( 'Invalid username. Only lowercase letters (a-z) and numbers are allowed.', 'give' ),
+					'give_user_login'        => __( 'Invalid email address or username.', 'give' ),
 					'give_user_pass'         => __( 'Enter a password.', 'give' ),
 					'give_user_pass_confirm' => __( 'Enter the password confirmation.', 'give' ),
 					'give_agree_to_terms'    => __( 'You must agree to the terms and conditions.', 'give' ),
@@ -453,11 +463,12 @@ class Give_Scripts {
 				'number_decimals' => give_get_price_decimals(),
 			) ),
 			'cookie_hash'                 => COOKIEHASH,
-			'delete_session_nonce_cookie' => absint( Give()->session->is_delete_nonce_cookie() )
+			'session_nonce_cookie_name'   => Give()->session->get_cookie_name( 'nonce' ),
+			'session_cookie_name'         => Give()->session->get_cookie_name( 'session' ),
+			'delete_session_nonce_cookie' => absint( Give()->session->is_delete_nonce_cookie() ),
 		) );
 
 		wp_localize_script( 'give', 'give_global_vars', $localize_give_vars );
-
 	}
 
 	/**
@@ -515,21 +526,26 @@ class Give_Scripts {
 	public function gutenberg_admin_scripts() {
 
 		// Enqueue the bundled block JS file
+		//@todo: Update dependencies on 5.0 Stable release
 		wp_enqueue_script(
 			'give-blocks-js',
 			GIVE_PLUGIN_URL . 'assets/dist/js/gutenberg.js',
-			array( 'wp-i18n', 'wp-element', 'wp-blocks', 'wp-components', 'wp-api' ),
+			array(
+				'wp-i18n',
+				'wp-element',
+				'wp-blocks',
+				'wp-components',
+				'wp-api',
+				'wp-editor',
+			),
 			GIVE_VERSION
 		);
-
-		// Enqueue public styles
-		wp_enqueue_style( 'give-styles' );
 
 		// Enqueue the bundled block css file
 		wp_enqueue_style(
 			'give-blocks-css',
 			GIVE_PLUGIN_URL . 'assets/dist/css/gutenberg.css',
-			array( ),
+			array( 'give-styles' ),
 			GIVE_VERSION
 		);
 

@@ -12,7 +12,7 @@
  * Plugin Name: Constant Contact Forms for WordPress
  * Plugin URI:  https://www.constantcontact.com
  * Description: Be a better marketer. All it takes is Constant Contact email marketing.
- * Version:     1.3.7
+ * Version:     1.4.5
  * Author:      Constant Contact
  * Author URI:  https://www.constantcontact.com/index?pn=miwordpress
  * License:     GPLv3
@@ -49,6 +49,7 @@
  * @since 1.0.0
  *
  * @param string $class_name Name of the class being requested.
+ * @return null
  */
 function constant_contact_autoload_classes( $class_name ) {
 	if ( 0 !== strpos( $class_name, 'ConstantContact_' ) ) {
@@ -77,7 +78,7 @@ class Constant_Contact {
 	 * @since 1.0.0
 	 * @var string
 	 */
-	const VERSION = '1.3.7';
+	const VERSION = '1.4.5';
 
 	/**
 	 * URL of plugin directory.
@@ -119,6 +120,12 @@ class Constant_Contact {
 	 */
 	public $menu_icon = 'dashicons-megaphone';
 
+	/**
+	 * Log location.
+	 *
+	 * @since 1.3.7
+	 * @var string
+	 */
 	public $logger_location = '';
 
 	/**
@@ -356,6 +363,8 @@ class Constant_Contact {
 	 * Sets up our plugin.
 	 *
 	 * @since 1.0.0
+	 *
+	 * @return null
 	 */
 	protected function __construct() {
 
@@ -379,6 +388,9 @@ class Constant_Contact {
 
 		// Include our helper functions function for end-users.
 		self::include_file( 'helper-functions', false );
+
+		// Include compatibility fixes to address conflicts with other plug-ins.
+		self::include_file( 'compatibility', false );
 	}
 
 	/**
@@ -455,10 +467,14 @@ class Constant_Contact {
 		// Allow shortcodes in widgets for our plugin.
 		add_filter( 'widget_text', 'do_shortcode' );
 
+		add_action( 'admin_enqueue_scripts', array( $this, 'register_admin_assets' ), 1 );
+		add_action( 'wp_enqueue_scripts', array( $this, 'register_front_assets' ), 1 );
+
 		if ( is_admin() ) {
 			add_action( 'wp_ajax_ctct_dismiss_first_modal', array( $this, 'ajax_save_clear_first_form' ) );
 			add_action( 'wp_ajax_nopriv_ctct_dismiss_first_modal', array( $this, 'ajax_save_clear_first_form' ) );
 		}
+
 	}
 
 	/**
@@ -466,14 +482,14 @@ class Constant_Contact {
 	 *
 	 * @since 1.0.0
 	 */
-	function _activate() { }
+	public function activate() { }
 
 	/**
 	 * Deactivate the plugin.
 	 *
 	 * @since 1.0.0
 	 */
-	function _deactivate() {
+	public function deactivate() {
 
 		// Should be nothing to delete for non-met users, since it never ran in the first place.
 		if ( $this->meets_php_requirements() ) {
@@ -598,7 +614,7 @@ class Constant_Contact {
 
 		if ( isset( $_POST['action'] ) && 'ctct_dismiss_first_modal' === $_POST['action'] ) {
 			// Save our dismiss for the first form modal.
-			update_option( 'ctct_first_form_modal_dismissed', time() );
+			update_option( 'ctct_first_form_modal_dismissed', current_time( 'timestamp' ) );
 		}
 		wp_die();
 	}
@@ -768,6 +784,34 @@ class Constant_Contact {
 	}
 
 	/**
+	 * Register our admin styles.
+	 *
+	 * @since 1.4.0
+	 */
+	public function register_admin_assets() {
+		wp_register_style(
+			'constant-contact-forms-admin',
+			$this->url() . 'assets/css/admin-style.css',
+			array(),
+			self::VERSION
+		);
+	}
+
+	/**
+	 * Register our frontend styles.
+	 *
+	 * @since 1.4.0
+	 */
+	public function register_front_assets() {
+		wp_register_style(
+			'ctct_form_styles',
+			$this->url() . 'assets/css/style.css',
+			array(),
+			self::VERSION
+		);
+	}
+
+	/**
 	 * Determine if we are in a Constant Contact area.
 	 *
 	 * @since 1.2.0
@@ -811,8 +855,8 @@ class Constant_Contact {
 }
 add_action( 'plugins_loaded', array( constant_contact(), 'hooks' ) );
 
-register_activation_hook( __FILE__, array( constant_contact(), '_activate' ) );
-register_deactivation_hook( __FILE__, array( constant_contact(), '_deactivate' ) );
+register_activation_hook( __FILE__, array( constant_contact(), 'activate' ) );
+register_deactivation_hook( __FILE__, array( constant_contact(), 'deactivate' ) );
 
 /**
  * Grab the Constant_Contact object and return it.

@@ -1,13 +1,12 @@
-jQuery(document).ready(function() {
+jQuery(document).ready(function () {
     "use strict";
-    jQuery("#no_post_add").keyup(function() {
+    jQuery("#no_post_add").keyup(function () {
         var value = jQuery(this).val();
         value = value.replace(/^(0*)/, "");
         jQuery(this).val(value);
     });
     // End Subscribe Functionality
-
-    jQuery('form').each(function() {
+    jQuery('form').each(function () {
         var cmdcode = jQuery(this).find('input[name="cmd"]').val();
         var bncode = jQuery(this).find('input[name="bn"]').val();
 
@@ -16,12 +15,10 @@ jQuery(document).ready(function() {
         } else if ((cmdcode) && (!bncode)) {
             jQuery(this).find('input[name="cmd"]').after("<input type='hidden' name='bn' value='Multidots_SP' />");
         }
-
-
     });
 
-    jQuery(document).ready(function() {
-        jQuery("#type").change(function() {
+    jQuery(document).ready(function () {
+        jQuery("#type").change(function () {
             var type = jQuery("#type").val();
             if (type == 'post') {
                 jQuery(".parent_page_id_tr").hide();
@@ -30,7 +27,6 @@ jQuery(document).ready(function() {
                 jQuery(".parent_page_id_tr").show();
                 jQuery(".template_name_tr").show();
             }
-
         });
     });
 
@@ -46,7 +42,7 @@ jQuery(document).ready(function() {
         }
     }
 
-    jQuery("#btn_submit").click(function(e) {
+    jQuery("#btn_submit").click(function (e) {
         var prefix_word = jQuery("#page_prefix").val();
         var pages_list = jQuery("#pages_list").val();
         var pages_content = pages_content_getContent('pages_content');
@@ -58,18 +54,19 @@ jQuery(document).ready(function() {
         var excerpt_content = jQuery("#excerpt_content").val();
         var no_post_add = jQuery("#no_post_add").val();
         var mass_pages_posts_creator = jQuery("#mass_pages_posts_creator").val();
-        
+
         if (pages_list.length == 0) {
             alert('Please enter list of Pages..');
             event.preventDefault();
             return false;
         }
 
-        if (type == 'none') {
+        if ('none' == type) {
             alert('Please select the type..');
             event.preventDefault();
             return false;
         }
+        jQuery('#loader_gif').show();
         jQuery.ajax({
             type: 'POST',
             data: {
@@ -87,7 +84,11 @@ jQuery(document).ready(function() {
             },
             url: adminajax.ajaxurl,
             dataType: 'html',
-            success: function(response) {
+            before: function (response) {
+                jQuery('#loader_gif').show();
+            },
+            success: function (response) {
+                jQuery('#loader_gif').hide();
                 if (response) {
                     jQuery("#createForm").css("display", "none");
                     jQuery("#message").addClass('view');
@@ -100,6 +101,5 @@ jQuery(document).ready(function() {
                 }
             }
         });
-
     });
 });

@@ -4,7 +4,7 @@
  *
  * @package     Give
  * @subpackage  Admin/Donors
- * @copyright   Copyright (c) 2016, WordImpress
+ * @copyright   Copyright (c) 2016, GiveWP
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       1.0
  */
@@ -173,15 +173,11 @@ function give_donors_list() {
 		?>
 
 		<hr class="wp-header-end">
-		<form id="give-donors-search-filter" method="get"
-		      action="<?php echo admin_url( 'edit.php?post_type=give_forms&page=give-donors' ); ?>">
-			<?php $donors_table->search_box( __( 'Search Donors', 'give' ), 'give-donors' ); ?>
-			<input type="hidden" name="post_type" value="give_forms"/>
-			<input type="hidden" name="page" value="give-donors"/>
-			<input type="hidden" name="view" value="donors"/>
-		</form>
-		<form id="give-donors-filter" method="get">
-			<?php $donors_table->display(); ?>
+		<form id="give-donors-filter" method="get" action="<?php echo admin_url( 'edit.php?post_type=give_forms&page=give-donors' ); ?>">
+			<?php
+			$donors_table->advanced_filters();
+			$donors_table->display();
+			?>
 			<input type="hidden" name="post_type" value="give_forms"/>
 			<input type="hidden" name="page" value="give-donors"/>
 			<input type="hidden" name="view" value="donors"/>
@@ -324,8 +320,9 @@ function give_donor_view( $donor ) {
 	$title_prefixes = give_get_name_title_prefixes();
 
 	// Prepend title prefix to name if it is set.
-	$title_prefix = Give()->donor_meta->get_meta( $donor->id, '_give_donor_title_prefix', true );
-	$donor->name  = give_get_donor_name_with_title_prefixes( $title_prefix, $donor->name );
+	$title_prefix              = Give()->donor_meta->get_meta( $donor->id, '_give_donor_title_prefix', true );
+	$donor_name_without_prefix = $donor->name;
+	$donor->name               = give_get_donor_name_with_title_prefixes( $title_prefix, $donor->name );
 	?>
 	<div id="donor-summary" class="info-wrapper donor-section postbox">
 		<form id="edit-donor-info" method="post"
@@ -333,7 +330,26 @@ function give_donor_view( $donor ) {
 			<div class="donor-info">
 				<div class="donor-bio-header clearfix">
 					<div class="avatar-wrap left" id="donor-avatar">
-						<?php echo get_avatar( $donor->email ); ?>
+						<?php
+
+						// Check whether a Gravatar exists for a donor or not.
+						$validate_gravatar_image = give_validate_gravatar( $donor->email );
+
+						// Get donor's initials for non-gravatars
+						$donor_name_array             = explode( " ", $donor_name_without_prefix );
+						$donor_name_args['firstname'] = ! empty( $donor_name_array[0] ) ? $donor_name_array[0] : '';
+						$donor_name_args['lastname']  = ! empty( $donor_name_array[1] ) ? $donor_name_array[1] : '';
+						$donor_name_initial           = give_get_name_initial( $donor_name_args );
+
+						// Gravatars image for donor
+						if ( $validate_gravatar_image ) {
+							$donor_gravatar_image = get_avatar( $donor->email );
+						} else {
+							$donor_gravatar_image = '<div class="give-donor-admin-avatar">' . $donor_name_initial . '</div>';
+						}
+
+						echo $donor_gravatar_image;
+						?>
 					</div>
 					<div id="donor-name-wrap" class="left">
 						<span class="donor-name info-item edit-item">
@@ -469,45 +485,8 @@ function give_donor_view( $donor ) {
 								</span>
 							</td>
 						</tr>
-
-						<?php $anonymous_donor = absint( $donor->get_meta( '_give_anonymous_donor', true ) ); ?>
-						<tr class="alternate">
-							<th scope="col">
-								<label for="tablecell"><?php _e( 'Anonymous Donor:', 'give' ); ?></label>
-							</th>
-							<td>
-								<span class="donor-anonymous-donor info-item edit-item">
-									<ul class="give-radio-inline">
-										<li>
-											<label>
-												<input
-													name="give_anonymous_donor"
-													value="1"
-													type="radio"
-													<?php checked( 1, $anonymous_donor ) ?>
-												><?php _e( 'Yes', 'give' ); ?>
-											</label>
-										</li>
-										<li>
-											<label>
-												<input
-													name="give_anonymous_donor"
-													value="0"
-													type="radio"
-													<?php checked( 0, $anonymous_donor ) ?>
-												><?php _e( 'No', 'give' ); ?>
-											</label>
-										</li>
-									</ul>
-								</span>
-								<span class="donor-anonymous-donor info-item editable">
-									<?php echo( $anonymous_donor ? __( 'Yes', 'give' ) : __( 'No', 'give' ) ); ?>
-								</span>
-							</td>
-						</tr>
 						</tbody>
 					</table>
-
 				</div>
 
 			</div>
@@ -654,6 +633,7 @@ function give_donor_view( $donor ) {
 										'chosen'           => true,
 										'placeholder'      => esc_attr__( 'Select a country', 'give' ),
 										'data'             => array( 'search-type' => 'no_ajax' ),
+										'autocomplete'     => 'country',
 									) );
 									?>
 								</td>
@@ -697,8 +677,9 @@ function give_donor_view( $donor ) {
 										<?php
 										$states     = give_get_states( $base_country );
 										$state_args = array(
-											'name'  => 'state',
-											'class' => 'regular-text',
+											'name'         => 'state',
+											'class'        => 'regular-text',
+											'autocomplete' => 'address-level1',
 										);
 
 										if ( empty( $states ) ) {
@@ -954,70 +935,6 @@ function give_donor_view( $donor ) {
 			<?php } ?>
 			</tbody>
 		</table>
-
-		<h3><?php _e( 'Comments', 'give' ); ?></h3>
-		<?php
-		// @todo load comment by ajax to improve performance.
-		$donations = give_get_users_donations( $donor->email );
-		?>
-		<table class="wp-list-table widefat striped comments">
-			<thead>
-			<tr>
-				<th scope="col"><?php _e( 'Donation', 'give' ); ?></th>
-				<th scope="col"><?php _e( 'Anonymous', 'give' ); ?></th>
-				<th scope="col" colspan="3"><?php _e( 'Comment', 'give' ); ?></th>
-			</tr>
-			</thead>
-			<tbody>
-			<?php if ( ! empty( $donations ) ) : ?>
-				<?php foreach ( $donations as $donation ) : ?>
-					<?php
-					$comment = give_get_donor_donation_comment( $donation->ID, give_get_payment_donor_id( $donation->ID ) );
-
-					if ( ! $comment instanceof WP_Comment ) {
-						continue;
-					}
-					?>
-					<tr>
-						<td>
-							<?php
-							$donation_number = Give()->seq_donation_number->get_serial_code( $donation );
-							echo $donation_number;
-							?>
-						</td>
-						<td>
-							<?php
-							echo absint( give_get_payment_meta( $donation->ID, '_give_anonymous_donation' ) )
-								? __( 'Yes', 'give' )
-								: __( 'No', 'give' );
-							?>
-						</td>
-						<td>
-							<?php
-							echo apply_filters( 'the_content', $comment->comment_content );
-
-							echo sprintf(
-								'<a href="%1$s" aria-label="%2$s" target="_blank">%3$s</a>',
-								admin_url( "edit.php?post_type=give_forms&page=give-payment-history&view=view-payment-details&id={$donation->ID}#give-payment-donor-comment" ),
-								sprintf(
-								/* translators: %s: Comment ID */
-									esc_attr__( 'Edit Comment %s.', 'give' ),
-									$comment->comment_ID
-								),
-								__( 'Edit Comment', 'give' )
-							);
-							?>
-						</td>
-					</tr>
-				<?php endforeach; ?>
-			<?php else: ?>
-				<tr>
-					<td colspan="5"><?php _e( 'No comment found.', 'give' ); ?></td>
-				</tr>
-			<?php endif ?>
-			</tbody>
-		</table>
-
 		<?php
 		/**
 		 * Fires in donor profile screen, below the tables.
@@ -1048,7 +965,7 @@ function give_donor_view( $donor ) {
  *
  * @since  1.0
  *
- * @param  object $donor The donor object being displayed.
+ * @param  Give_Donor $donor The donor object being displayed.
  *
  * @return void
  */

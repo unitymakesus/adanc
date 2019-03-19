@@ -4,7 +4,7 @@
  *
  * @package     Give
  * @subpackage  Classes/API
- * @copyright   Copyright (c) 2018, WordImpress
+ * @copyright   Copyright (c) 2018, GiveWP
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       2.1
  */
@@ -87,6 +87,7 @@ class Give_API_V2 {
 
 	/**
 	 * Register API routes
+	 * Note: only for internal purpose.
 	 * @todo   : prevent cross domain api request
 	 *
 	 * @since  2.1
@@ -101,6 +102,11 @@ class Give_API_V2 {
 		register_rest_route( $this->rest_base, '/form-grid', array(
 			'methods'  => 'GET',
 			'callback' => array( $this, 'get_donation_grid' ),
+		) );
+
+		register_rest_route( $this->rest_base, '/donor-wall', array(
+			'methods'  => 'GET',
+			'callback' => array( $this, 'get_donor_wall' ),
 		) );
 	}
 
@@ -154,6 +160,20 @@ class Give_API_V2 {
 		$parameters = $request->get_params();
 
 		return give_form_grid_shortcode( $parameters );
+	}
+
+	/**
+	 * Rest fetch form data callback
+	 *
+	 * @param WP_REST_Request $request
+	 *
+	 * @access public
+	 * @return array|mixed|object
+	 */
+	public function get_donor_wall( $request ) {
+		$parameters = $request->get_params();
+
+		return Give_Donor_Wall::get_instance()->render_shortcode( $parameters );
 	}
 
 	/**

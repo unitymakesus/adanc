@@ -49,6 +49,9 @@
 								<input type="radio" id="finish-none" name="finish" value="exact"<?php echo ( 'exact' == $finish ) ? ' checked="checked"' : ''; ?> />
 								<?php _e( "Exact", 'advanced-excerpt' ); ?>
 								</label><br />
+								<input type="radio" id="finish-exact-2" name="finish" value="exact_w_spaces"<?php echo ( 'exact_w_spaces' == $finish ) ? ' checked="checked"' : ''; ?> />
+								<?php _e( "Exact <small>(count spaces as well)</small>", 'advanced-excerpt' ); ?>
+								</label><br />
 								<label for="finish-word">
 								<input type="radio" id="finish-word" name="finish" value="word"<?php echo ( 'word' == $finish ) ? ' checked="checked"' : ''; ?> />
 								<?php _e( "Word", 'advanced-excerpt' ); ?>
@@ -70,6 +73,10 @@
 							<label for="add-link">
 							<input name="add_link" type="checkbox" id="add-link" value="on" <?php echo ( 1 == $add_link ) ? 'checked="checked"' : ''; ?> />
 							<?php _e( "Add read more link to excerpt", 'advanced-excerpt' ); ?>
+							</label><br />
+							<label for="link-new-tab">
+							<input name="link_new_tab" type="checkbox" id="link-new-tab" value="on" <?php echo ( 1 == $link_new_tab ) ? 'checked="checked"' : ''; ?> />
+							<?php _e( "Open read more link in new tab", 'advanced-excerpt' ); ?>
 							</label><br />
 							<input name="read_more" type="text" id="read-more" value="<?php echo $read_more; ?>" <?php echo ( 1 !== $add_link ) ? 'disabled="disabled"' : ''; ?> />
 						</td>

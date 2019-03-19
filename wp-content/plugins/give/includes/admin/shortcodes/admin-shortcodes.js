@@ -5,14 +5,12 @@
  * @package:     Give
  * @subpackage:  Assets/JS
  * @author:      Paul Ryley
- * @copyright:   Copyright (c) 2016, WordImpress
+ * @copyright:   Copyright (c) 2016, GiveWP
  * @license:     http://opensource.org/licenses/gpl-2.0.php GNU Public License
  * @since:       1.3.0
  */
 
-/* global ajaxurl, jQuery, scShortcodes, tinymce */
-
-import {GiveWarningAlert, GiveErrorAlert, GiveConfirmModal} from '../../../assets/src/js/plugins/modal';
+/* global Give, ajaxurl, jQuery, scShortcodes, tinymce */
 
 var scShortcode, scButton;
 
@@ -106,10 +104,10 @@ jQuery( function( $ ) {
 
 										valid = false;
 
-										new GiveErrorAlert({
+										new Give.modal.GiveErrorAlert({
 											modalContent:{
 												desc: required[ id ],
-												cancelBtnTitle: give_vars.ok,
+												cancelBtnTitle: Give.fn.getGlobalVar('ok'),
 											}
 										}).render();
 
@@ -143,6 +141,15 @@ jQuery( function( $ ) {
 						scForm.destroy();
 					},
 					onopen: function() {
+
+						// Hacky way to remove scrollbars when not necessary.
+						let popup = $('.mce-sc-popup');
+						popup.css({
+							width: popup.width(),
+							height: popup.height(),
+							overflow: 'auto'
+						});
+
 						// Conditional fields.
 						render_continue_button_title_field();
 					}

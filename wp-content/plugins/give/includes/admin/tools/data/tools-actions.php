@@ -4,7 +4,7 @@
  *
  * @package     Give
  * @subpackage  Admin/Tools
- * @copyright   Copyright (c) 2016, WordImpress
+ * @copyright   Copyright (c) 2016, GiveWP
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       1.5
  */
@@ -68,6 +68,10 @@ function give_include_batch_export_class( $class ) {
 
 		case 'Give_Tools_Recount_Income':
 			require_once GIVE_PLUGIN_DIR . 'includes/admin/tools/data/class-give-tools-recount-income.php';
+			break;
+
+		case 'Give_Tools_Delete_Donations':
+			require_once GIVE_PLUGIN_DIR . 'includes/admin/tools/data/class-give-tools-delete-donations.php';
 			break;
 	}
 }

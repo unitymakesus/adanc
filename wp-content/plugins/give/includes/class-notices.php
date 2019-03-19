@@ -4,7 +4,7 @@
  *
  * @package     Give
  * @subpackage  Admin/Notices
- * @copyright   Copyright (c) 2016, WordImpress
+ * @copyright   Copyright (c) 2016, GiveWP
  * @license     https://opensource.org/licenses/gpl-license GNU Public License
  * @since       1.8.9
  */
@@ -54,6 +54,7 @@ class Give_Notices {
 	 */
 	public function __construct() {
 		add_action( 'admin_notices', array( $this, 'render_admin_notices' ), 999 );
+		add_action( 'admin_footer', array( $this, '__reveal_notices' ) );
 		add_action( 'give_dismiss_notices', array( $this, 'dismiss_notices' ) );
 
 		add_action( 'give_frontend_notices', array( $this, 'render_frontend_notices' ), 999 );
@@ -204,8 +205,19 @@ class Give_Notices {
 	 *
 	 */
 	public function render_admin_notices() {
+		/* @var WP_Screen $wp_screen */
+		$wp_screen = get_current_screen();
+
 		// Bailout.
 		if ( empty( self::$notices ) ) {
+			return;
+		}
+
+		// Do not render notice on Gutenberg editor page.
+		if (
+			method_exists( $wp_screen, 'is_block_editor' )
+			&& $wp_screen->is_block_editor()
+		) {
 			return;
 		}
 
@@ -384,13 +396,26 @@ class Give_Notices {
 			</script>
 			<?php
 		endif;
+	}
+
+	/**
+	 * Show notices
+	 * Note: only for internal use
+	 *
+	 * @since 2.3.0
+	 */
+	public function __reveal_notices(){
 		?>
 		<script>
 			jQuery(document).ready(function($){
 				// Fix notice appearance issue.
 				window.setTimeout(
 					function(){
-						$('.give-notice').slideDown();
+						var give_notices = $('.give-notice');
+
+						if( give_notices.length ) {
+							give_notices.slideDown();
+						}
 					},
 					1000
 				);
