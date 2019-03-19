@@ -18,4 +18,8 @@ class FrontPage extends Controller
   public function information(){
     return get_field('information');
   }
+
+  public function callout(){
+    return get_field('calout');
+  }
 }
