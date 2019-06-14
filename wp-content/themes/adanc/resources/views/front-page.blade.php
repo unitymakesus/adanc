@@ -75,7 +75,10 @@
             <div class="row">
               <h2>{{ $callout['callout_title'] }}</h2>
               {!! $callout['callout_info'] !!}
-              <a class="btn" href="{{ $callout['callout_link'] }}">Learn More</a>
+
+              @if(!empty($callout['callout_title']))
+                <a class="btn" href="{{ $callout['callout_link'] }}">Learn More</a>
+              @endif
             </div>
             @endif
 

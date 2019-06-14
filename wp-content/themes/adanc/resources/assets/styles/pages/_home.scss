@@ -92,7 +92,7 @@
     }
 
     .service-item {
-      height: 325px;
+      height: 350px;
       position: relative;
       background-size: cover;
       background-position: center;
@@ -107,6 +107,8 @@
         left: 10px;
         right: 10px;
         padding: 1em;
+        height: 150px;
+        overflow: hidden;
 
         h3, p {
           margin: 0;
