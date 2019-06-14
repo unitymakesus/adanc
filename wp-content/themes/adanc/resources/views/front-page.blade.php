@@ -35,7 +35,10 @@
               <div class="col s12 m6 l3">
                 <a href="{{$service['service_link']}}">
                   <div class="service-item" style="background-image: url({{$service['service_image']}})">
-                    <h3>{{$service['service_title']}}</h3>
+                    <div class="service-content">
+                      <h3>{{$service['service_title']}}</h3>
+                      <p>{{$service['service_description']}}</p>
+                    </div>
                   </div>
                 </a>
               </div>
