@@ -8896,7 +8896,7 @@ html[data-contrast="true"] .home .services {
 }
 
 .home .services .service-item {
-  height: 325px;
+  height: 350px;
   position: relative;
   background-size: cover;
   background-position: center;
@@ -8913,6 +8913,8 @@ html[data-contrast="true"] .home .services {
   left: 10px;
   right: 10px;
   padding: 1em;
+  height: 150px;
+  overflow: hidden;
 }
 
 .home .services .service-item .service-content h3,
