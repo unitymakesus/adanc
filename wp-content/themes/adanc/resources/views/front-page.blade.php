@@ -49,56 +49,18 @@
       </div>
     </section>
 
+    @if(!empty($callout['callout_title']))
     <section class="overview" aria-label="overview">
       <div class="container">
         <div class="row">
-          <div class="col s12 m5 featured-post">
-            <div class="row">
-              <h2>Independent Living Blog</h2>
-              <p>Keep up-to-date on the latest news and advocacy efforts for the disability community.</p>
-              <div class="post-card">
-              <?php $the_query = new WP_Query( 'posts_per_page=1' ); ?>
-                <?php while ($the_query -> have_posts()) : $the_query -> the_post(); ?>
-                  <a href="<?php the_permalink() ?>">
-                    <?php if (has_post_thumbnail())
-                      the_post_thumbnail( 'medium' ); ?>
-                      <h3><?php the_title(); ?></h3>
-                    </a>
-                <?php
-                  endwhile;
-                  wp_reset_postdata();
-                ?>
-              </div>
-            </div>
-
-            @if($callout)
-            <div class="row">
-              <h2>{{ $callout['callout_title'] }}</h2>
-              {!! $callout['callout_info'] !!}
-
-              @if(!empty($callout['callout_title']))
-                <a class="btn" href="{{ $callout['callout_link'] }}">Learn More</a>
-              @endif
-            </div>
-            @endif
-
+          <div class="col s12 m6 offset-m3 featured-post">
+            <h2>{{ $callout['callout_title'] }}</h2>
+            {!! $callout['callout_info'] !!}
+            <a class="btn" href="{{ $callout['callout_link'] }}">Learn More</a>
           </div>
-          <div class="col s12 m5 offset-m2">
-            @if($information)
-            <div class="row">
-              <h2>{{ $information['volunteer_title'] }}</h2>
-              <p>{{ $information['volunteer_description'] }}</p>
-              <a class="btn" href="{{ $information['volunteer_link'] }}">Learn how to help</a>
-            </div>
-            <div class="row">
-              <h2>{{ $information['newsletter_title'] }}</h2>
-              <p>{{ $information['newsletter_description'] }}</p>
-              {!! do_shortcode('[ctct form="1611"]') !!}
-            </div>
-          @endif
         </div>
       </div>
-      </div>
     </section>
+    @endif
   @endwhile
 @endsection

@@ -1,8 +1,6 @@
-@if(! is_front_page() )
-  <div class="footer-cta">
-    <a class="btn" href="/donate/"><i class="material-icons right">redeem</i>DONATE</a>
-  </div>
-@endif
+<div class="footer-cta">
+  <a class="btn" href="/donate/"><i class="material-icons right">redeem</i>DONATE</a>
+</div>
 
 <footer class="content-info" role="contentinfo">
   <div class="row">
