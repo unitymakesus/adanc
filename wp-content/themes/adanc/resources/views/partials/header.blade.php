@@ -27,7 +27,7 @@
         <input type="checkbox" name="a11y-tools-trigger" id="a11y-tools-trigger" value="true" />
         <label for="a11y-tools-trigger"><i class="material-icons" aria-label="Show accessibility tools">accessibility_new</i></a>
       </div>
-      
+
       <div class="a11y-tools" role="toolbar" aria-label="Accessibility Tools">
           <div class="flex flex-end">
             <fieldset id="text-size" class="text-size" tabindex="-1">
@@ -65,12 +65,12 @@
               </div>
             </fieldset>
             <fieldset id="toggle-espanol" class="toggle-espanol" tabindex="-1">
-              <legend>Ver En Español:</legend>
+              <legend>Language:</legend>
               @php
-                $cookie_contrast = $_COOKIE['data_espanol'];
+                $cookie_lang = $_COOKIE['data_espanol'];
               @endphp
               <div>
-                <input class="gtranslate" type="checkbox" name="espanol" id="espanol" value="true" <?php if($cookie_contrast == 'true') {echo 'checked';} ?> />
+                <input class="gtranslate" type="checkbox" name="espanol" id="espanol" value="true" <?php if($cookie_lang == 'true') {echo 'checked';} ?> />
                 <label for="espanol">En Espanol</label>
               </div>
             </fieldset>

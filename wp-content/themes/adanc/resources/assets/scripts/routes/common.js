@@ -166,11 +166,12 @@ export default {
     });
 
     // Controls for changing language
-    $('#toggle-espanol input[name="espanol"]').on('change', function() {
-      let espanol = $(this).is(':checked');
-      $('html').attr('data-espanol', espanol);
-      document.cookie = 'data_espanol=' + espanol + ';max-age=31536000;path=/';
-    });
+    // $('#toggle-espanol input[name="espanol"]').on('change', function() {
+    //   console.log('It is running!');
+    //   let espanol = $(this).is(':checked');
+    //   $('html').attr('data-espanol', espanol);
+    //   document.cookie = 'data_espanol=' + espanol + ';max-age=31536000;path=/';
+    // });
 
     // Helper function for translation cookies
     function getDomainName(hostName) {
@@ -180,9 +181,19 @@ export default {
     // Set up translation on click
     $(document).on('click','.gtranslate', function(e) {
       e.preventDefault();
+
+      let espanol = $(this).is(':checked');
+      $('html').attr('data-espanol', espanol);
+      document.cookie = 'data_espanol=' + espanol + ';max-age=31536000;path=/';
+
       var hostname = window.location.hostname;
       var domain = getDomainName(hostname);
-      document.cookie = "googtrans=/en/es;path=/;domain=" + domain + ";";
+
+      if (espanol) {
+        document.cookie = "googtrans=/en/es;path=/;domain=" + domain + ";";
+      } else {
+        document.cookie = "googtrans=/en/es;path=/;domain=" + domain + ";expires=Thu, 01 Jan 1970 00:00:00 GMT";
+      }
       location.reload();
     });
   },
