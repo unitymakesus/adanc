@@ -177,16 +177,25 @@ add_action( 'activated_plugin', 'give_recently_activated_addons', 10 );
 function give_filter_addons_do_filter_addons( $plugin_menu ) {
 	global $plugins;
 
-	foreach ( $plugins['all'] as $plugin_slug => $plugin_data ) {
+	$give_addons = wp_list_pluck( give_get_plugins( array( 'only_add_on' => true ) ), 'Name' );
 
-		if ( false !== strpos( $plugin_data['Name'], 'Give' ) && ( false !== strpos( $plugin_data['AuthorName'], 'WordImpress' ) || false !== strpos( $plugin_data['AuthorName'], 'GiveWP' ) ) ) {
-			$plugins['give'][ $plugin_slug ]           = $plugins['all'][ $plugin_slug ];
-			$plugins['give'][ $plugin_slug ]['plugin'] = $plugin_slug;
-			// replicate the next step.
-			if ( current_user_can( 'update_plugins' ) ) {
-				$current = get_site_transient( 'update_plugins' );
-				if ( isset( $current->response[ $plugin_slug ] ) ) {
-					$plugins['give'][ $plugin_slug ]['update'] = true;
+	if( ! empty( $give_addons ) ) {
+		foreach ( $plugins['all'] as $file => $plugin_data ) {
+
+			if ( in_array( $plugin_data['Name'], $give_addons ) ) {
+				$plugins['give'][ $file ]           = $plugins['all'][ $file ];
+				$plugins['give'][ $file ]['plugin'] = $file;
+
+				// Replicate the next step.
+				if ( current_user_can( 'update_plugins' ) ) {
+					$current = get_site_transient( 'update_plugins' );
+
+					if ( isset( $current->response[ $file ] ) ) {
+						$plugins['give'][ $file ]['update'] = true;
+						$plugins['give'][ $file ] = array_merge( (array) $current->response[ $file ], $plugins['give'][ $file ] );
+					} elseif ( isset( $current->no_update[ $file ] ) ){
+						$plugins['give'][ $file ] = array_merge( (array) $current->no_update[ $file ], $plugins['give'][ $file ] );
+					}
 				}
 			}
 		}
@@ -457,7 +466,7 @@ function give_deactivation_popup() {
 
 	<h2 id="deactivation-survey-title">
 		<img src="<?php echo esc_url( GIVE_PLUGIN_URL ) ?>/assets/dist/images/give-icon-full-circle.svg">
-		<span><?php esc_html_e( 'Give Deactivation', 'give' ); ?></span>
+		<span><?php esc_html_e( 'GiveWP Deactivation', 'give' ); ?></span>
 	</h2>
 	<form class="deactivation-survey-form" method="POST">
 		<p><?php esc_html_e( 'If you have a moment, please let us know why you are deactivating Give. All submissions are anonymous and we only use this feedback to improve this plugin.', 'give' ); ?></p>
@@ -506,7 +515,7 @@ function give_deactivation_popup() {
 					printf(
 						'%1$s %2$s %3$s',
 						__( "We're sorry to hear that, check", 'give' ),
-						'<a href="https://wordpress.org/support/plugin/give">Give Support</a>.',
+						'<a href="https://wordpress.org/support/plugin/give">GiveWP Support</a>.',
 						__( 'Can you describe the issue?', 'give' )
 					);
 					?>
@@ -526,7 +535,7 @@ function give_deactivation_popup() {
 					printf(
 						'%1$s %2$s %3$s',
 						__( "We're sorry to hear that, check", 'give' ),
-						'<a href="https://wordpress.org/support/plugin/give">Give Support</a>.',
+						'<a href="https://wordpress.org/support/plugin/give">GiveWP Support</a>.',
 						__( 'Can you describe the issue?', 'give' )
 					);
 					?>
@@ -551,10 +560,10 @@ function give_deactivation_popup() {
 			<p>
 				<label>
 					<input type="checkbox" name="confirm_reset_store" value="1">
-					<?php esc_html_e( 'Would you like to delete all Give data?', 'give' ); ?>
+					<?php esc_html_e( 'Would you like to delete all GiveWP data?', 'give' ); ?>
 				</label>
 				<section class="give-field-description">
-					<?php esc_html_e( 'By default the custom roles, Give options, and database entries are not deleted when you deactivate Give. If you are deleting Give completely from your website and want those items removed as well check this option. Note: This will permanently delete all Give data from your database.', 'give' ); ?>
+					<?php esc_html_e( 'By default the custom roles, GiveWP options, and database entries are not deleted when you deactivate Give. If you are deleting GiveWP completely from your website and want those items removed as well check this option. Note: This will permanently delete all GiveWP data from your database.', 'give' ); ?>
 				</section>
 			</p>
 		</div>
@@ -571,10 +580,7 @@ function give_deactivation_popup() {
 	<?php
 
 	// Echo content (deactivation form) from the output buffer.
-	$output = ob_get_contents();
-
-	// Erase and stop output buffer.
-	ob_end_clean();
+	$output = ob_get_clean();
 
 	$results['html'] = $output;
 
@@ -593,7 +599,6 @@ function give_deactivation_form_submit() {
 
 	if ( ! check_ajax_referer( 'deactivation_survey_nonce', 'nonce', false ) ) {
 		wp_send_json_error();
-		wp_die();
 	}
 
 	$form_data = give_clean( wp_parse_args( $_POST['form-data'] ) );
@@ -648,8 +653,6 @@ function give_deactivation_form_submit() {
 	} else {
 		wp_send_json_error();
 	}
-
-	wp_die();
 }
 
 add_action( 'wp_ajax_deactivation_form_submit', 'give_deactivation_form_submit' );

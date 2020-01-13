@@ -23,15 +23,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @global $give_settings_page
  * @global $give_payments_page
  * @global $give_reports_page
- * @global $give_add_ons_page
  * @global $give_donors_page
  *
  * @return void
  */
 function give_add_options_links() {
-	global $give_settings_page, $give_payments_page, $give_reports_page, $give_add_ons_page, $give_donors_page, $give_tools_page;
+	global $give_settings_page, $give_payments_page, $give_reports_page, $give_donors_page, $give_tools_page;
 
 	//Payments
+	/* @var WP_Post_Type $give_payment */
 	$give_payment       = get_post_type_object( 'give_payment' );
 	$give_payments_page = add_submenu_page(
 		'edit.php?post_type=give_forms',
@@ -52,7 +52,7 @@ function give_add_options_links() {
 		'give_donors_page'
 	);
 
-	//Reports`
+	//Reports
 	$give_reports_page = add_submenu_page(
 		'edit.php?post_type=give_forms',
 		esc_html__( 'Donation Reports', 'give' ),
@@ -68,7 +68,7 @@ function give_add_options_links() {
 	//Settings
 	$give_settings_page = add_submenu_page(
 		'edit.php?post_type=give_forms',
-		esc_html__( 'Give Settings', 'give' ),
+		esc_html__( 'GiveWP Settings', 'give' ),
 		esc_html__( 'Settings', 'give' ),
 		'manage_give_settings',
 		'give-settings',
@@ -81,7 +81,7 @@ function give_add_options_links() {
 	//Tools.
 	$give_tools_page = add_submenu_page(
 		'edit.php?post_type=give_forms',
-		esc_html__( 'Give Tools', 'give' ),
+		esc_html__( 'GiveWP Tools', 'give' ),
 		esc_html__( 'Tools', 'give' ),
 		'manage_give_settings',
 		'give-tools',
@@ -90,19 +90,37 @@ function give_add_options_links() {
 			'output',
 		)
 	);
+}
+
+add_action( 'admin_menu', 'give_add_options_links', 10 );
+
+
+
+/**
+ * Creates the admin add-ons submenu page under the Give menu and assigns their
+ * link to global variable
+ *
+ * @since 2.5.0
+ *
+ * @global $give_add_ons_page
+ *
+ * @return void
+ */
+function give_add_add_ons_option_link(){
+	global $give_add_ons_page;
 
 	//Add-ons
 	$give_add_ons_page = add_submenu_page(
 		'edit.php?post_type=give_forms',
-		esc_html__( 'Give Add-ons', 'give' ),
+		esc_html__( 'GiveWP Add-ons', 'give' ),
 		esc_html__( 'Add-ons', 'give' ),
 		'install_plugins',
 		'give-addons',
 		'give_add_ons_page'
 	);
-}
 
-add_action( 'admin_menu', 'give_add_options_links', 10 );
+}
+add_action( 'admin_menu', 'give_add_add_ons_option_link', 999999 );
 
 /**
  *  Determines whether the current admin page is a Give admin page.
@@ -238,7 +256,6 @@ function give_is_admin_page( $passed_page = '', $passed_view = '' ) {
  */
 function give_settings_page_pages( $settings ) {
 	include( 'abstract-admin-settings-page.php' );
-	include( 'settings/class-settings-cmb2-backward-compatibility.php' );
 
 	$settings = array(
 		// General settings.

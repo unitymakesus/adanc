@@ -195,31 +195,21 @@ function give_send_back_to_checkout( $args = array() ) {
 	$args = wp_parse_args( $args, $defaults );
 
 	// Merge URL query with $args to maintain third-party URL parameters after redirect.
-	$url_data = wp_parse_url( $url );
+	$redirect = add_query_arg( $args, $url );
 
-	// Check if an array to prevent notices before parsing.
-	if ( isset( $url_data['query'] ) && ! empty( $url_data['query'] ) ) {
-		parse_str( $url_data['query'], $query );
-
-		// Precaution: don't allow any CC info.
-		unset( $query['card_number'] );
-		unset( $query['card_cvc'] );
-
-	} else {
-		// No $url_data so pass empty array.
-		$query = array();
-	}
-
-	$new_query        = array_merge( $args, $query );
-	$new_query_string = http_build_query( $new_query );
-
-	// Assemble URL parts.
-	$redirect = home_url( '/' . $url_data['path'] . '?' . $new_query_string . '#give-form-' . $form_id . '-wrap' );
+	// Precaution: don't allow any CC info.
+	$redirect = remove_query_arg( [ 'card_number', 'card_cvc' ], $redirect );
 
 	// Redirect them.
-	wp_safe_redirect( apply_filters( 'give_send_back_to_checkout', $redirect, $args ) );
-	give_die();
+	$redirect .= "#give-form-{$form_id}-wrap";
 
+
+	/**
+	 * Filter the redirect url
+	 */
+	wp_safe_redirect( apply_filters( 'give_send_back_to_checkout', $redirect, $args ) );
+
+	give_die();
 }
 
 /**
@@ -317,7 +307,7 @@ function give_listen_for_failed_payments() {
 
 	// Security check.
 	if ( ! wp_verify_nonce( $nonce, "give-failed-donation-{$payment_id}" ) ) {
-		wp_die( __( 'Nonce verification failed.', 'give' ), __( 'Error', 'give' ) );
+		wp_die( __( 'We\'re unable to recognize your session. Please refresh the screen to try again; otherwise contact your website administrator for assistance.', 'give' ), __( 'Error', 'give' ) );
 	}
 
 	// Set payment status to failure
@@ -1265,7 +1255,7 @@ function give_admin_form_goal_stats( $form_id ) {
 		( 'percentage' !== $goal_stats['format'] ) ? __( 'of', 'give' ) : '',
 		esc_url( admin_url( "post.php?post={$form_id}&action=edit&give_tab=donation_goal_options" ) ),
 		$goal_stats['goal'],
-		( 'donors' === $goal_stats['format'] ? __( 'Donors', 'give' ) : ( 'donation' === $goal_stats['format'] ? __( 'Donations', 'give' ) : '' ) )
+		( 'donors' === $goal_stats['format'] ? __( 'donors', 'give' ) : ( 'donation' === $goal_stats['format'] ? __( 'donations', 'give' ) : '' ) )
 	);
 
 	if ( $goal_stats['raw_actual'] >= $goal_stats['raw_goal'] ) {
@@ -1373,7 +1363,7 @@ function give_is_default_level_id( $price_or_level_id, $form_id = 0 ) {
  *
  * @since 2.2.0
  *
- * @return mixed
+ * @return array
  */
 function give_get_name_title_prefixes( $form_id = 0 ) {
 
@@ -1394,7 +1384,7 @@ function give_get_name_title_prefixes( $form_id = 0 ) {
 		}
 	}
 
-	return $title_prefixes;
+	return array_filter( (array) $title_prefixes );
 }
 
 /**
@@ -1565,7 +1555,7 @@ add_action( 'before_delete_post', 'give_handle_form_meta_on_delete', 10, 1 );
 
 
 /**
- * Get list of default param of form shrtcode.
+ * Get the list of default parameters for the form shortcode.
  *
  * @since 2.4.1
  * @return array

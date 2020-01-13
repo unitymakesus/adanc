@@ -234,16 +234,9 @@ function give_render_donor_view( $view, $callbacks ) {
 		$render = false;
 	}
 
-	$donor_tabs = give_donor_tabs();
 	?>
 
 	<div class='wrap'>
-
-		<?php if ( give_get_errors() ) : ?>
-			<div class="error settings-error">
-				<?php Give()->notices->render_frontend_notices( 0 ); ?>
-			</div>
-		<?php endif; ?>
 
 		<h1 class="wp-heading-inline">
 			<?php
@@ -258,23 +251,31 @@ function give_render_donor_view( $view, $callbacks ) {
 
 		<hr class="wp-header-end">
 
+		<?php if ( give_get_errors() ) : ?>
+			<div class="error settings-error">
+				<?php Give()->notices->render_frontend_notices( 0 ); ?>
+			</div>
+		<?php endif; ?>
+
 		<?php if ( $donor && $render ) : ?>
 
-			<h2 class="nav-tab-wrapper">
+			<div class="nav-tab-wrapper give-nav-tab-wrapper">
 				<?php
+
+				$donor_tabs = give_donor_tabs();
+
 				foreach ( $donor_tabs as $key => $tab ) :
 					$active = $key === $view ? true : false;
 					$class  = $active ? 'nav-tab nav-tab-active' : 'nav-tab';
 					printf(
-						'<a href="%1$s" class="%2$s"><span class="dashicons %3$s"></span>%4$s</a>' . "\n",
+						'<a href="%1$s" class="%2$s">%3$s</a>' . "\n",
 						esc_url( admin_url( 'edit.php?post_type=give_forms&page=give-donors&view=' . $key . '&id=' . $donor->id ) ),
 						esc_attr( $class ),
-						sanitize_html_class( $tab['dashicon'] ),
 						esc_html( $tab['title'] )
 					);
 				endforeach;
 				?>
-			</h2>
+			</div>
 
 			<div id="give-donor-card-wrapper">
 				<?php $callbacks[ $view ]( $donor ) ?>
@@ -355,6 +356,7 @@ function give_donor_view( $donor ) {
 						<span class="donor-name info-item edit-item">
 							<select name="donor_info[title]">
 								<option disabled value="0"><?php esc_html_e( 'Title', 'give' ); ?></option>
+								<option value="">&nbsp;</option>
 								<?php
 								if ( is_array( $title_prefixes ) && count( $title_prefixes ) > 0 ) {
 									foreach ( $title_prefixes as $title ) {
@@ -560,7 +562,7 @@ function give_donor_view( $donor ) {
 	<div id="donor-address-wrapper" class="donor-section clear">
 		<h3><?php _e( 'Addresses', 'give' ); ?></h3>
 
-		<div class="postbox">
+		<div class="postbox give-donor-addresses">
 			<div class="give-spinner-wrapper">
 				<span class="give-spinner spinner aligncenter"></span>
 			</div>
@@ -1035,7 +1037,7 @@ function give_donor_notes_view( $donor ) {
 }
 
 /**
- * Thw donor delete view.
+ * The donor delete view.
  *
  * @since  1.0
  *

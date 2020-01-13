@@ -154,6 +154,36 @@ function give_get_price_decimal_separator( $id_or_currency_code = null ) {
 }
 
 /**
+ * Check if amount sanitized
+ * Note: only for internal purpose
+ *
+ * Current this function only check if number is DB sanitize.
+ *
+ * @param string $amount
+ *
+ * @return bool
+ * @since 2.4.5
+ */
+function give_is_amount_sanitized( $amount ) {
+	$is_sanitize = false;
+
+	if ( false === strpos( $amount, '.' ) ) {
+		return $is_sanitize;
+	}
+
+	$number_parts = explode( '.', $amount );
+
+	// Handle thousand separator as '.'
+	// Handle sanitize database values.
+	$is_sanitize = ( 2 === count( $number_parts ) &&
+	                 is_numeric( $number_parts[0] ) &&
+	                 is_numeric( $number_parts[1] ) &&
+	                 in_array( strlen( $number_parts[1] ), array( 6, 10 ) ) );
+
+	return $is_sanitize;
+}
+
+/**
  * Sanitize Amount before saving to database
  *
  * @since      1.8.12
@@ -244,14 +274,7 @@ function give_maybe_sanitize_amount( $number, $args = array() ) {
 		return number_format( $number, $number_decimals, '.', '' );
 	}
 
-	// Handle thousand separator as '.'
-	// Handle sanitize database values.
-	$is_db_sanitize_val = ( 2 === count( $number_parts ) &&
-	                        is_numeric( $number_parts[0] ) &&
-	                        is_numeric( $number_parts[1] ) &&
-	                        ( in_array( strlen( $number_parts[1] ), array( 6, 10 ) ) ) );
-
-	if ( $is_db_sanitize_val ) {
+	if ( give_is_amount_sanitized( $number ) ) {
 		// Sanitize database value.
 		return number_format( $number, $number_decimals, '.', '' );
 
@@ -478,13 +501,6 @@ function give_format_amount( $amount, $args = array() ) {
  * @return string  formatted amount number with large number names.
  */
 function give_human_format_large_amount( $amount, $args = array() ) {
-	// Sanitize amount.
-	$sanitize_amount = give_maybe_sanitize_amount( $amount );
-
-	// Bailout.
-	if ( ! floatval( $sanitize_amount ) ) {
-		return '0';
-	};
 
 	// Set default currency;
 	if ( empty( $args['currency'] ) ) {
@@ -492,7 +508,20 @@ function give_human_format_large_amount( $amount, $args = array() ) {
 	}
 
 	// Get thousand separator.
-	$thousands_sep = give_get_price_thousand_separator();
+	$thousands_sep = give_get_price_thousand_separator( $args['currency'] );
+
+	// Sanitize amount for calculation purpose.
+	$sanitize_amount = give_maybe_sanitize_amount(
+		$amount,
+		array(
+			'currency' => $args['currency'],
+		)
+	);
+
+	// Bailout.
+	if ( ! floatval( $sanitize_amount ) ) {
+		return '0';
+	};
 
 	// Explode amount to calculate name of large numbers.
 	$amount_array = explode( $thousands_sep, $amount );
@@ -664,9 +693,9 @@ function give_get_cache_key( $action, $query_args ) {
 function give_clean( $var ) {
 	if ( is_array( $var ) ) {
 		return array_map( 'give_clean', $var );
-	} else {
-		return is_scalar( $var ) ? sanitize_text_field( wp_unslash( $var ) ) : $var;
 	}
+
+	return is_scalar( $var ) ? sanitize_text_field( wp_unslash( $var ) ) : $var;
 }
 
 /**
@@ -722,7 +751,7 @@ function give_validate_nonce( $nonce, $action = - 1, $wp_die_args = array() ) {
 		$wp_die_args = wp_parse_args(
 			$wp_die_args,
 			array(
-				'message' => __( 'Nonce verification has failed.', 'give' ),
+				'message' => __( 'We\'re unable to recognize your session. Please refresh the screen to try again; otherwise contact your website administrator for assistance.', 'give' ),
 				'title'   => __( 'Error', 'give' ),
 				'args'    => array(
 					'response' => 403,
@@ -759,7 +788,7 @@ function give_verify_donation_form_nonce( $nonce = '', $form_id ) {
 	$verify_nonce = give_validate_nonce( $nonce, $nonce_action );
 
 	if ( ! $verify_nonce ) {
-		give_set_error( 'donation_form_nonce', __( 'Nonce verification has failed.', 'give' ) );
+		give_set_error( 'donation_form_nonce', __( 'We\'re unable to recognize your session. Please refresh the screen to try again; otherwise contact your website administrator for assistance.', 'give' ) );
 	}
 
 	return $verify_nonce;

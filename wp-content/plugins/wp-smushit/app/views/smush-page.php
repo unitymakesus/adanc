@@ -5,6 +5,10 @@
  * @package WP_Smush
  */
 
+namespace Smush\App\Views;
+
+use Smush\WP_Smush;
+
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
@@ -14,7 +18,9 @@ $this->do_meta_boxes( 'summary' );
 
 <div class="sui-row-with-sidenav">
 	<?php $this->show_tabs(); ?>
-	<?php $this->do_meta_boxes( $this->get_current_tab() ); ?>
+	<div>
+		<?php $this->do_meta_boxes( $this->get_current_tab() ); ?>
+	</div>
 </div><!-- end row -->
 
 <?php if ( ! WP_Smush::is_pro() ) : ?>
@@ -53,7 +59,7 @@ $this->do_meta_boxes( 'summary' );
 				<div class="sui-box">
 					<div class="sui-box-body">
 						<h3><?php esc_html_e( 'SmartCrawl Search Engine Optimization', 'wp-smushit' ); ?></h3>
-						<p><?php esc_html_e( 'Customize Titles & Meta Data, OpenGraph, Twitter & Pinterest Support, Auto-Keyword Linking, SEO & Readability Analysis, Sitemaps, URL Crawler & more.', 'wp-smushit' ); ?></p>
+						<p><?php esc_html_e( 'Customize Titles & Metadata, OpenGraph, Twitter & Pinterest Support, Auto-Keyword Linking, SEO & Readability Analysis, Sitemaps, URL Crawler & more.', 'wp-smushit' ); ?></p>
 						<a href="<?php echo esc_url( 'https://wordpress.org/plugins/smartcrawl-seo/' ); ?>" class="sui-button sui-button-ghost" target="_blank">
 							<?php esc_html_e( 'View features', 'wp-smushit' ); ?> <i class="sui-icon-arrow-right"></i>
 						</a>
@@ -69,10 +75,10 @@ $this->do_meta_boxes( 'summary' );
 					'utm_medium'   => 'plugin',
 					'utm_campaign' => 'smush_footer_upsell_notice',
 				),
-				esc_url( 'https://premium.wpmudev.org/projects/' )
+				esc_url( 'https://premium.wpmudev.org' )
 			);
 			?>
-			<h3><?php esc_html_e( 'WPMU DEV - Your WordPress Toolkit', 'wp-smushit' ); ?></h3>
+			<h3><?php esc_html_e( 'Your All-in-One WordPress Platform', 'wp-smushit' ); ?></h3>
 			<p><?php esc_html_e( 'Pretty much everything you need for developing and managing WordPress based websites, and then some.', 'wp-smushit' ); ?></p>
 			<a class="sui-button sui-button-green" href="<?php echo esc_url( $site_url ); ?>" id="dash-uptime-update-membership" target="_blank">
 				<?php esc_html_e( 'Learn more', 'wp-smushit' ); ?>

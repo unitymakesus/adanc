@@ -9,10 +9,10 @@
 	Donate link: https://monzillamedia.com/donate.html
 	Contributors: specialk
 	Requires at least: 4.1
-	Tested up to: 5.1
-	Stable tag: 20190311
-	Version: 20190311
-	Requires PHP: 5.2
+	Tested up to: 5.3
+	Stable tag: 20191109
+	Version: 20191109
+	Requires PHP: 5.6.20
 	Text Domain: ga-google-analytics
 	Domain Path: /languages
 	License: GPL v2 or later
@@ -60,7 +60,7 @@ if (!class_exists('GA_Google_Analytics')) {
 		
 		function constants() {
 			
-			if (!defined('GAP_VERSION')) define('GAP_VERSION', '20190311');
+			if (!defined('GAP_VERSION')) define('GAP_VERSION', '20191109');
 			if (!defined('GAP_REQUIRE')) define('GAP_REQUIRE', '4.1');
 			if (!defined('GAP_AUTHOR'))  define('GAP_AUTHOR',  'Jeff Starr');
 			if (!defined('GAP_NAME'))    define('GAP_NAME',    __('GA Google Analytics', 'ga-google-analytics'));
@@ -347,11 +347,11 @@ if (!class_exists('GA_Google_Analytics')) {
 			if (!isset($input['gap_custom_loc'])) $input['gap_custom_loc'] = null;
 			$input['gap_custom_loc'] = ($input['gap_custom_loc'] == 1 ? 1 : 0);
 			
-			if (isset($input['tracker_object'])) $input['tracker_object'] = stripslashes(trim($input['tracker_object']));
+			if (isset($input['tracker_object'])) $input['tracker_object'] = wp_strip_all_tags(trim($input['tracker_object']));
 			
-			if (isset($input['gap_custom_code'])) $input['gap_custom_code'] = stripslashes(trim($input['gap_custom_code']));
+			if (isset($input['gap_custom_code'])) $input['gap_custom_code'] = wp_strip_all_tags(trim($input['gap_custom_code']));
 			
-			if (isset($input['gap_custom'])) $input['gap_custom'] = stripslashes(trim($input['gap_custom']));
+			if (isset($input['gap_custom'])) $input['gap_custom'] = stripslashes($input['gap_custom']);
 			
 			return $input;
 			

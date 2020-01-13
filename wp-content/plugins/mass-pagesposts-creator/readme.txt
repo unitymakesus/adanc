@@ -1,15 +1,15 @@
 === Mass Pages/Posts Creator ===
 Plugin Name: Mass Pages/Posts Creator
-Plugin URI: http://multidots.com/
-Author: dots
-Author URI: http://multidots.com/
-Contributors: dots, mayurk,thedotstore
-Stable tag: 1.2.7
-Tags: bulk, mass, multiple, amount, volume, quantity, posts, pages
+Plugin URI: https://wordpress.org/plugins/mass-pagesposts-creator/
+Author: Thedotstore
+Author URI: https://www.thedotstore.com/
+Contributors: dots,mayurk
+Stable tag: 2.0.2
+Tags: multiple posts, bulk pages, Bulk Page Creator, Bulk post Creator, bulk posts, bulk, multiple pages
 Requires at least: 3.8
-Tested up to: 5.1
-Donate link: 
-Copyright: (c) 2015-2016 Multidots Solutions PVT LTD (info@multidots.com) 
+Tested up to: 5.2.2
+Donate link:
+Copyright: (c) 2015-2019 Thedotstore all rights reserved (support@thedotstore.com)
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -31,13 +31,13 @@ This plugin will include all attribute like status, parent page, type etc.. whic
 Pro Plugin Demo : <a href ="http://masspagespostscreator.demo.store.multidots.com/" target="_blank">View Demo</a>
 
 Mass Pages Posts Creator PRO VERSION:
-Need even more? upgrade to Mass Pages Posts Creator Pro version and get access to all extra features available in Mass Pages Posts Creator.
+Need even more? upgrade to Mass Pages Posts Creator version and get access to all extra features available in Mass Pages Posts Creator.
 
 <blockquote>
 
 = Mass Pages/Posts Pro version: =
 
-Need even more? upgrade to <a href="https://store.multidots.com/mass-pages-posts-creator/">Mass Pages Posts Creator Pro</a> version and get access to all extra features available in Mass Pages Posts Creator.
+Need even more? upgrade to <a href="https://store.multidots.com/mass-pages-posts-creator/">Mass Pages Posts Creator</a> version and get access to all extra features available in Mass Pages Posts Creator.
 
 = FEATURES LIST OF PRO PLUGIN =
 
@@ -46,25 +46,25 @@ Need even more? upgrade to <a href="https://store.multidots.com/mass-pages-posts
 	-Pages
 	-Post
 </li>
-<li>TEMPLATES	- Only available in pro 
-	- Full width	
-	- Homepage	
+<li>TEMPLATES	- Only available in pro
+	- Full width
+	- Homepage
 </li>
 <li>PAGE/POSTS STATUS
-	- Publish - Only available in pro 
-	- Draft	
-	- Pending	
-	- Auto Draft	
-	- Future	
-	- Private	
-	- Inherit	
+	- Publish - Only available in pro
+	- Draft
+	- Pending
+	- Auto Draft
+	- Future
+	- Private
+	- Inherit
 	- Trash
 </li>
 <li>PAGE/POSTS COMMENT STATUS	- Only available in pro
-	- Open	
+	- Open
 	- Closed
 </li>
-<li>AUTHOR - Only available in pro 
+<li>AUTHOR - Only available in pro
 	- Author
 	- Admin
 </li>
@@ -72,21 +72,15 @@ Need even more? upgrade to <a href="https://store.multidots.com/mass-pages-posts
 </blockquote>
 
 = You can check our other plugins: =
-
-1. <a href ="http://bit.ly/2FrC4id">Emporos - Responsive WooCommerce Theme</a>
-2. <a href ="http://bit.ly/2kq5Tqt">Onepage Studio - Multipurpose Landing Page with Page Builder</a>
-3. <a href ="https://store.multidots.com/go/flat-rate">Advance Flat Rate Shipping Method For WooCommerce</a>
-4. <a href ="https://store.multidots.com/go/dotstore-woocommerce-blocker">WooCommerce Blocker – Prevent Fake Orders And Blacklist Fraud Customers</a>
-5. <a href ="https://store.multidots.com/go/dotstore-enhanced-ecommerce-tracking">WooCommerce Enhanced Ecommerce Analytics Integration With Conversion Tracking</a>
-6. <a href ="https://store.multidots.com/go/dotstore-woo-category-banner">Woocommerce Category Banner Management</a>
-7. <a href ="https://store.multidots.com/go/dotstore-woo-extra-fees">Woocommerce Conditional Extra Fees</a>
-8. <a href ="https://store.multidots.com/go/dotstore-woo-product-sizechart">Woocommerce Advanced Product Size Charts</a>
-9. <a href ="https://store.multidots.com/go/dotstore-admenumanager-wp">Advance Menu Manager for WordPress</a>
-10. <a href ="https://store.multidots.com/go/dotstore-woo-savefor-later">Woocommerce Save For Later Cart Enhancement</a>
-11. <a href ="https://store.multidots.com/go/brandagency">Brand Agency- One Page HTML Template For Agency,Startup And Business</a>
-12. <a href ="https://store.multidots.com/go/Meraki">Meraki One Page HTML Resume Template</a>
-13. <a href ="https://store.multidots.com/go/dotstore-aapify-theme">Appify - Multipurpose One Page Mobile App landing page HTML</a>
-
+<ol>
+<li> <a href ="http://www.thedotstore.com/advanced-flat-rate-shipping-method-for-woocommerce">Advance Flat Rate Shipping Method For WooCommerce</a></li>
+<li> <a href ="https://www.thedotstore.com/woocommerce-blocker-lite-prevent-fake-orders-blacklist-fraud-customers/">Blocker – Prevent Fake Orders And Blacklist Fraud Customers for WooCommerce </a></li>
+<li> <a href ="http://www.thedotstore.com/woocommerce-enhanced-ecommerce-analytics-integration-with-conversion-tracking">Enhanced Ecommerce Google Analytics Plugin for WooCommerce</a></li>
+<li> <a href ="https://www.thedotstore.com/woocommerce-category-banner-management/">Category Banner Management for Woocommerce</a></li>
+<li> <a href ="https://www.thedotstore.com/woocommerce-conditional-product-fees-checkout/">Conditional Product Fees For WooCommerce Checkout</a></li>
+<li> <a href ="https://www.thedotstore.com/woocommerce-advanced-product-size-charts/">Advanced Product Size Charts for WooCommerce</a></li>
+<li> <a href ="http://www.thedotstore.com/advance-menu-manager-wordpress/">Advance Menu Manager for WordPress</a></li>
+</ol>
 
 == Installation ==
 
@@ -113,6 +107,23 @@ No, As default functionality you can assign parent to only pages.
 Automatic updates should work great for you.  As always, though, we recommend backing up your site prior to making any updates just to be sure nothing goes wrong.
 
 == Changelog ==
+
+= 2.0.2 - 20-11-2019 =
+* Compatible with Wordpress 5.3.x
+* Compatible with WooCommerce 3.8.x
+
+= 2.0.1 - 08.10.2019 =
+* Maintenance Release
+* Compatible with WordPress Version 5.2
+
+= 2.0.0 - 27.08.2019 =
+* Freemius SDK compatible
+
+= 1.2.9 - 28.05.2019 =
+* Compatible with WordPress Version 5.2.x and WooCommerce version 3.6.x
+
+= 1.2.8 - 26.03.2019 =
+* Minor bug fix
 
 = 1.2.7 - 25.01.2019 =
 * Minor bug fix

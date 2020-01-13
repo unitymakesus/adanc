@@ -122,6 +122,16 @@
                                     <small><?php _e( 'Offers the best protection, but requires JavaScript.', 'email-address-encoder' ); ?></small>
                                 </p>
                             </label>
+                            <br>
+
+                            <label>
+                                <input type="radio" name="eae_technique" value="rot47" disabled>
+                                <?php _e( 'Polymorphous ROT47/CSS', 'email-address-encoder' ); ?>
+                                (<a target="_blank" rel="noopener" href="https://encoder.till.im/download?utm_source=wp-plugin&utm_medium=setting"><?php _e( 'Premium only', 'email-address-encoder' ); ?></a>)
+                                <p class="description">
+                                    <small><?php _e( 'State-of-the-art protection against smart robots, but requires JavaScript.', 'email-address-encoder' ); ?></small>
+                                </p>
+                            </label>
 
                         </fieldset>
                     </td>

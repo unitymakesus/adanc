@@ -38,7 +38,7 @@ class Give_Email_Notifications {
 	 *
 	 * @since  2.0
 	 * @access private
-	 * Give_Payumoney_API constructor.
+	 * Give_Email_Notifications constructor.
 	 */
 	private function __construct() {
 	}
@@ -76,7 +76,7 @@ class Give_Email_Notifications {
 		add_filter( 'give_metabox_form_data_settings', array( $this, 'add_metabox_setting_fields' ), 10, 2 );
 		add_action( 'init', array( $this, 'preview_email' ) );
 		add_action( 'init', array( $this, 'send_preview_email' ) );
-		add_action( 'init', array( $this, 'validate_settings' ) );
+		add_action( 'admin_init', array( $this, 'validate_settings' ) );
 
 		/* @var Give_Email_Notification $email */
 		foreach ( $this->get_email_notifications() as $email ) {
@@ -148,14 +148,14 @@ class Give_Email_Notifications {
 				array(
 					'id'      => '_give_from_name',
 					'name'    => esc_html__( 'From Name', 'give' ),
-					'desc'    => esc_html__( 'The name which appears in the "From" field in all Give donation emails.', 'give' ),
+					'desc'    => esc_html__( 'The name which appears in the "From" field in all GiveWP donation emails.', 'give' ),
 					'default' => get_bloginfo( 'name' ),
 					'type'    => 'text',
 				),
 				array(
 					'id'      => '_give_from_email',
 					'name'    => esc_html__( 'From Email', 'give' ),
-					'desc'    => esc_html__( 'Email address from which all Give emails are sent from. This will act as the "from" and "reply-to" email address.', 'give' ),
+					'desc'    => esc_html__( 'Email address from which all GiveWP emails are sent from. This will act as the "from" and "reply-to" email address.', 'give' ),
 					'default' => get_bloginfo( 'admin_email' ),
 					'type'    => 'text',
 				),

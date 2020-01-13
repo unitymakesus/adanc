@@ -55,7 +55,7 @@ function give_get_template( $template_name, $args = array(), $template_path = ''
 
 	if ( ! file_exists( $located ) ) {
 		/* translators: %s: the template */
-		Give()->notices->print_frontend_notice( sprintf( __( 'The %s template was not found.', 'give' ), $located ), true );
+		Give_Notices::print_frontend_notice( sprintf( __( 'The %s template was not found.', 'give' ), $located ), true );
 
 		return;
 	}
@@ -400,7 +400,7 @@ add_filter( 'post_class', 'give_add_post_class', 20, 3 );
  */
 function give_get_placeholder_img_src() {
 
-	$placeholder_url = '//placehold.it/600x600&text=' . urlencode( esc_attr__( 'Give Placeholder Image', 'give' ) );
+	$placeholder_url = '//placehold.it/600x600&text=' . urlencode( esc_attr__( 'GiveWP Placeholder Image', 'give' ) );
 
 	return apply_filters( 'give_placeholder_img_src', $placeholder_url );
 }

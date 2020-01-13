@@ -90,27 +90,98 @@ $progress = apply_filters( 'give_goal_amount_funded_percentage_output', $progres
 					'decimal'  => false,
 				), $form_id );
 
-				// Get formatted amount.
+				/**
+				 * This filter will be used to convert the goal amounts to different currencies.
+				 *
+				 * @since 2.5.4
+				 *
+				 * @param array $amounts List of goal amounts.
+				 * @param int   $form_id Donation Form ID.
+				 */
+				$goal_amounts = apply_filters(
+					'give_goal_amounts',
+					array(
+						$form_currency => $goal,
+					),
+					$form_id
+				);
+
+				/**
+				 * This filter will be used to convert the income amounts to different currencies.
+				 *
+				 * @since 2.5.4
+				 *
+				 * @param array $amounts List of goal amounts.
+				 * @param int   $form_id Donation Form ID.
+				 */
+				$income_amounts = apply_filters(
+					'give_goal_raised_amounts',
+					array(
+						$form_currency => $income,
+					),
+					$form_id
+				);
+
+				// Get human readable donation amount.
 				$income = give_human_format_large_amount( give_format_amount( $income, $income_format_args ), array( 'currency' => $form_currency ) );
 				$goal   = give_human_format_large_amount( give_format_amount( $goal, $goal_format_args ), array( 'currency' => $form_currency ) );
 
-				echo sprintf( /* translators: 1: amount of income raised 2: goal target amount. */
-					__( '<span class="income">%1$s</span> of <span class="goal-text">%2$s</span> raised', 'give' ), give_currency_filter( $income, array( 'form_id' => $form_id ) ), give_currency_filter( $goal, array( 'form_id' => $form_id ) ) );
+				// Format the human readable donation amount.
+				$formatted_income = give_currency_filter(
+					$income,
+					array(
+						'form_id' => $form_id,
+					)
+				);
+
+				$formatted_goal = give_currency_filter(
+					$goal,
+					array(
+						'form_id' => $form_id,
+					)
+				);
+
+				echo sprintf(
+					/* translators: 1: amount of income raised 2: goal target amount. */
+					__( '<span class="income" data-amounts="%1$s">%2$s</span> of <span class="goal-text" data-amounts="%3$s">%4$s</span> raised', 'give' ),
+					esc_attr( wp_json_encode( $income_amounts, JSON_PRETTY_PRINT ) ),
+					esc_attr( $formatted_income ),
+					esc_attr( wp_json_encode( $goal_amounts, JSON_PRETTY_PRINT ) ),
+					esc_attr( $formatted_goal )
+				);
 
             elseif ( 'percentage' === $goal_format ) :
 
 				echo sprintf( /* translators: %s: percentage of the amount raised compared to the goal target */
-					__( '<span class="give-percentage">%s%%</span> funded', 'give' ), round( $progress ) );
+					__( '<span class="give-percentage">%s%%</span> funded', 'give' ),
+					round( $progress )
+				);
 
             elseif ( 'donation' === $goal_format ) :
 
 				echo sprintf( /* translators: 1: total number of donations completed 2: total number of donations set as goal */
-					_n( '<span class="income">%1$s</span> of <span class="goal-text">%2$s</span> donation', '<span class="income">%1$s</span> of <span class="goal-text">%2$s</span> donations', $goal, 'give' ), $income, $goal );
+					_n(
+						'<span class="income">%1$s</span> of <span class="goal-text">%2$s</span> donation',
+						'<span class="income">%1$s</span> of <span class="goal-text">%2$s</span> donations',
+						$goal,
+						'give'
+					),
+					give_format_amount( $income, array( 'decimal' => false ) ),
+					give_format_amount( $goal, array( 'decimal' => false ) )
+				);
 
             elseif ( 'donors' === $goal_format ) :
 
 				echo sprintf( /* translators: 1: total number of donors completed 2: total number of donors set as goal */
-					_n( '<span class="income">%1$s</span> of <span class="goal-text">%2$s</span> donation', '<span class="income">%1$s</span> of <span class="goal-text">%2$s</span> donors', $goal, 'give' ), $income, $goal );
+					_n(
+						'<span class="income">%1$s</span> of <span class="goal-text">%2$s</span> donor',
+						'<span class="income">%1$s</span> of <span class="goal-text">%2$s</span> donors',
+						$goal,
+						'give'
+					),
+					give_format_amount( $income, array( 'decimal' => false ) ),
+					give_format_amount( $goal, array( 'decimal' => false ) )
+				);
 
 			endif;
 			?>

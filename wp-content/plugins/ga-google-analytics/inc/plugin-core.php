@@ -76,10 +76,10 @@ function ga_google_analytics_universal() {
 	
 	extract(ga_google_analytics_options());
 	
-	$custom_code = ga_google_analytics_custom($custom_code);
+	$custom_code = ga_google_analytics_custom_code($custom_code);
 	
 	$ga_display = "ga('require', 'displayfeatures');";
-	$ga_link    = "ga('require', 'linkid', 'linkid.js');";
+	$ga_link    = "ga('require', 'linkid');";
 	$ga_anon    = "ga('set', 'anonymizeIp', true);";
 	$ga_ssl     = "ga('set', 'forceSSL', true);";
 	
@@ -90,13 +90,13 @@ function ga_google_analytics_universal() {
 			(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 			m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 			})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-<?php if ($custom_code) echo "\t\t\t" . $custom_code . "\n"; ?>
 			ga('create', '<?php echo $tracking_id; ?>', 'auto'<?php if ($tracker_object) echo ', '. $tracker_object; ?>);
 			<?php 
-				if ($display_ads) echo $ga_display . "\n\t\t\t";
-				if ($link_attr)   echo $ga_link    . "\n\t\t\t";
-				if ($anonymize)   echo $ga_anon    . "\n\t\t\t";
-				if ($force_ssl)   echo $ga_ssl     . "\n\t\t\t";
+				if ($custom_code) echo $custom_code . "\n\t\t\t";
+				if ($display_ads) echo $ga_display  . "\n\t\t\t";
+				if ($link_attr)   echo $ga_link     . "\n\t\t\t";
+				if ($anonymize)   echo $ga_anon     . "\n\t\t\t";
+				if ($force_ssl)   echo $ga_ssl      . "\n\t\t\t";
 			?>ga('send', 'pageview');
 		</script>
 
@@ -108,7 +108,7 @@ function ga_google_analytics_global() {
 	
 	extract(ga_google_analytics_options());
 	
-	$custom_code = ga_google_analytics_custom($custom_code);
+	$custom_code = ga_google_analytics_custom_code($custom_code);
 	
 	?>
 
@@ -116,9 +116,9 @@ function ga_google_analytics_global() {
 		<script>
 			window.dataLayer = window.dataLayer || [];
 			function gtag(){dataLayer.push(arguments);}
-<?php if ($custom_code) echo "\t\t\t" . $custom_code . "\n"; ?>
 			gtag('js', new Date());
-			gtag('config', '<?php echo $tracking_id; ?>'<?php if ($tracker_object) echo ', '. $tracker_object; ?>);
+			<?php if ($custom_code) echo $custom_code . "\n\t\t\t";
+			?>gtag('config', '<?php echo $tracking_id; ?>'<?php if ($tracker_object) echo ', '. $tracker_object; ?>);
 		</script>
 
 	<?php
@@ -129,7 +129,7 @@ function ga_google_analytics_legacy() {
 	
 	extract(ga_google_analytics_options());
 	
-	$custom_code = ga_google_analytics_custom($custom_code);
+	$custom_code = ga_google_analytics_custom_code($custom_code);
 	
 	$ga_alt  = "('https:' == document.location.protocol ? 'https://' : 'http://') + 'stats.g.doubleclick.net/dc.js';";
 	$ga_src  = "('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';";
@@ -161,9 +161,21 @@ function ga_google_analytics_legacy() {
 	
 }
 
-function ga_google_analytics_custom($custom_code) {
+function ga_google_analytics_custom_code($custom_code) {
 	
-	$custom_code = preg_replace("/%%userid%%/i", get_current_user_id(), $custom_code);
+	$custom_code_array = explode(PHP_EOL, $custom_code);
+	
+	$custom_code = '';
+	
+	foreach ($custom_code_array as $code) {
+		
+		$code = preg_replace("/%%userid%%/i", get_current_user_id(), $code);
+		
+		$custom_code .= "\t\t\t" . trim($code) . "\n";
+		
+	}
+	
+	$custom_code = trim($custom_code);
 	
 	return apply_filters('gap_custom_code', $custom_code);
 	

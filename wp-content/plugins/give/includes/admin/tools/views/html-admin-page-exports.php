@@ -122,8 +122,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 									'name'   => 'forms',
 									'id'     => 'give_donor_export_form',
 									'chosen' => true,
+									'class'  => 'give-width-25em',
 								) );
 								?>
+								<br>
 								<input type="submit" value="<?php esc_attr_e( 'Generate CSV', 'give' ); ?>" class="button-secondary"/>
 
 								<div id="export-donor-options-wrap" class="give-clearfix">
@@ -160,7 +162,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<tr class="give-export-core-settings">
 						<td scope="row" class="row-title">
 							<h3>
-								<span><?php esc_html_e( 'Export Give Settings', 'give' ); ?></span>
+								<span><?php esc_html_e( 'Export GiveWP Settings', 'give' ); ?></span>
 							</h3>
 							<p><?php esc_html_e( 'Download an export of Give\'s settings and import it in a new WordPress installation.', 'give' ); ?></p>
 						</td>

@@ -59,7 +59,7 @@ final class Give_Shortcode_Button {
 	 * @since 2.3.0
 	 */
 	public function ajax_handler(){
-		add_action( "wp_ajax_give_shortcode", array( $this, 'shortcode_ajax' ) );
+		add_action( 'wp_ajax_give_shortcode', array( $this, 'shortcode_ajax' ) );
 	}
 
 	/**
@@ -189,7 +189,7 @@ final class Give_Shortcode_Button {
 					'<div class="sc-menu mce-menu">%s</div>' .
 					'</div>',
 					$img,
-					__( 'Give Shortcodes', 'give' ),
+					__( 'GiveWP Shortcodes', 'give' ),
 					implode( '', array_values( $shortcodes ) )
 				);
 			}
@@ -198,12 +198,16 @@ final class Give_Shortcode_Button {
 
 	/**
 	 * Load the shortcode dialog fields via AJAX
+	 * @todo: handle error
 	 *
 	 * @return void
 	 *
 	 * @since 1.0
 	 */
 	public function shortcode_ajax() {
+		if( ! current_user_can( 'edit_give_forms' ) ) {
+			wp_die();
+		}
 
 		$shortcode = isset( $_POST['shortcode'] ) ? $_POST['shortcode'] : false;
 		$response  = false;
@@ -224,7 +228,6 @@ final class Give_Shortcode_Button {
 				'title'     => $data['title'],
 			);
 		} else {
-			// todo: handle error
 			error_log( print_r( 'AJAX error!', 1 ) );
 		}
 

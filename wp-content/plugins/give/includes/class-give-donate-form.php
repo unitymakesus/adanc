@@ -349,7 +349,6 @@ class Give_Donate_Form {
 	 * @param  array    $_args Arguments passed.
 	 */
 	public function __construct( $_id = false, $_args = array() ) {
-
 		$donation_form = WP_Post::get_instance( $_id );
 
 		$this->setup_donation_form( $donation_form );
@@ -376,11 +375,13 @@ class Give_Donate_Form {
 		}
 
 
+		Give_Forms_Query::update_meta_cache( array( $donation_form->ID ) );
+
 		foreach ( $donation_form as $key => $value ) {
 			$this->$key = $value;
 		}
 
-		return true;
+		return $donation_form->ID;
 
 	}
 
@@ -644,7 +645,7 @@ class Give_Donate_Form {
 			} elseif ( 'donors' === $goal_format ) {
 				$this->goal = give_get_meta( $this->ID, '_give_number_of_donor_goal', true );
 
-			} elseif( 'amount' === $goal_format ) {
+			} elseif( in_array( $goal_format, array( 'amount', 'percentage' ) ) ) {
 				$this->goal = give_get_meta( $this->ID, '_give_set_goal', true );
 			}
 		}

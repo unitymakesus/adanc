@@ -351,7 +351,7 @@ if ( ! class_exists( 'Give_Import_Core_Settings' ) ) {
 			<tr valign="top">
 				<th colspan="2">
 					<h2 id="give-import-title"><?php esc_html_e( 'Import Core Settings from a JSON file', 'give' ) ?></h2>
-					<p class="give-field-description"><?php esc_html_e( 'This tool allows you to import Give settings from another Give installation. Settings imported contain data from Give core as well as any of our Premium Add-ons.', 'give' ) ?></p>
+					<p class="give-field-description"><?php esc_html_e( 'This tool allows you to import GiveWP settings from another GiveWP installation. Settings imported contain data from GiveWP core as well as any of our Premium Add-ons.', 'give' ) ?></p>
 				</th>
 			</tr>
 
@@ -461,7 +461,7 @@ if ( ! class_exists( 'Give_Import_Core_Settings' ) ) {
 				$upload = wp_handle_upload( $_FILES['json'], array( 'test_form' => false ) );
 
 				remove_filter( 'upload_mimes', array( __CLASS__, 'json_upload_mimes' ) );
-				remove_filter( 'wp_check_filetype_and_ext', array( __CLASS__, 'filetype_mod' ), 10, 4 );
+				remove_filter( 'wp_check_filetype_and_ext', array( __CLASS__, 'filetype_mod' ) );
 
 			} else {
 				Give_Admin_Settings::add_error( 'give-import-csv', __( 'Please upload or provide a valid JSON file.', 'give' ) );
@@ -498,11 +498,22 @@ if ( ! class_exists( 'Give_Import_Core_Settings' ) ) {
 		 */
 		public static function filetype_mod(  $check, $file, $filename, $mimes ) {
 			if ( empty( $check['ext'] ) && empty( $check['type'] ) ) {
-				// Allow JSON uploads
-				$secondary_mime = array( 'json' => 'text/plain' );
-				// Run another check, but only for our secondary mime and not on core mime types.
-				$check = wp_check_filetype_and_ext( $file, $filename, $secondary_mime );
+				$finfo     = finfo_open( FILEINFO_MIME_TYPE );
+				$real_mime = finfo_file( $finfo, $file );
+				finfo_close( $finfo );
+
+				if( in_array( $real_mime, array( 'text/plain', 'text/html' ) ) ) {
+					remove_filter( 'wp_check_filetype_and_ext', array( __CLASS__, 'filetype_mod' ) );
+
+					// Allow JSON uploads
+					$secondary_mime = array( 'json' => $real_mime );
+					// Run another check, but only for our secondary mime and not on core mime types.
+					$check = wp_check_filetype_and_ext( $file, $filename, $secondary_mime );
+
+					add_filter( 'wp_check_filetype_and_ext', array( __CLASS__, 'filetype_mod' ), 10, 4 );
+				}
 			}
+
 			return $check;
 		}
 	}

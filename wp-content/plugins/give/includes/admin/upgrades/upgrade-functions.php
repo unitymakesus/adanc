@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function give_do_automatic_upgrades() {
 	$did_upgrade  = false;
-	$give_version = preg_replace( '/[^0-9.].*/', '', get_option( 'give_version' ) );
+	$give_version = preg_replace( '/[^0-9.].*/', '', Give_Cache_Setting::get_option( 'give_version' ) );
 
 	if ( ! $give_version ) {
 		// 1.0 is the first version to use this option so we must add it.
@@ -129,6 +129,18 @@ function give_do_automatic_upgrades() {
 
 		case version_compare( $give_version, '2.3.0', '<' ):
 			give_v230_upgrades();
+			$did_upgrade = true;
+
+		case version_compare( $give_version, '2.5.0', '<' ):
+			give_v250_upgrades();
+			$did_upgrade = true;
+
+		case version_compare( $give_version, '2.5.8', '<' ):
+			give_v258_upgrades();
+			$did_upgrade = true;
+
+		case version_compare( $give_version, '2.5.11', '<' ):
+			give_v2511_upgrades();
 			$did_upgrade = true;
 	}
 
@@ -491,7 +503,7 @@ function give_trigger_upgrades() {
 
 	if ( ! current_user_can( 'manage_give_settings' ) ) {
 		wp_die(
-			esc_html__( 'You do not have permission to do Give upgrades.', 'give' ), esc_html__( 'Error', 'give' ), array(
+			esc_html__( 'You do not have permission to do GiveWP upgrades.', 'give' ), esc_html__( 'Error', 'give' ), array(
 				'response' => 403,
 			)
 		);
@@ -3404,4 +3416,175 @@ function give_v241_remove_sale_logs_callback() {
 	$wpdb->query( $sql );
 
 	give_set_upgrade_complete( 'v241_remove_sale_logs' );
+}
+
+
+/**
+ * DB upgrades for Give 2.5.0
+ *
+ * @since 2.5.0
+ */
+function give_v250_upgrades() {
+	global $wpdb;
+
+	$old_license   = array();
+	$new_license   = array();
+	$give_licenses = get_option( 'give_licenses', array() );
+	$give_options  = give_get_settings();
+
+	// Get add-ons license key.
+	$addons = array();
+	foreach ( $give_options as $key => $value ) {
+		if ( false !== strpos( $key, '_license_key' ) ) {
+			$addons[ $key ] = $value;
+		}
+	}
+
+	// Bailout: We do not have any add-on license data to upgrade.
+	if ( empty( $addons ) ) {
+		return false;
+	}
+
+	foreach ( $addons as $key => $license_key ) {
+
+		// Get addon shortname.
+		$addon_shortname = str_replace( '_license_key', '', $key );
+
+		// Addon license option name.
+		$addon_shortname    = "{$addon_shortname}_license_active";
+		$addon_license_data = get_option( "{$addon_shortname}_license_active", array() );
+
+		if (
+			! $license_key
+			|| array_key_exists( $license_key, $give_licenses )
+		) {
+			continue;
+		}
+
+		$old_license[ $license_key ] = $addon_license_data;
+	}
+
+	// Bailout.
+	if ( empty( $old_license ) ) {
+		return false;
+	}
+
+	/* @var stdClass $data */
+	foreach ( $old_license as $key => $data ) {
+		$tmp = Give_License::request_license_api( array(
+			'edd_action' => 'check_license',
+			'license'    => $key,
+		), true );
+
+		if ( is_wp_error( $tmp ) || ! $tmp['success'] ) {
+			continue;
+		}
+
+		$new_license[ $key ] = $tmp;
+	}
+
+	// Bailout.
+	if ( empty( $new_license ) ) {
+		return false;
+	}
+
+	$give_licenses = array_merge( $give_licenses, $new_license );
+
+	update_option( 'give_licenses', $give_licenses );
+
+	/**
+	 * Delete data.
+	 */
+
+	// 1. license keys
+	foreach ( get_option( 'give_settings' ) as $index => $setting ) {
+		if ( false !== strpos( $index, '_license_key' ) ) {
+			give_delete_option( $index );
+		}
+	}
+
+	// 2. license api data
+	$wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name like '%_license_active%' AND option_name like 'give_%'" );
+
+	// 3. subscriptions data
+	delete_option( '_give_subscriptions_edit_last' );
+	delete_option( 'give_subscriptions' );
+
+	// 4. misc
+	delete_option( 'give_is_addon_activated' );
+
+	give_refresh_licenses();
+}
+
+/**
+ * DB upgrades for Give 2.5.8
+ *
+ * @since 2.5.8
+ */
+function give_v258_upgrades() {
+
+	$is_checkout_enabled = give_is_setting_enabled( give_get_option( 'stripe_checkout_enabled', 'disabled' ) );
+
+	// Bailout, if stripe checkout is not active as a gateway.
+	if ( ! $is_checkout_enabled  ) {
+		return;
+	}
+
+	$enabled_gateways = give_get_option( 'gateways', array() );
+
+	// Bailout, if Stripe Checkout is already enabled.
+	if ( ! empty( $enabled_gateways['stripe_checkout'] ) ) {
+		return;
+	}
+
+	$gateways_label  = give_get_option( 'gateways_label', array() );
+	$default_gateway = give_get_option( 'default_gateway' );
+
+	// Set Stripe Checkout as active gateway.
+	$enabled_gateways['stripe_checkout']  = 1;
+
+	// Unset Stripe - Credit Card as an active gateway.
+	unset( $enabled_gateways['stripe'] );
+
+	// Set Stripe Checkout same as Stripe as they have enabled Stripe Checkout under Stripe using same label.
+	$gateways_label['stripe_checkout'] = $gateways_label['stripe'];
+	give_update_option( 'gateways_label', $gateways_label );
+
+	// If default gateway selected is `stripe` then set `stripe checkout` as default.
+	if ( 'stripe' === $default_gateway ) {
+		give_update_option( 'default_gateway', 'stripe_checkout' );
+	}
+
+	// Update the enabled gateways in database.
+	give_update_option( 'gateways', $enabled_gateways );
+
+	// Delete the old legacy settings.
+	give_delete_option( 'stripe_checkout_enabled' );
+}
+
+
+/**
+ * DB upgrades for Give 2.5.11
+ *
+ * @since 2.5.11
+ */
+function give_v2511_upgrades() {
+	global $wp_roles, $wpdb;
+	$all_roles = get_editable_roles();
+
+
+	// Run code only if not a fresh install.
+	if ( Give_Cache_Setting::get_option( 'give_version' ) ) {
+		// Remove unused notes column from donor table.
+		$wpdb->query( "ALTER TABLE {$wpdb->prefix}give_donors DROP COLUMN notes;" );
+	}
+
+	foreach ( $all_roles as $role => $data ) {
+		$wp_roles->remove_cap( $role, 'delete_give_form' );
+		$wp_roles->remove_cap( $role, 'delete_give_payment' );
+		$wp_roles->remove_cap( $role, 'edit_give_form' );
+		$wp_roles->remove_cap( $role, 'edit_give_payment' );
+		$wp_roles->remove_cap( $role, 'read_give_form' );
+		$wp_roles->remove_cap( $role, 'read_give_payment' );
+	}
 }

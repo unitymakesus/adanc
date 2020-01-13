@@ -39,8 +39,8 @@ if ( ! class_exists( 'Give_Donor_Note_Email' ) ) :
 
 			$this->load( array(
 				'id'                    => 'donor-note',
-				'label'                 => __( 'Donor Note', 'give' ),
-				'description'           => __( 'Sent to the donor when new donation note added to there donation.', 'give' ),
+				'label'                 => __( 'Donation Note', 'give' ),
+				'description'           => __( 'Sent when a donation note is added to a donation payment.', 'give' ),
 				'notification_status'   => 'enabled',
 				'recipient_group_name'  => __( 'Donor', 'give' ),
 				'default_email_subject' => sprintf(
@@ -72,6 +72,12 @@ if ( ! class_exists( 'Give_Donor_Note_Email' ) ) :
 		 * @param int $note_id     Donor comment.
 		 */
 		public function send_note( $note_id, $donation_id ) {
+			if( ! $note_id || ! $donation_id ) {
+				wp_die( esc_html__( 'Cheatin&#8217; uh?', 'give' ), esc_html__( 'Error', 'give' ), array(
+					'response' => 400,
+				) );
+			}
+
 			$this->recipient_email = give_get_donation_donor_email( $donation_id );
 
 			// Send email.

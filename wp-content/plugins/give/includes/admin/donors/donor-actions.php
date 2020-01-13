@@ -40,6 +40,13 @@ function give_edit_donor( $args ) {
 	// Sanitize Data.
 	$args = give_clean( $args );
 
+	$args = wp_parse_args(
+		$args,
+		array(
+			'give_anonymous_donor' => 0
+		)
+	);
+
 	// Verify Nonce.
 	if ( ! wp_verify_nonce( $args['_wpnonce'], 'edit-donor' ) ) {
 		wp_die( esc_html__( 'Cheatin&#8217; uh?', 'give' ), esc_html__( 'Error', 'give' ), array(
@@ -301,12 +308,20 @@ function give_disconnect_donor_user_id( $args ) {
 		'user_id' => 0,
 	);
 
+	$redirect_url     = admin_url( 'edit.php?post_type=give_forms&page=give-donors&view=overview&id=' ) . $donor_id;
+	$is_donor_updated = $donor->update( $donor_args );
 
-	$output['success'] = true;
-	if ( ! $donor->update( $donor_args ) ) {
-		update_user_meta( $user_id, '_give_is_donor_disconnected', true );
+	if ( $is_donor_updated ) {
+
+		// Set meta for disconnected donor id and user id for future reference if needed.
 		update_user_meta( $user_id, '_give_disconnected_donor_id', $donor->id );
 		$donor->update_meta( '_give_disconnected_user_id', $user_id );
+
+		$redirect_url = add_query_arg(
+			'give-messages[]',
+			'disconnect-user',
+			$redirect_url
+		);
 
 		$output['success'] = true;
 
@@ -315,7 +330,7 @@ function give_disconnect_donor_user_id( $args ) {
 		give_set_error( 'give-disconnect-user-fail', __( 'Failed to disconnect user from donor.', 'give' ) );
 	}
 
-	$output['redirect'] = admin_url( 'edit.php?post_type=give_forms&page=give-donors&view=overview&id=' ) . $donor_id;
+	$output['redirect'] = $redirect_url;
 
 	/**
 	 * Fires after disconnecting user ID from a donor.
@@ -371,7 +386,7 @@ function give_add_donor_email( $args ) {
 	} elseif ( ! wp_verify_nonce( $args['_wpnonce'], 'give_add_donor_email' ) ) {
 		$output = array(
 			'success' => false,
-			'message' => __( 'Nonce verification failed.', 'give' ),
+			'message' => __( 'We\'re unable to recognize your session. Please refresh the screen to try again; otherwise contact your website administrator for assistance.', 'give' ),
 		);
 	} elseif ( ! is_email( $args['email'] ) ) {
 		$output = array(
@@ -449,7 +464,7 @@ function give_remove_donor_email() {
 
 	$nonce = $_GET['_wpnonce'];
 	if ( ! wp_verify_nonce( $nonce, 'give-remove-donor-email' ) ) {
-		wp_die( __( 'Nonce verification failed', 'give' ), __( 'Error', 'give' ), array(
+		wp_die( __( 'We\'re unable to recognize your session. Please refresh the screen to try again; otherwise contact your website administrator for assistance.', 'give' ), __( 'Error', 'give' ), array(
 			'response' => 403,
 		) );
 	}
@@ -496,7 +511,7 @@ function give_set_donor_primary_email() {
 	$nonce = $_GET['_wpnonce'];
 
 	if ( ! wp_verify_nonce( $nonce, 'give-set-donor-primary-email' ) ) {
-		wp_die( __( 'Nonce verification failed', 'give' ), __( 'Error', 'give' ), array(
+		wp_die( __( 'We\'re unable to recognize your session. Please refresh the screen to try again; otherwise contact your website administrator for assistance.', 'give' ), __( 'Error', 'give' ), array(
 			'response' => 403,
 		) );
 	}
