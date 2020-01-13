@@ -162,14 +162,11 @@ export default {
     $('#toggle-contrast input[name="contrast"]').on('change', function() {
       let contrast = $(this).is(':checked');
       $('html').attr('data-contrast', contrast);
-      document.cookie = 'data_contrast=' + contrast + ';max-age=31536000;path=/';
-    });
-
-    // Controls for changing language
-    $('#toggle-espanol input[name="espanol"]').on('change', function() {
-      let espanol = $(this).is(':checked');
-      $('html').attr('data-espanol', espanol);
-      document.cookie = 'data_espanol=' + espanol + ';max-age=31536000;path=/';
+      if (contrast) {
+        document.cookie = 'data_contrast=' + contrast + ';max-age=31536000;path=/';
+      } else {
+        document.cookie = 'data_contrast=;max-age=-999999999;path=/';
+      }
     });
 
     // Helper function for translation cookies
@@ -182,7 +179,14 @@ export default {
       e.preventDefault();
       var hostname = window.location.hostname;
       var domain = getDomainName(hostname);
-      document.cookie = "googtrans=/en/es;path=/;domain=" + domain + ";";
+
+      if ($(this).is(':checked')) {
+        document.cookie = "googtrans=/en/es;path=/;domain=" + domain + ";";
+      } else {
+        document.cookie = "googtrans=;max-age=-999999999;path=/;domain=" + domain + ";";
+        document.cookie = "googtrans=;max-age=-999999999;path=/;";
+      }
+
       location.reload();
     });
   },
