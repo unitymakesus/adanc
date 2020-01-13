@@ -107,7 +107,7 @@
     "yargs": "~11.0.0"
   },
   "dependencies": {
-    "jquery": "^3.3.1",
+    "jquery": "^3.4.0",
     "materialize-css": "^0.100.2",
     "webfontloader": "^1.6.28"
   }
