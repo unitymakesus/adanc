@@ -10,9 +10,8 @@ $services = new WP_Query([
   @if ($services->have_posts()) @while ($services->have_posts()) @php $services->the_post() @endphp
     <div class="row service">
       <div class="col m3">
-        <img src="{!! get_the_post_thumbnail_url($id, 'medium') !!}"/>
+        {!! get_the_post_thumbnail(get_the_ID(), 'medium') !!}
       </div>
-
       <div class="col m9">
         <h2>{!! get_the_title() !!}</h2>
         @php the_content() @endphp

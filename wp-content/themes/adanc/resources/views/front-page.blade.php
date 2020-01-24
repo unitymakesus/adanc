@@ -6,8 +6,8 @@
 
 @section('content')
   @while(have_posts()) @php the_post() @endphp
-    <section class="hero" aria-label="hero">
-      <img src="{!! get_the_post_thumbnail_url($id, 'full') !!}"/>
+    <section class="hero">
+      {!! get_the_post_thumbnail(get_the_ID(), 'full') !!}
     </section>
 
     <section class="overview" aria-label="overview">

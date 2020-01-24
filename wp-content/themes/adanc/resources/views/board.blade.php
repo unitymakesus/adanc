@@ -20,7 +20,7 @@
             </div><div class="row">
           @endif
           <div class="member col s6 m3">
-            <img src="{{$member['photo']}}"/>
+            <img src="{{$member['photo']}}" alt="" />
             <h3>{{$member['name']}}</h3>
             <p>{{$member['role']}}</p>
           </div>

@@ -11,7 +11,7 @@
       <div class="staff-member member">
         <div class="row">
           <div class="col m3 bio-pic">
-            <img src="{!! get_the_post_thumbnail_url($id, 'medium') !!}"/>
+            {!! get_the_post_thumbnail(get_the_ID(), 'medium') !!}
           </div>
 
           <div class="col m9">
