@@ -20,7 +20,13 @@
             </div><div class="row">
           @endif
           <div class="member col s6 m3">
-            <img src="{{$member['photo']}}" alt="" />
+            @if ($member['bio_link'])
+              <a href="{{ $member['bio_link']['url'] }}">
+                <img src="{{$member['photo']}}" alt="View {{ $member['name'] }}'s bio." />
+              </a>
+            @else
+              <img src="{{$member['photo']}}" alt="" />
+            @endif
             <h3>{{$member['name']}}</h3>
             <p>{{$member['role']}}</p>
           </div>
