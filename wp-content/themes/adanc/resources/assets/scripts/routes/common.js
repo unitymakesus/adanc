@@ -183,7 +183,7 @@ export default {
       if ($(this).is(':checked')) {
         document.cookie = "googtrans=/en/es;path=/;domain=" + domain + ";";
 
-        $('#toggle-espanol legend').text('View in English:').addClass('notranslate');
+        $('#toggle-espanol legend').text('Back to English:').addClass('notranslate');
         $('#toggle-espanol label').text('English').addClass('english');
       } else {
         document.cookie = "googtrans=;max-age=-999999999;path=/;domain=" + domain + ";";
