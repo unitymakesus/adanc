@@ -290,6 +290,10 @@ nav ul li.active {
           speak: none;
           border: none;
         }
+
+        &.english::after {
+          content: 'EN';
+        }
       }
 
       input[type="checkbox"]:checked + label::after {

@@ -68,11 +68,19 @@
               @php
                 $cookie_espanol = $_COOKIE['googtrans'];
               @endphp
-              <legend>Ver En Español:</legend>
-              <div>
-                <input class="gtranslate" type="checkbox" name="espanol" id="espanol" value="true" <?php if(!empty($cookie_espanol)) {echo 'checked';} ?> />
-                <label for="espanol">En Espanol</label>
-              </div>
+              @if (empty($cookie_espanol))
+                <legend>Ver En Español:</legend>
+                <div>
+                  <input class="gtranslate" type="checkbox" name="espanol" id="espanol" value="true" />
+                  <label for="espanol">En Espanol</label>
+                </div>
+              @else
+                <legend class="notranslate">Back to English:</legend>
+                <div>
+                  <input class="gtranslate" type="checkbox" name="espanol" id="espanol" value="true" checked="checked" />
+                  <label for="espanol" class="english">English</label>
+                </div>
+              @endif
             </fieldset>
           </div>
         </div>

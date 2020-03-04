@@ -182,9 +182,15 @@ export default {
 
       if ($(this).is(':checked')) {
         document.cookie = "googtrans=/en/es;path=/;domain=" + domain + ";";
+
+        $('#toggle-espanol legend').text('View in English:').addClass('notranslate');
+        $('#toggle-espanol label').text('English').addClass('english');
       } else {
         document.cookie = "googtrans=;max-age=-999999999;path=/;domain=" + domain + ";";
         document.cookie = "googtrans=;max-age=-999999999;path=/;";
+
+        $('#toggle-espanol legend').text('Ver En Español:').removeClass('notranslate');
+        $('#toggle-espanol label').text('En Español').removeClass('english');
       }
 
       location.reload();
