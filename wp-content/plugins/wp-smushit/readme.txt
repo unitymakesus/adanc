@@ -1,13 +1,13 @@
 === Smush - Compress, Optimize and Lazy Load Images ===
 Plugin Name: Smush - Compress, Optimize and Lazy Load Images
-Version: 3.4.1
+Version: 3.6.1
 Author: WPMU DEV
 Author URI: https://premium.wpmudev.org/
 Contributors: WPMUDEV, alexdunae
 Tags: optimize images, convert webp, lazy load, image, resize, optimize, optimise, compress, performance, optimisation, photography, optimizer
 Requires at least: 4.6
-Tested up to: 5.3.2
-Stable tag: 3.4.1
+Tested up to: 5.4
+Stable tag: 3.6.1
 Requires PHP: 5.6.20
 License: GPL v2 - http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
 
@@ -175,9 +175,63 @@ It depends what side of the pond you live on...but whether you say optimize, opt
 
 == Changelog ==
 
+= 3.6.1 =
+
+- Enhance: Directory Smush image processing
+- Enhance: CDN background image processing performance
+- Fix: Lazy loading breaking visual editors (Oxygen, Thrive Architect, Tatsu)
+- Fix: WooCommerce breaking Smush onboarding dialog
+- Fix: CDN processing of background images with spaces
+- Fix: REST API errors
+
+= 3.6.0 =
+
+- New: CDN support for images in REST API responses
+- New: Media library filter to show uncompressed images
+- New: Native lazy loading support
+- Enhance: Image resize detection functionality
+- Enhance: Allow excluding images from lazy loading with data-skip-lazy attribute
+- Enhance: Improve restore backup UI
+- Enhance: Bulk smush UI
+- Fix: NextGEN Gallery integration
+- Fix: Error detecting language error on Settings page
+- Fix: "Choose directory" button disabled state after first click
+- Fix: Some notices not being dismissible
+- Fix: Image restore
+
+= 3.5.1 =
+
+- Fix: Browser console errors on pages without Backbone js scripts
+- Fix: Lazy load compatibility with Beaver Builder
+- Fix: Lazy load breaking videos
+
+= 3.5.0 =
+
+- New: Add custom post types to include/exclude filters in the lazy load module
+- New: CDN support for source in the picture element
+- New: Lazy loading for WebP images
+- New: Lazy loading support for picture element
+- Enhance: Page parsing performance
+- Enhance: Media library UI
+- Enhance: CDN compatibility with empty srcset and sizes image attributes
+- Enhance: CDN support for background images
+- Enhance: Lazy load compatibility with Envira Gallery plugin
+- Enhance: Plugins page links
+- Fix: CDN not detecting background images surrounded by HTML entities
+- Fix: CDN not replacing srcset in some cases
+- Fix: Lazy load Gravatars
+- Fix: WPBakery Page Builder integration
+- Fix: Typos in the lazy load module
+
+= 3.4.2 =
+
+- Enhance: Security
+- Fix: Fatal error on WordPress 4.x
+- Fix: Compatibility issue with ReCaptcha and lazy loading
+
 = 3.4.1 =
 
-Fix: Upgrade from Free to Pro causing an error
+- Fix: Upgrade from Free to Pro causing an error
 
 = 3.4.0 =
 

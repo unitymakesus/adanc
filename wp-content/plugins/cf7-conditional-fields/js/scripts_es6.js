@@ -75,10 +75,14 @@ var Wpcf7cfForm = function($form) {
     form.displayFields();
 
     // bring form in initial state if the reset event is fired on it.
-    form.$form.on('reset', form, function(e) {
+    form.$form.on('reset.wpcf7cf', form, function(e) {
         var form = e.data;
         setTimeout(function(){
             form.displayFields();
+            form.resetRepeaters();
+            if (form.multistep != null) {
+                form.multistep.moveToStep(1); 
+            }
         },200);
     });
 
@@ -94,17 +98,29 @@ var Wpcf7cfForm = function($form) {
 
     if ($multistep.length) {
         form.multistep = new Wpcf7cfMultistep($multistep, form);
-        // wpcf7cf.updateMultistepState(form.multistep);
+        // window.wpcf7cf.updateMultistepState(form.multistep);
     }
 
     // END PRO ONLY
 
 }
+
+/**
+ * reset initial number of subs for each repeater.
+ * (does not clear values)
+ */
+Wpcf7cfForm.prototype.resetRepeaters = function() {
+    var form = this;
+    form.repeaters.forEach(repeater => {
+        repeater.updateSubs( repeater.params.$repeater.initial_subs );
+    });
+}
+
 Wpcf7cfForm.prototype.displayFields = function() {
 
     var form = this;
 
-    wpcf7cf.get_simplified_dom_model(form.$form);
+    window.wpcf7cf.get_simplified_dom_model(form.$form);
 
     var unit_tag = this.unit_tag;
     var wpcf7cf_conditions = this.conditions;
@@ -131,7 +147,7 @@ Wpcf7cfForm.prototype.displayFields = function() {
 
         var condition = wpcf7cf_conditions[i];
 
-        var show_group = wpcf7cf.should_group_be_shown(condition, form.$form);
+        var show_group = window.wpcf7cf.should_group_be_shown(condition, form.$form);
 
         if (show_group) {
             jQuery('[data-id='+condition.then_field+']',form.$form).eq(0).removeClass('wpcf7cf-hidden');
@@ -175,7 +191,34 @@ Wpcf7cfForm.prototype.displayFields = function() {
     });
 
     form.updateHiddenFields();
+    form.updateSummaryFields();
 };
+
+Wpcf7cfForm.prototype.updateSummaryFields = function() {
+    var $summary = jQuery('.wpcf7cf-summary', this.$form);
+
+    if ($summary.length == 0 || !$summary.is(':visible')) return;
+
+    var fd = new FormData();
+
+    var formdata = this.$form.serializeArray();
+    jQuery.each(formdata,function(key, input){
+        fd.append(input.name, input.value);
+    });
+
+    jQuery.ajax({
+        url: wpcf7cf_global_settings.ajaxurl + '?action=wpcf7cf_get_summary',
+        type: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(json) {
+            $summary.html(json.summaryHtml);
+        }
+    });
+};
+
 Wpcf7cfForm.prototype.updateHiddenFields = function() {
 
     var form = this;
@@ -210,7 +253,7 @@ Wpcf7cfForm.prototype.updateGroups = function() {
     var form = this;
     form.$groups = form.$form.find('[data-class="wpcf7cf_group"]');
 
-    form.conditions = wpcf7cf.get_nested_conditions(form.initial_conditions, form.$form);
+    form.conditions = window.wpcf7cf.get_nested_conditions(form.initial_conditions, form.$form);
 
 };
 Wpcf7cfForm.prototype.updateEventListeners = function() {
@@ -427,7 +470,7 @@ Wpcf7cfRepeater.prototype.addSubs = function(subs_to_add) {
 
     $repeater.num_subs+= subs_to_add;
 
-    wpcf7cf.updateMultistepState(form.multistep);
+    window.wpcf7cf.updateMultistepState(form.multistep);
     form.updateGroups();
     form.updateEventListeners();
     form.displayFields();
@@ -457,7 +500,7 @@ Wpcf7cfRepeater.prototype.removeSubs = function(num_subs) {
         //remove the actual fields from the form
         $this.remove();
         params.$repeater.trigger('wpcf7cf_repeater_removed');
-        wpcf7cf.updateMultistepState(form.multistep);
+        window.wpcf7cf.updateMultistepState(form.multistep);
         form.updateGroups();
         form.updateEventListeners();
         form.displayFields();
@@ -474,7 +517,7 @@ function Wpcf7cfMultistep($multistep, form) {
     multistep.$btn_next = $multistep.find('.wpcf7cf_next');
     multistep.$btn_prev = $multistep.find('.wpcf7cf_prev');
     multistep.$dots = $multistep.find('.wpcf7cf_steps-dots');
-    multistep.current_step = 0;
+    multistep.currentStep = 0;
     multistep.numSteps = multistep.$steps.length;
 
 
@@ -490,28 +533,53 @@ function Wpcf7cfMultistep($multistep, form) {
 
     multistep.$btn_next.on('click.wpcf7cf_step', async function() {
         
-        var result = await multistep.validateStep(multistep.current_step);
-        console.log('got this result: ' + result);
+        var result = await multistep.validateStep(multistep.currentStep);
         if (result === 'success') {
-            multistep.moveToStep(multistep.current_step+1);
+            multistep.moveToStep(multistep.currentStep+1); 
+        }
+
+    });
+
+    // If form is submitted (by pressing retrun for example), and if we are not on the last step,
+    // then trigger click event on the $next button instead.
+    multistep.form.$form.on('submit.wpcf7cf_step', function(e) {
+
+        if (multistep.currentStep !== multistep.numSteps) {
+            multistep.$btn_next.trigger('click.wpcf7cf_step');
+
+            e.stopImmediatePropagation();
+            return false;
         }
     });
 
     multistep.$btn_prev.click(function() {
-        multistep.moveToStep(multistep.current_step-1);
+        multistep.moveToStep(multistep.currentStep-1);
     });
 
     multistep.moveToStep(1);
 }
 
+jQuery(document).ajaxComplete(function(e, xhr, settings){
+    if (
+        xhr.hasOwnProperty('responseJSON')          &&
+        xhr.responseJSON != null                    &&
+        xhr.responseJSON.hasOwnProperty('status')   &&
+        xhr.responseJSON.hasOwnProperty('into')     &&
+        xhr.responseJSON.status === "mail_success"
+    ) {
+        jQuery( xhr.responseJSON.into ).trigger('reset.wpcf7cf');
+    }
+});
+
 Wpcf7cfMultistep.prototype.validateStep = function(step_index) {
 
-    return new Promise(resolve => {
-        var multistep = this;
-        var $multistep = multistep.$multistep;
+    var multistep = this;
+    var $multistep = multistep.$multistep;
+    var $form = multistep.form.$form;
 
-        //validation
-        var $form = multistep.form.$form;
+    $form.find('.wpcf7-response-output').addClass('wpcf7-display-none');
+
+    return new Promise(resolve => {
 
         var fd = new FormData();
 
@@ -572,7 +640,10 @@ Wpcf7cfMultistep.prototype.validateStep = function(step_index) {
                 });
 
                 resolve('failed');
-                $multistep.append('<div class="wpcf7-response-output wpcf7-display-none wpcf7-validation-errors" style="display: block;" role="alert">' + json.message + '</div>');
+                //$multistep.append('<div class="wpcf7-response-output wpcf7-display-none wpcf7-validation-errors" style="display: block;" role="alert">' + json.message + '</div>');
+
+                console.log($multistep.parent().find('.wpcf7-response-output'));
+                $multistep.parent().find('.wpcf7-response-output').removeClass('wpcf7-display-none').html(json.message);
 
             } else if (json.success) {
                 resolve('success');
@@ -589,25 +660,32 @@ Wpcf7cfMultistep.prototype.validateStep = function(step_index) {
 };
 Wpcf7cfMultistep.prototype.moveToStep = function(step_index) {
     var multistep = this;
-    var previousStep = multistep.current_step;
+    var previousStep = multistep.currentStep;
 
-    multistep.current_step = step_index > multistep.numSteps ? multistep.numSteps
+    multistep.currentStep = step_index > multistep.numSteps ? multistep.numSteps
                                 : step_index < 1 ? 1
                                     : step_index;
 
     // ANIMATION DISABLED FOR NOW cause it's ugly
     // multistep.$steps.animate(wpcf7cf_hide_step_animation, multistep.form.settings.animation_outtime);
-    // multistep.$steps.eq(multistep.current_step-1).animate(wpcf7cf_show_step_animation, multistep.form.settings.animation_intime);
+    // multistep.$steps.eq(multistep.currentStep-1).animate(wpcf7cf_show_step_animation, multistep.form.settings.animation_intime);
 
-    multistep.$multistep.attr('data-current_step', multistep.current_step);
+    multistep.$multistep.attr('data-current_step', multistep.currentStep);
     multistep.$steps.hide();
-    multistep.$steps.eq(multistep.current_step-1).show().trigger('wpcf7cf_change_step', [previousStep, multistep.current_step]); // change step;
+    multistep.$steps
+        .eq(multistep.currentStep-1)
+        .show()
+        .trigger('wpcf7cf_change_step', [previousStep, multistep.currentStep]);
 
-    wpcf7cf.updateMultistepState(multistep);
+    multistep.form.$form[0].scrollIntoView();
+
+    multistep.form.updateSummaryFields();
+
+    window.wpcf7cf.updateMultistepState(multistep);
 };
 
 Wpcf7cfMultistep.prototype.getFieldsInStep = function(step_index) {
-    var simpleDom = wpcf7cf.get_simplified_dom_model(this.form.$form);
+    var simpleDom = window.wpcf7cf.get_simplified_dom_model(this.form.$form);
     var inStep = false;
     return simpleDom.filter(function(item, i) {
         if(item.type == 'step') {
@@ -621,7 +699,7 @@ Wpcf7cfMultistep.prototype.getFieldsInStep = function(step_index) {
 
 // END PRO ONLY
 
-var wpcf7cf = {
+window.wpcf7cf = {
 
     // keep this for backwards compatibility
     initForm : function($form) {
@@ -630,7 +708,7 @@ var wpcf7cf = {
 
     get_nested_conditions : function(conditions, $current_form) {
         //loop trough conditions. Then loop trough the dom, and each repeater we pass we should update all sub_values we encounter with __index
-        var simplified_dom = wpcf7cf.get_simplified_dom_model($current_form);
+        var simplified_dom = window.wpcf7cf.get_simplified_dom_model($current_form);
         var groups = simplified_dom.filter(function(item, i) {
             return item.type==='group';
         });
@@ -722,33 +800,33 @@ var wpcf7cf = {
         // update hidden input field
 
         var stepsData = {
-            currentStep : multistep.current_step,
+            currentStep : multistep.currentStep,
             numSteps : multistep.numSteps,
-            fieldsInCurrentStep : multistep.getFieldsInStep(multistep.current_step)
+            fieldsInCurrentStep : multistep.getFieldsInStep(multistep.currentStep)
         };
         multistep.form.$input_steps.val(JSON.stringify(stepsData));
 
         // update Buttons
         multistep.$btn_prev.removeClass('disabled');
         multistep.$btn_next.removeClass('disabled');
-        if (multistep.current_step == multistep.numSteps) {
+        if (multistep.currentStep == multistep.numSteps) {
             multistep.$btn_next.addClass('disabled');
         }
-        if (multistep.current_step == 1) {
+        if (multistep.currentStep == 1) {
             multistep.$btn_prev.addClass('disabled');
         }
 
         // replace next button with submit button on last step.
         // TODO: make this depend on a setting
         var $submit_button = multistep.form.$form.find('input[type="submit"]').eq(0);
-        if (multistep.current_step == multistep.numSteps) {
-            var $submit_clone = $submit_button.clone();
-            $submit_button.hide();
+        var $ajax_loader = multistep.form.$form.find('.ajax-loader').eq(0);
+        if (multistep.currentStep == multistep.numSteps) {
             multistep.$btn_next.hide();
-            multistep.$btn_next.parent().append($submit_clone);
-        } else {
-            multistep.$btn_next.parent().find('input[type=submit]').remove();
+            $ajax_loader.detach().appendTo(multistep.$btn_next.parent());
+            $submit_button.detach().appendTo(multistep.$btn_next.parent());
             $submit_button.show();
+        } else {
+            $submit_button.hide();
             multistep.$btn_next.show();
         }
 
@@ -756,9 +834,9 @@ var wpcf7cf = {
         var $dots = multistep.$dots.find('.dot');
         $dots.removeClass('active').removeClass('completed');
         for(var step = 1; step <= multistep.numSteps; step++) {
-            if (step < multistep.current_step) {
+            if (step < multistep.currentStep) {
                 $dots.eq(step-1).addClass('completed');
-            } else if (step == multistep.current_step) {
+            } else if (step == multistep.currentStep) {
                 $dots.eq(step-1).addClass('active');
             }
         }

@@ -12,7 +12,7 @@
  * Plugin Name: Constant Contact Forms for WordPress
  * Plugin URI:  https://www.constantcontact.com
  * Description: Be a better marketer. All it takes is Constant Contact email marketing.
- * Version:     1.7.0
+ * Version:     1.8.1
  * Author:      Constant Contact
  * Author URI:  https://www.constantcontact.com/index?pn=miwordpress
  * License:     GPLv3
@@ -72,7 +72,7 @@ class Constant_Contact {
 	 * @since 1.0.0
 	 * @var string
 	 */
-	const VERSION = '1.7.0';
+	const VERSION = '1.8.1';
 
 	/**
 	 * URL of plugin directory.
@@ -819,16 +819,3 @@ function constant_contact_uninstall() {
 	$instance = Constant_Contact::get_instance();
 	$instance->uninstall();
 }
-
-/**
- * Modify our shortcode-button assets url without having to touch vendor folder.
- *
- * @since 1.5.3
- *
- * @param string $url Assets url for shortcode-button library.
- * @return string
- */
-function ctct_shortcode_button_assets_url( $url ) {
-	return plugin_dir_url( __FILE__ ) . 'vendor/jtsternberg/shortcode-button/';
-}
-add_filter( 'shortcode_button_assets_url', 'ctct_shortcode_button_assets_url' );

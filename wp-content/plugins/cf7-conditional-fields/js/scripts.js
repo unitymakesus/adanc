@@ -97,9 +97,6 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js");
 /* harmony import */ var _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js");
-/* harmony import */ var _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1__);
-
 
 
 
@@ -189,10 +186,15 @@ var Wpcf7cfForm = function Wpcf7cfForm($form) {
   form.updateEventListeners();
   form.displayFields(); // bring form in initial state if the reset event is fired on it.
 
-  form.$form.on('reset', form, function (e) {
+  form.$form.on('reset.wpcf7cf', form, function (e) {
     var form = e.data;
     setTimeout(function () {
       form.displayFields();
+      form.resetRepeaters();
+
+      if (form.multistep != null) {
+        form.multistep.moveToStep(1);
+      }
     }, 200);
   }); // PRO ONLY
 
@@ -205,14 +207,26 @@ var Wpcf7cfForm = function Wpcf7cfForm($form) {
   var $multistep = jQuery('.wpcf7cf_multistep', $form);
 
   if ($multistep.length) {
-    form.multistep = new Wpcf7cfMultistep($multistep, form); // wpcf7cf.updateMultistepState(form.multistep);
+    form.multistep = new Wpcf7cfMultistep($multistep, form); // window.wpcf7cf.updateMultistepState(form.multistep);
   } // END PRO ONLY
 
+};
+/**
+ * reset initial number of subs for each repeater.
+ * (does not clear values)
+ */
+
+
+Wpcf7cfForm.prototype.resetRepeaters = function () {
+  var form = this;
+  form.repeaters.forEach(function (repeater) {
+    repeater.updateSubs(repeater.params.$repeater.initial_subs);
+  });
 };
 
 Wpcf7cfForm.prototype.displayFields = function () {
   var form = this;
-  wpcf7cf.get_simplified_dom_model(form.$form);
+  window.wpcf7cf.get_simplified_dom_model(form.$form);
   var unit_tag = this.unit_tag;
   var wpcf7cf_conditions = this.conditions;
   var wpcf7cf_settings = this.settings; //for compatibility with contact-form-7-signature-addon
@@ -233,7 +247,7 @@ Wpcf7cfForm.prototype.displayFields = function () {
 
   for (var i = 0; i < wpcf7cf_conditions.length; i++) {
     var condition = wpcf7cf_conditions[i];
-    var show_group = wpcf7cf.should_group_be_shown(condition, form.$form);
+    var show_group = window.wpcf7cf.should_group_be_shown(condition, form.$form);
 
     if (show_group) {
       jQuery('[data-id=' + condition.then_field + ']', form.$form).eq(0).removeClass('wpcf7cf-hidden');
@@ -271,6 +285,28 @@ Wpcf7cfForm.prototype.displayFields = function () {
     }
   });
   form.updateHiddenFields();
+  form.updateSummaryFields();
+};
+
+Wpcf7cfForm.prototype.updateSummaryFields = function () {
+  var $summary = jQuery('.wpcf7cf-summary', this.$form);
+  if ($summary.length == 0 || !$summary.is(':visible')) return;
+  var fd = new FormData();
+  var formdata = this.$form.serializeArray();
+  jQuery.each(formdata, function (key, input) {
+    fd.append(input.name, input.value);
+  });
+  jQuery.ajax({
+    url: wpcf7cf_global_settings.ajaxurl + '?action=wpcf7cf_get_summary',
+    type: 'POST',
+    data: fd,
+    processData: false,
+    contentType: false,
+    dataType: 'json',
+    success: function success(json) {
+      $summary.html(json.summaryHtml);
+    }
+  });
 };
 
 Wpcf7cfForm.prototype.updateHiddenFields = function () {
@@ -302,7 +338,7 @@ Wpcf7cfForm.prototype.updateHiddenFields = function () {
 Wpcf7cfForm.prototype.updateGroups = function () {
   var form = this;
   form.$groups = form.$form.find('[data-class="wpcf7cf_group"]');
-  form.conditions = wpcf7cf.get_nested_conditions(form.initial_conditions, form.$form);
+  form.conditions = window.wpcf7cf.get_nested_conditions(form.initial_conditions, form.$form);
 };
 
 Wpcf7cfForm.prototype.updateEventListeners = function () {
@@ -486,7 +522,7 @@ Wpcf7cfRepeater.prototype.addSubs = function (subs_to_add) {
     return item.params.$repeater.id;
   })));
   $repeater.num_subs += subs_to_add;
-  wpcf7cf.updateMultistepState(form.multistep);
+  window.wpcf7cf.updateMultistepState(form.multistep);
   form.updateGroups();
   form.updateEventListeners();
   form.displayFields(); // Exclusive Checkbox
@@ -515,7 +551,7 @@ Wpcf7cfRepeater.prototype.removeSubs = function (num_subs) {
 
       $this.remove();
       params.$repeater.trigger('wpcf7cf_repeater_removed');
-      wpcf7cf.updateMultistepState(form.multistep);
+      window.wpcf7cf.updateMultistepState(form.multistep);
       form.updateGroups();
       form.updateEventListeners();
       form.displayFields();
@@ -532,7 +568,7 @@ function Wpcf7cfMultistep($multistep, form) {
   multistep.$btn_next = $multistep.find('.wpcf7cf_next');
   multistep.$btn_prev = $multistep.find('.wpcf7cf_prev');
   multistep.$dots = $multistep.find('.wpcf7cf_steps-dots');
-  multistep.current_step = 0;
+  multistep.currentStep = 0;
   multistep.numSteps = multistep.$steps.length;
   multistep.$dots.html('');
 
@@ -540,48 +576,56 @@ function Wpcf7cfMultistep($multistep, form) {
     multistep.$dots.append("\n            <div class=\"dot\" data-step=\"".concat(i, "\">\n                <div class=\"step-index\">").concat(i, "</div>\n                <div class=\"step-title\">").concat(multistep.$steps.eq(i - 1).data('title'), "</div>\n            </div>\n        "));
   }
 
-  multistep.$btn_next.on('click.wpcf7cf_step',
-  /*#__PURE__*/
-  _babel_runtime_helpers_asyncToGenerator__WEBPACK_IMPORTED_MODULE_1___default()(
-  /*#__PURE__*/
-  _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee() {
+  multistep.$btn_next.on('click.wpcf7cf_step', function _callee() {
     var result;
-    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee$(_context) {
+    return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.async(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             _context.next = 2;
-            return multistep.validateStep(multistep.current_step);
+            return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.awrap(multistep.validateStep(multistep.currentStep));
 
           case 2:
             result = _context.sent;
-            console.log('got this result: ' + result);
 
             if (result === 'success') {
-              multistep.moveToStep(multistep.current_step + 1);
+              multistep.moveToStep(multistep.currentStep + 1);
             }
 
-          case 5:
+          case 4:
           case "end":
             return _context.stop();
         }
       }
-    }, _callee);
-  })));
+    });
+  }); // If form is submitted (by pressing retrun for example), and if we are not on the last step,
+  // then trigger click event on the $next button instead.
+
+  multistep.form.$form.on('submit.wpcf7cf_step', function (e) {
+    if (multistep.currentStep !== multistep.numSteps) {
+      multistep.$btn_next.trigger('click.wpcf7cf_step');
+      e.stopImmediatePropagation();
+      return false;
+    }
+  });
   multistep.$btn_prev.click(function () {
-    multistep.moveToStep(multistep.current_step - 1);
+    multistep.moveToStep(multistep.currentStep - 1);
   });
   multistep.moveToStep(1);
 }
 
+jQuery(document).ajaxComplete(function (e, xhr, settings) {
+  if (xhr.hasOwnProperty('responseJSON') && xhr.responseJSON != null && xhr.responseJSON.hasOwnProperty('status') && xhr.responseJSON.hasOwnProperty('into') && xhr.responseJSON.status === "mail_success") {
+    jQuery(xhr.responseJSON.into).trigger('reset.wpcf7cf');
+  }
+});
+
 Wpcf7cfMultistep.prototype.validateStep = function (step_index) {
-  var _this = this;
-
+  var multistep = this;
+  var $multistep = multistep.$multistep;
+  var $form = multistep.form.$form;
+  $form.find('.wpcf7-response-output').addClass('wpcf7-display-none');
   return new Promise(function (resolve) {
-    var multistep = _this;
-    var $multistep = multistep.$multistep; //validation
-
-    var $form = multistep.form.$form;
     var fd = new FormData(); // TEST IF FILES UPLOADS WORK? THEN REMOVE THIS
     // jQuery.each($form.find('[data-id="step'+step_index+'"] input[type="file"]'), function(index, el) {
     //     fd.append(jQuery(el).attr('name'), jQuery(el)[0].files[0]);
@@ -625,8 +669,10 @@ Wpcf7cfMultistep.prototype.validateStep = function (step_index) {
             controlWrap.append('<span role="alert" class="wpcf7-not-valid-tip">' + el.reason + '</span>'); //return false;
           }
         });
-        resolve('failed');
-        $multistep.append('<div class="wpcf7-response-output wpcf7-display-none wpcf7-validation-errors" style="display: block;" role="alert">' + json.message + '</div>');
+        resolve('failed'); //$multistep.append('<div class="wpcf7-response-output wpcf7-display-none wpcf7-validation-errors" style="display: block;" role="alert">' + json.message + '</div>');
+
+        console.log($multistep.parent().find('.wpcf7-response-output'));
+        $multistep.parent().find('.wpcf7-response-output').removeClass('wpcf7-display-none').html(json.message);
       } else if (json.success) {
         resolve('success');
         return false;
@@ -640,20 +686,21 @@ Wpcf7cfMultistep.prototype.validateStep = function (step_index) {
 
 Wpcf7cfMultistep.prototype.moveToStep = function (step_index) {
   var multistep = this;
-  var previousStep = multistep.current_step;
-  multistep.current_step = step_index > multistep.numSteps ? multistep.numSteps : step_index < 1 ? 1 : step_index; // ANIMATION DISABLED FOR NOW cause it's ugly
+  var previousStep = multistep.currentStep;
+  multistep.currentStep = step_index > multistep.numSteps ? multistep.numSteps : step_index < 1 ? 1 : step_index; // ANIMATION DISABLED FOR NOW cause it's ugly
   // multistep.$steps.animate(wpcf7cf_hide_step_animation, multistep.form.settings.animation_outtime);
-  // multistep.$steps.eq(multistep.current_step-1).animate(wpcf7cf_show_step_animation, multistep.form.settings.animation_intime);
+  // multistep.$steps.eq(multistep.currentStep-1).animate(wpcf7cf_show_step_animation, multistep.form.settings.animation_intime);
 
-  multistep.$multistep.attr('data-current_step', multistep.current_step);
+  multistep.$multistep.attr('data-current_step', multistep.currentStep);
   multistep.$steps.hide();
-  multistep.$steps.eq(multistep.current_step - 1).show().trigger('wpcf7cf_change_step', [previousStep, multistep.current_step]); // change step;
-
-  wpcf7cf.updateMultistepState(multistep);
+  multistep.$steps.eq(multistep.currentStep - 1).show().trigger('wpcf7cf_change_step', [previousStep, multistep.currentStep]);
+  multistep.form.$form[0].scrollIntoView();
+  multistep.form.updateSummaryFields();
+  window.wpcf7cf.updateMultistepState(multistep);
 };
 
 Wpcf7cfMultistep.prototype.getFieldsInStep = function (step_index) {
-  var simpleDom = wpcf7cf.get_simplified_dom_model(this.form.$form);
+  var simpleDom = window.wpcf7cf.get_simplified_dom_model(this.form.$form);
   var inStep = false;
   return simpleDom.filter(function (item, i) {
     if (item.type == 'step') {
@@ -667,14 +714,14 @@ Wpcf7cfMultistep.prototype.getFieldsInStep = function (step_index) {
 }; // END PRO ONLY
 
 
-var wpcf7cf = {
+window.wpcf7cf = {
   // keep this for backwards compatibility
   initForm: function initForm($form) {
     wpcf7cf_forms.push(new Wpcf7cfForm($form));
   },
   get_nested_conditions: function get_nested_conditions(conditions, $current_form) {
     //loop trough conditions. Then loop trough the dom, and each repeater we pass we should update all sub_values we encounter with __index
-    var simplified_dom = wpcf7cf.get_simplified_dom_model($current_form);
+    var simplified_dom = window.wpcf7cf.get_simplified_dom_model($current_form);
     var groups = simplified_dom.filter(function (item, i) {
       return item.type === 'group';
     });
@@ -774,35 +821,35 @@ var wpcf7cf = {
     if (multistep == null) return; // update hidden input field
 
     var stepsData = {
-      currentStep: multistep.current_step,
+      currentStep: multistep.currentStep,
       numSteps: multistep.numSteps,
-      fieldsInCurrentStep: multistep.getFieldsInStep(multistep.current_step)
+      fieldsInCurrentStep: multistep.getFieldsInStep(multistep.currentStep)
     };
     multistep.form.$input_steps.val(JSON.stringify(stepsData)); // update Buttons
 
     multistep.$btn_prev.removeClass('disabled');
     multistep.$btn_next.removeClass('disabled');
 
-    if (multistep.current_step == multistep.numSteps) {
+    if (multistep.currentStep == multistep.numSteps) {
       multistep.$btn_next.addClass('disabled');
     }
 
-    if (multistep.current_step == 1) {
+    if (multistep.currentStep == 1) {
       multistep.$btn_prev.addClass('disabled');
     } // replace next button with submit button on last step.
     // TODO: make this depend on a setting
 
 
     var $submit_button = multistep.form.$form.find('input[type="submit"]').eq(0);
+    var $ajax_loader = multistep.form.$form.find('.ajax-loader').eq(0);
 
-    if (multistep.current_step == multistep.numSteps) {
-      var $submit_clone = $submit_button.clone();
-      $submit_button.hide();
+    if (multistep.currentStep == multistep.numSteps) {
       multistep.$btn_next.hide();
-      multistep.$btn_next.parent().append($submit_clone);
-    } else {
-      multistep.$btn_next.parent().find('input[type=submit]').remove();
+      $ajax_loader.detach().appendTo(multistep.$btn_next.parent());
+      $submit_button.detach().appendTo(multistep.$btn_next.parent());
       $submit_button.show();
+    } else {
+      $submit_button.hide();
       multistep.$btn_next.show();
     } // update dots
 
@@ -811,9 +858,9 @@ var wpcf7cf = {
     $dots.removeClass('active').removeClass('completed');
 
     for (var step = 1; step <= multistep.numSteps; step++) {
-      if (step < multistep.current_step) {
+      if (step < multistep.currentStep) {
         $dots.eq(step - 1).addClass('completed');
-      } else if (step == multistep.current_step) {
+      } else if (step == multistep.currentStep) {
         $dots.eq(step - 1).addClass('active');
       }
     }
@@ -931,53 +978,6 @@ jQuery.fn.wpcf7ExclusiveCheckbox = function () {
     jQuery(this).closest('form').find('input:checkbox[name="' + name + '"]').not(this).prop('checked', false).eq(0).change();
   });
 };
-
-/***/ }),
-
-/***/ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js":
-/*!*****************************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/asyncToGenerator.js ***!
-  \*****************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
-  try {
-    var info = gen[key](arg);
-    var value = info.value;
-  } catch (error) {
-    reject(error);
-    return;
-  }
-
-  if (info.done) {
-    resolve(value);
-  } else {
-    Promise.resolve(value).then(_next, _throw);
-  }
-}
-
-function _asyncToGenerator(fn) {
-  return function () {
-    var self = this,
-        args = arguments;
-    return new Promise(function (resolve, reject) {
-      var gen = fn.apply(self, args);
-
-      function _next(value) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "next", value);
-      }
-
-      function _throw(err) {
-        asyncGeneratorStep(gen, resolve, reject, _next, _throw, "throw", err);
-      }
-
-      _next(undefined);
-    });
-  };
-}
-
-module.exports = _asyncToGenerator;
 
 /***/ }),
 
