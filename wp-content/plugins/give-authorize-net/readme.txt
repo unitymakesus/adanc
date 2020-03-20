@@ -2,8 +2,8 @@
 Contributors: givewp
 Tags: donations, donation, ecommerce, e-commerce, fundraising, fundraiser, authorize.net, gateway
 Requires at least: 4.8
-Tested up to: 5.0
-Stable tag: 1.4.5
+Tested up to: 5.1
+Stable tag: 1.4.6
 License: GPLv3
 License URI: https://opensource.org/licenses/GPL-3.0
 
@@ -38,10 +38,13 @@ Automatic updates should work like a charm; as always though, ensure you backup 
 
 == Changelog ==
 
-= 1.4.5: January 10th, 2018 =
+= 1.4.6: March 21st, 2019 =
+* Refactor: Adjusted how settings are output in preparation for Give Core 2.5.0 which drops backwards compability for old CMB2 style of registering settings.
+
+= 1.4.5: January 10th, 2019 =
 * Fix: Resolved compatibility issue with PHP 5.4 within Authnet's error response code.
 
-= 1.4.4: January 3rd, 2018 =
+= 1.4.4: January 3rd, 2019 =
 * Fix: Reworked how credit card declines and other transaction errors are processed so that they display properly and do not incorrect create a pending payment within the system.
 
 = 1.4.3: September 6th, 2018 =

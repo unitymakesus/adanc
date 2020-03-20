@@ -10,6 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class SearchWP_Nags
  */
 class SearchWP_Nags {
+	private $deployed = array();
 
 	/**
 	 * SearchWP_Nags constructor.
@@ -25,6 +26,9 @@ class SearchWP_Nags {
 
 		// call out a version of MySQL known to have bugs that are likely to affect SearchWP
 		add_action( 'searchwp_settings_after_header', array( $this, 'settings_mysql_version_nag' ) );
+
+		// Searching in admin without interception enabled
+		add_action( 'admin_footer', array( $this, 'admin_search_nag' ) );
 	}
 
 	/**
@@ -100,9 +104,15 @@ class SearchWP_Nags {
 	 * Output the indexer aggressiveness nag
 	 */
 	function settings_indexer_nag() {
+		$nag_tag = 'indexer';
+
+		if ( ! $this->add_slot( $nag_tag ) ) {
+			return;
+		}
+
 		$nag = $this->implement_nag( array(
-			'name'      => 'indexer',
-			'nonce'     => 'searchwpnaginonce',
+			'name'  => $nag_tag,
+			'nonce' => 'searchwpnaginonce',
 		) );
 
 		if ( ! $nag['dismissed'] ) : ?>
@@ -113,12 +123,133 @@ class SearchWP_Nags {
 	}
 
 	/**
+	 * Output the admin_search nag
+	 */
+	function admin_search_nag() {
+		$nag_tag = 'admin_search';
+
+		if ( ! $this->add_slot( $nag_tag ) ) {
+			return;
+		}
+
+		$nag = $this->implement_nag( array(
+			'name'  => $nag_tag,
+			'nonce' => 'swpadminsearchnag',
+		) );
+
+		$search_in_admin = apply_filters( 'searchwp_in_admin', false );
+
+		$dismiss = remove_query_arg( 'page', $nag['dismissal_link'] );
+
+		if ( is_admin() && is_search() && empty( $search_in_admin ) && ! $nag['dismissed'] ) : ?>
+			<div class="notice notice-error" style="position: relative; padding-right: 38px;">
+				<p><?php echo wp_kses( sprintf( __( 'SearchWP is NOT intercepting admin searches <a href="%s" target="_blank">Find out more &raquo;</a>', 'searchwp' ), 'http://searchwp.com/?p=161276' ) , array( 'a' => array( 'class' => array(), 'href' => array(), 'target' => array() ) ) ); ?></p>
+				<a style="text-decoration: none;" href="<?php echo esc_url( $dismiss ); ?>" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></a>
+			</div>
+		<?php endif;
+	}
+
+	/**
+	 * Output the loopback_failure_nag nag
+	 */
+	function loopback_failure_nag() {
+		$nag_tag = 'loopback_failure';
+
+		if ( ! $this->add_slot( $nag_tag ) ) {
+			return;
+		}
+
+		$nag = $this->implement_nag( array(
+			'name'  => $nag_tag,
+			'nonce' => 'swploopbackfailurenag',
+		) );
+
+		$dismiss = remove_query_arg( $nag['dismissal_link'] );
+
+		if ( is_admin() && ! $nag['dismissed'] ) : ?>
+			<div class="notice notice-error" style="position: relative; padding-right: 38px; display: block;">
+				<p><?php echo wp_kses( sprintf( __( 'If the indexer is not progressing you likely need to enable the alternate indexer <a href="%s" target="_blank">Find out more &raquo;</a>', 'searchwp' ), 'http://searchwp.com/?p=' ) , array( 'a' => array( 'class' => array(), 'href' => array(), 'target' => array() ) ) ); ?></p>
+				<a style="text-decoration: none;" href="<?php echo esc_url( $dismiss ); ?>" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></a>
+			</div>
+		<?php endif;
+	}
+
+	/**
+	 * Output a nag if admin searching is enabled but this post type wasn't added to the admin engine
+	 *
+	 * @since 3.0.6
+	 */
+	function admin_search_post_type_nag() {
+		$nag_tag = 'admin_search_post_type';
+
+		if ( ! $this->add_slot( $nag_tag ) ) {
+			return;
+		}
+
+		$nag = $this->implement_nag( array(
+			'name'  => $nag_tag,
+			'nonce' => 'swpadminsearchtypenag',
+		) );
+
+		$dismiss = remove_query_arg( 'page', $nag['dismissal_link'] );
+
+		if ( is_admin() && is_search() && ! $nag['dismissed'] ) : ?>
+			<div class="notice notice-error" style="position: relative; padding-right: 38px;">
+				<p><?php echo wp_kses( sprintf( __( 'This post type is <strong>NOT</strong> added to your SearchWP admin engine. The default WordPress search results are shown. <a href="%s" target="_blank">Find out more &raquo;</a>', 'searchwp' ), 'http://searchwp.com/?p=161276' ) , array( 'a' => array( 'class' => array(), 'href' => array(), 'target' => array() ), 'strong' => array() ) ); ?></p>
+				<a style="text-decoration: none;" href="<?php echo esc_url( $dismiss ); ?>" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></a>
+			</div>
+		<?php endif;
+	}
+
+	function debug_filesize_nag() {
+		$nag_tag = 'debug_log_size';
+
+		if ( ! $this->add_slot( $nag_tag ) ) {
+			return;
+		}
+
+		$nag = $this->implement_nag( array(
+			'name'  => $nag_tag,
+			'nonce' => 'swpdebuglogsizenag',
+		) );
+
+		$dismiss = remove_query_arg( 'page', $nag['dismissal_link'] );
+
+		if ( is_admin() && ! $nag['dismissed'] ) : ?>
+			<div class="notice notice-error" style="position: relative; padding-right: 38px;">
+				<p>
+					<?php
+					echo wp_kses(
+						sprintf(
+							// Translators: placeholder is the folder path to the debug log file.
+							__( 'Your SearchWP debug log has exceeded 2MB in size. You can delete %1$s when you are done.', 'searchwp' ),
+							'<code>~/' . searchwp_get_relative_upload_path() . '/searchwp-debug.text</code>'
+						),
+						array(
+							'code' => array(),
+						)
+					);
+					?>
+				</p>
+
+				<a style="text-decoration: none;" href="<?php echo esc_url( $dismiss ); ?>" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></a>
+			</div>
+		<?php endif;
+	}
+
+	/**
 	 * Output the license nag
 	 */
 	function settings_license_nag() {
+		$nag_tag = 'license';
+
+		if ( ! $this->add_slot( $nag_tag ) ) {
+			return;
+		}
+
 		$nag = $this->implement_nag( array(
-			'name'      => 'license',
-			'nonce'     => 'searchwpnagnnonce',
+			'name'  => $nag_tag,
+			'nonce' => 'searchwpnagnnonce',
 		) );
 
 		$searchwp = SWP();
@@ -145,9 +276,15 @@ class SearchWP_Nags {
 	function settings_mysql_version_nag() {
 		global $wpdb;
 
+		$nag_tag = 'mysql_version';
+
+		if ( ! $this->add_slot( $nag_tag ) ) {
+			return;
+		}
+
 		$nag = $this->implement_nag( array(
-			'name'      => 'mysql_version',
-			'nonce'     => 'searchwpnagvnonce',
+			'name'  => $nag_tag,
+			'nonce' => 'searchwpnagvnonce',
 		) );
 
 		if ( ! version_compare( '5.2', $wpdb->db_version(), '<' )  && ! $nag['dismissed'] ) : ?>
@@ -155,5 +292,15 @@ class SearchWP_Nags {
 				<p><?php echo wp_kses( sprintf( __( 'Your server is running MySQL version %1$s which may prevent search results from appearing due to <a href="http://bugs.mysql.com/bug.php?id=41156">bug 41156</a>. Please update MySQL to a more recent version (at least 5.2).', 'searchwp' ), $wpdb->db_version() ), array( 'a' => array( 'href' => array() ) ) ); ?> <a href="<?php echo esc_url( $nag['dismissal_link'] ); ?>"><?php esc_html_e( 'Dismiss', 'searchwp' ); ?></a></p>
 			</div>
 		<?php endif;
+	}
+
+	public function add_slot( $tag ) {
+		if ( ! in_array( $tag, $this->deployed ) ) {
+			$this->deployed[] = $tag;
+
+			return true;
+		}
+
+		return false;
 	}
 }

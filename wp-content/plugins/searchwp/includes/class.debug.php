@@ -26,19 +26,39 @@ class SearchWPDebug {
 		$this->active = true;
 		$this->logfile = trailingslashit( $dir ) . 'searchwp-debug.txt';
 
-		// init environment
 		if ( ! file_exists( $this->logfile ) ) {
 			WP_Filesystem();
-			if ( method_exists( $wp_filesystem, 'put_contents' ) ) {
+
+			/**
+			 * 3.1.3 hotfix: We have to check for wp_generate_password() because it is a pluggable
+			 * function defined only after plugins_loaded. This comes into play when using the FTP
+			 * implementation of WP_Filesystem() and because SearchWP 3.1 initializes debugging
+			 * earlier (so as to provide better internal logging) put_contents() eventually fires
+			 * wp_generate_password() which when using FTP doesn't exist until plugins_loaded.
+			 * Debugging will eventually kick in using the <3.x implementation as a fallback.
+			 */
+			if (
+				method_exists( $wp_filesystem, 'put_contents' )
+				&& function_exists( 'wp_generate_password' )
+			) {
 				if ( ! $wp_filesystem->put_contents( $this->logfile, '' ) ) {
 					$this->active = false;
 				}
 			}
 		}
 
-		// after determining whether we can write to the logfile, add our action
-		if ( $this->active ) {
-			add_action( 'searchwp_log', array( $this, 'log' ), 1, 2 );
+		if ( version_compare( PHP_VERSION, '5.3', '>=' ) ) {
+			include_once( SWP()->dir . '/lib/monolog-bootloader.php' );
+
+			if ( $this->active && class_exists( 'SearchWP_Monolog' ) ) {
+				$monolog = new SearchWP_Monolog( $this->logfile );
+				add_action( 'searchwp_log', array( $monolog, 'log' ), 1, 2 );
+			}
+		} else {
+			// Legacy logging for PHP 5.2
+			if ( $this->active ) {
+				add_action( 'searchwp_log', array( $this, 'log' ), 1, 2 );
+			}
 		}
 	}
 

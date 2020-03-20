@@ -25,14 +25,85 @@ class SearchWPStemmer
 	 */
 	private $regex_vowel = '(?:[aeiou]|(?<![aeiou])y)';
 
+	private $supported_language_codes = array(
+		'en' => 'English',
+		'da' => 'Danish',
+		'nl' => 'Dutch',
+		'fr' => 'French',
+		'de' => 'German',
+		'it' => 'Italian',
+		'nb' => 'Norwegian',
+		'nn' => 'Norwegian',
+		'pt' => 'Portuguese',
+		'ro' => 'Romanian',
+		'ru' => 'Russian',
+		'es' => 'Spanish',
+		'sv' => 'Swedish',
+	);
+	private $local_stemmer;
+	private $has_local_stemmer = true;
+
+	function get_supported_language_codes() {
+		return array_keys( $this->supported_language_codes );
+	}
+
+	private function set_local_stemmer() {
+		// Determine which locale we're using.
+		$site_locale   = get_locale();
+		$language_code = strtolower( substr( $site_locale, 0, 2 ) );
+
+		if ( array_key_exists( $language_code, $this->supported_language_codes ) ) {
+			$stemmer = '\Wamania\Snowball\\' . $this->supported_language_codes[ $language_code ];
+
+			if ( class_exists( $stemmer ) ) {
+				$this->local_stemmer = new $stemmer();
+			} else {
+				$this->has_local_stemmer = false;
+			}
+		} else {
+			$this->has_local_stemmer = false;
+		}
+	}
+
 	/**
 	 * Stems a word. Simple huh?
 	 *
 	 * @param  string $word Word to stem
 	 * @return string       Stemmed word
 	 */
-	function stem($word)
-	{
+	function stem($word) {
+		// SearchWP 3.1 introduced a better core stemmer that supports many languages
+		// out of the box. This wasn't feasible prior to WordPress' recommended PHP
+		// version being 5.2 but with that change we have this change!
+		if ( version_compare( PHP_VERSION, '5.4', '>=' ) && function_exists( 'utf8_decode' ) ) {
+
+			// Bring in our Composer dependencies.
+			include_once SWP()->dir . '/vendor/autoload.php';
+
+			if ( ! is_object( $this->local_stemmer ) ) {
+				$this->set_local_stemmer();
+			}
+
+			return $this->has_local_stemmer
+					? $this->local_stemmer->stem( $word )
+					: $this->legacy_stem( $word );
+		} else {
+			if ( ! function_exists( 'utf8_decode' ) ) {
+				do_action( 'searchwp_log', 'Reverting to legacy stemmer (utf8_decode does not exist)' );
+			} else {
+				do_action( 'searchwp_log', 'Reverting to legacy stemmer (please upgrade to PHP 7)' );
+			}
+
+			return $this->legacy_stem( $word );
+		}
+	}
+
+	/**
+	 * This is the original method, now considered legacy (but not deprecated).
+	 */
+	public function legacy_stem($word) {
+		// This is a fallback from the original English stemmer that originally
+		// shipped with SearchWP. It'll be used as that fallback for back compat.
 		if (strlen($word) <= 2) {
 			return $word;
 		}
@@ -380,7 +451,7 @@ class SearchWPStemmer
 	{
 		$c = $this->regex_consonant;
 
-		return preg_match("#$c{2}$#", $str, $matches) AND $matches[0]{0} == $matches[0]{1};
+		return preg_match("#$c{2}$#", $str, $matches) AND $matches[0][0] == $matches[0][1];
 	}
 
 
@@ -397,8 +468,8 @@ class SearchWPStemmer
 
 		return     preg_match("#($c$v$c)$#", $str, $matches)
 		AND strlen($matches[1]) == 3
-		AND $matches[1]{2} != 'w'
-		AND $matches[1]{2} != 'x'
-		AND $matches[1]{2} != 'y';
+		AND $matches[1][2] != 'w'
+		AND $matches[1][2] != 'x'
+		AND $matches[1][2] != 'y';
 	}
 }

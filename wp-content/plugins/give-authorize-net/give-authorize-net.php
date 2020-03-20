@@ -3,7 +3,7 @@
  * Plugin Name: Give - Authorize.net Gateway
  * Plugin URI:  https://givewp.com/addons/authorize-net-gateway/
  * Description: Give add-on gateway for Authorize.net
- * Version:     1.4.5
+ * Version:     1.4.6
  * Author:      GiveWP
  * Author URI:  https://givewp.com/
  * Text Domain: give-authorize
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Constants
 if ( ! defined( 'GIVE_AUTHORIZE_VERSION' ) ) {
-	define( 'GIVE_AUTHORIZE_VERSION', '1.4.5' );
+	define( 'GIVE_AUTHORIZE_VERSION', '1.4.6' );
 }
 if ( ! defined( 'GIVE_AUTHORIZE_MIN_GIVE_VERSION' ) ) {
 	define( 'GIVE_AUTHORIZE_MIN_GIVE_VERSION', '2.2.0' );

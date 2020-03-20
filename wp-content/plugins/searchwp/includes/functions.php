@@ -5,6 +5,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Support for wp_doing_ajax()
+ *
+ * @since 3.0
+ */
+function searchwp_wp_doing_ajax() {
+	return function_exists( 'wp_doing_ajax' ) ? wp_doing_ajax() : apply_filters( 'wp_doing_ajax', defined( 'DOING_AJAX' ) && DOING_AJAX );
+}
+
+/**
  * Which option names should be autoloaded
  *
  * @return array
@@ -15,6 +24,30 @@ function searchwp_get_autoload_options() {
 	return array(
 		'settings',
 		'advanced'
+	);
+}
+
+/**
+ * Valid settings names.
+ *
+ * @return array
+ *
+ * @since 3.0
+ */
+function searchwp_get_settings_names() {
+	return array(
+		'debugging',
+		'indexer_alternate',
+		'indexer_aggressiveness',
+		'min_word_length',
+		'admin_search',
+		'highlight_terms',
+		'exclusive_regex_matches',
+		'nuke_on_delete',
+		'parse_shortcodes',
+		'partial_matches',
+		'do_suggestions',
+		'quoted_search_support',
 	);
 }
 
@@ -97,7 +130,6 @@ function searchwp_update_option( $option, $value = false ) {
  * @since 1.9.1
  */
 function searchwp_get_option( $option ) {
-
 	searchwp_maybe_clear_cache( $option );
 
 	return get_option( SEARCHWP_PREFIX . $option );
@@ -162,6 +194,17 @@ function searchwp_get_setting( $setting, $group = false ) {
 	}
 }
 
+function searchwp_get_setting_advanced( $tag = '' ) {
+	if ( ! class_exists( 'SearchWP_Settings_Implementation_Advanced' ) ) {
+		return null;
+	}
+
+	$searchwp_advanced_settings = new SearchWP_Settings_Implementation_Advanced();
+	$advanced_settings          = $searchwp_advanced_settings->get_settings();
+
+	return is_array( $advanced_settings ) && array_key_exists( $tag, $advanced_settings ) ?
+		$advanced_settings[ $tag ] : false;
+}
 
 /**
  * Set a setting in the SearchWP singleton. To reduce database calls this update will take place only in the singleton
@@ -193,7 +236,7 @@ function searchwp_set_setting( $setting, $value, $group = false ) {
 	// settings are those that configure the plugin, the search engine config, keyword weights, etc. The indexer settings
 	// store various details for the indexer to utilize. Since the indexer runs independently and is constantly updating
 	// it's internal settings, we don't want updates to these settings records to ever collide, so we're going to "route"
-	// them here based on their name and/or group.
+	// them here based on their name and/or group
 
 	$indexer_names = array(
 		'initial_index_built',      // whether the initial index has been built
@@ -205,13 +248,10 @@ function searchwp_set_setting( $setting, $value, $group = false ) {
 		'in_progress',              // the posts currently being indexed
 		'running',                  // whether the indexer is running
 		'paused',                   // whether the indexer is paused (disabled)
-		'processing_purge_queue',   // whether the indexer is processing the purge queue
 		'endpoint',                 // the indexer endpoint
 	);
 
-	// check the setting name to see whether we need to retrieve a searchwp setting or an indexer setting
 	if ( in_array( $setting, $indexer_names, true ) || in_array( $group, $indexer_names, true ) ) {
-
 		// it's an indexer setting
 		$indexer_settings = get_option( SEARCHWP_PREFIX . 'indexer' );
 
@@ -312,6 +352,7 @@ if ( ! function_exists( 'searchwp_wake_up_indexer' ) ) {
 		searchwp_update_option( 'doing_delta', false );
 		searchwp_update_option( 'waiting', false );
 		searchwp_update_option( 'delta_attempts', 0 );
+		update_option( SEARCHWP_PREFIX . 'processing_purge_queue', 0, 'no' );
 	}
 }
 
@@ -341,6 +382,13 @@ if ( ! function_exists( 'searchwp_check_for_stalled_indexer' ) ) {
 	 * @since 1.0
 	 */
 	function searchwp_check_for_stalled_indexer( $threshold = 180 ) {
+
+		// The below checks were failing when the purge queue was processing so this check will avoid that
+		$processing_purge_queue = absint( get_option( SEARCHWP_PREFIX . 'processing_purge_queue' ) );
+		if ( ! empty( $processing_purge_queue ) ) {
+			return;
+		}
+
 		$last_activity  = searchwp_get_setting( 'last_activity', 'stats' );
 		$running        = searchwp_get_setting( 'running' );
 		$doing_delta    = searchwp_get_option( 'doing_delta' );
@@ -451,6 +499,30 @@ function searchwp_is_valid_engine( $engine ) {
 	return true;
 }
 
+function searchwp_get_db_meta_keys_for_post_type( $post_type = 'post' ) {
+	global $wpdb;
+
+	if ( ! post_type_exists( $post_type ) ) {
+		return array();
+	}
+
+	return $wpdb->get_col(
+		$wpdb->prepare(
+			"
+			SELECT DISTINCT({$wpdb->postmeta}.meta_key)
+			FROM {$wpdb->posts}
+			LEFT JOIN {$wpdb->postmeta}
+			ON {$wpdb->posts}.ID = {$wpdb->postmeta}.post_id
+			WHERE {$wpdb->posts}.post_type = %s
+			AND {$wpdb->postmeta}.meta_key != ''
+			AND {$wpdb->postmeta}.meta_key NOT LIKE '_oembed_%%'
+			AND {$wpdb->postmeta}.meta_key NOT LIKE '_searchwp_extra_metadata%%'
+			",
+			$post_type
+		)
+	);
+}
+
 function searchwp_get_meta_keys_for_post_type( $post_type = 'post' ) {
 	global $wpdb;
 
@@ -458,22 +530,10 @@ function searchwp_get_meta_keys_for_post_type( $post_type = 'post' ) {
 		return array();
 	}
 
-	$all_meta_keys_for_post_type = $wpdb->get_col(
-		$wpdb->prepare(
-			"
-				SELECT DISTINCT($wpdb->postmeta.meta_key)
-				FROM $wpdb->posts
-				LEFT JOIN $wpdb->postmeta
-				ON $wpdb->posts.ID = $wpdb->postmeta.post_id
-				WHERE $wpdb->posts.post_type = '%s'
-				AND $wpdb->postmeta.meta_key != ''
-				AND $wpdb->postmeta.meta_key NOT LIKE '_oembed_%'
-			",
-			$post_type
-		)
-	);
+	$all_meta_keys_for_post_type = searchwp_get_db_meta_keys_for_post_type( $post_type );
 
 	$all_meta_keys_for_post_type = array_unique( apply_filters( 'searchwp_custom_field_keys', $all_meta_keys_for_post_type ) );
+	$all_meta_keys_for_post_type = array_unique( apply_filters( 'searchwp_custom_field_keys_' . $post_type, $all_meta_keys_for_post_type, $post_type ) );
 
 	$meta_keys = array(
 		'searchwpcfdefault', // This is the 'any' custom field flag
@@ -495,6 +555,38 @@ function searchwp_get_meta_keys_for_post_type( $post_type = 'post' ) {
 	return $meta_keys;
 }
 
+function searchwp_get_relative_upload_path() {
+	$upload_dest = wp_upload_dir();
+	$upload_path = $upload_dest['basedir'];
+
+	return str_replace( ABSPATH, '', $upload_path );
+}
+
+function searchwp_get_persisted_extra_metadata_keys() {
+	global $wpdb;
+
+	$persist_extra_metadata = apply_filters( 'searchwp_persist_extra_metadata', false );
+
+	if ( empty( $persist_extra_metadata ) ) {
+		return array();
+	}
+
+	$persisted_extra_metadata_keys = $wpdb->get_col( $wpdb->prepare( "
+		SELECT meta_key
+		FROM $wpdb->postmeta
+		WHERE meta_key LIKE %s
+		GROUP BY meta_key
+	",
+		'_' . SEARCHWP_PREFIX . 'extra_metadata%'
+	) );
+
+	if ( empty( $persisted_extra_metadata_keys ) ) {
+		$persisted_extra_metadata_keys = array();
+	}
+
+	return $persisted_extra_metadata_keys;
+}
+
 function searchwp_get_excluded_meta_keys() {
 	$omit_wp_metadata = apply_filters( 'searchwp_omit_wp_metadata', array(
 		'_edit_lock',
@@ -503,15 +595,21 @@ function searchwp_get_excluded_meta_keys() {
 		'_wp_old_slug',
 	) );
 
-	$excluded_custom_field_keys = apply_filters( 'searchwp_excluded_custom_fields', array(
-		'_' . SEARCHWP_PREFIX . 'indexed',      // deprecated as of 2.3
-		'_' . SEARCHWP_PREFIX . 'last_index',
-		'_' . SEARCHWP_PREFIX . 'attempts',
-		'_' . SEARCHWP_PREFIX . 'terms',
-		'_' . SEARCHWP_PREFIX . 'skip',
-		'_' . SEARCHWP_PREFIX . 'skip_doc_processing',
-		'_' . SEARCHWP_PREFIX . 'review',
-	) );
+	$excluded_custom_field_keys = apply_filters(
+		'searchwp_excluded_custom_fields',
+		array_merge(
+			array(
+				'_' . SEARCHWP_PREFIX . 'indexed',      // deprecated as of 2.3
+				'_' . SEARCHWP_PREFIX . 'last_index',
+				'_' . SEARCHWP_PREFIX . 'attempts',
+				'_' . SEARCHWP_PREFIX . 'terms',
+				'_' . SEARCHWP_PREFIX . 'skip',
+				'_' . SEARCHWP_PREFIX . 'skip_doc_processing',
+				'_' . SEARCHWP_PREFIX . 'review',
+			),
+			searchwp_get_persisted_extra_metadata_keys()
+		)
+	);
 
 	if ( is_array( $omit_wp_metadata ) && is_array( $excluded_custom_field_keys ) ) {
 		$excluded_meta_keys = array_merge( $omit_wp_metadata, $excluded_custom_field_keys );
@@ -608,4 +706,86 @@ function searchwp_get_supports_for_post_type( $post_type = 'post' ) {
 	}
 
 	return $supports;
+}
+
+/**
+ * Callback when searchwp_auto_output_revised_search_query returns true.
+ *
+ * @since 3.1
+ */
+function searchwp_output_revised_search_query() {
+	$phrase_query = str_replace( array( '”', '“' ), '"', SWP()->original_query ); // Accommodate curly quotes.
+
+	echo '<p class="searchwp-revised-search-notice">';
+	echo wp_kses(
+		sprintf(
+			// Translators: First placeholder is the quoted search string. Second placeholder is the search string without quotes.
+			__( 'No results found for <em class="searchwp-revised-search-original">%s</em>. Showing results for <em class="searchwp-suggested-revision-query">%s</em>', 'searchwp' ),
+			esc_html( $phrase_query ),
+			esc_html( str_replace( '"', '', $phrase_query ) )
+		),
+		array(
+			'em' => array(
+				'class' => array(),
+			),
+		)
+	);
+	echo '</p>';
+}
+
+/**
+ * Extracts an array of double-quote-delimited search phrases.
+ *
+ * @since 3.1.6
+ *
+ * @param string $query The search query.
+ *
+ * @return array The search phrases.
+ */
+function searchwp_get_phrases_from_query( $query ) {
+	$re  = '/"([^"]*)"/miu';
+
+	preg_match_all( $re, $query, $matches, PREG_SET_ORDER, 0 );
+
+	if ( empty( $matches ) ) {
+		return array();
+	}
+
+	$phrases = array();
+
+	// Make sure there are no single word phrases.
+	foreach ( $matches as $match ) {
+		if ( false !== strpos( $match[1], ' ' ) ) {
+			$phrases[] = $match[1];
+		}
+	}
+
+	return $phrases;
+}
+
+/**
+ * Processes a (string) search query to strip slashes, trim, and decode
+ * HTML entities so we can work with the actual search string.
+ *
+ * @since 3.1.6
+ *
+ * @param string  $query The search query to process.
+ * @param boolean $raw   Whether the string should be cleaned by SearchWP.
+ *
+ * @return string The search query.
+ */
+function searchwp_get_search_query( $query = '', $raw = false ) {
+	if ( empty( $query ) || ! is_string( $query ) ) {
+		$query = get_search_query();
+	}
+
+	$query = trim( stripslashes( (string) $query ) );
+	$query = htmlspecialchars_decode( $query );
+	$query = urldecode( $query );
+
+	if ( ! $raw ) {
+		$query = SWP()->clean_term_string( $query );
+	}
+
+	return $query;
 }

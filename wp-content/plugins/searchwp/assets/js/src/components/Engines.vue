@@ -2,12 +2,15 @@
 
     <div :class="[waiting ? 'searchwp-is-waiting' : '', 'searchwp-engines']">
 
+        <searchwp-environment-check></searchwp-environment-check>
+
         <searchwp-message
             v-if="!initialSettingsSaved"
             :type="'warning'"
             :moreInfo="'https://searchwp.com/?p=207'">
             <p>{{ i18n.initialSettingsNotice }}</p>
         </searchwp-message>
+
         <searchwp-message
             v-else-if="legacySettings"
             :type="'warning'"
@@ -18,7 +21,8 @@
         <searchwp-engine v-for="(engine, engineName) in engines"
             :key="engineName"
             :name="engineName"
-            :settings="engine"/>
+            :settings="engine"
+            :isAdminEngine="adminSearchEnabled && adminSearchEngine == engineName"></searchwp-engine>
 
         <searchwp-message
             v-if="dirtyIndex"
@@ -35,7 +39,7 @@
                 <a @click.prevent="addEngine" href="#" class="searchwp-button button">{{ i18n.addEngine }}</a>
             </li>
             <li v-if="saved" class="searchwp-success">
-                <span class="searchwp-button button searchwp-button-message"><span class="dashicons dashicons-yes"></span> {{ i18n.saved }}</span>
+                <span class="searchwp-button button searchwp-button-message"><span class="dashicons dashicons-yes"></span> <span>{{ i18n.saved }}</span></span>
             </li>
         </ul>
     </div>
@@ -48,17 +52,21 @@ import { EventBus } from './../EventBus.js';
 import md5 from 'md5';
 import keyfinder from 'keyfinder';
 import unique from 'array-unique';
+import SearchwpEnvironmentCheck from "./EnvironmentCheck.vue";
 import SearchwpEngine from "./Engine.vue";
 import SearchwpMessage from './Message.vue';
 
 export default {
     name: 'SearchwpEngines',
     components: {
+        'searchwp-environment-check': SearchwpEnvironmentCheck,
         'searchwp-engine': SearchwpEngine,
         'searchwp-message': SearchwpMessage
     },
     data: function(){
         return {
+            adminSearchEnabled: _SEARCHWP_VARS.data.misc.admin_search,
+            adminSearchEngine: _SEARCHWP_VARS.data.misc.admin_engine,
             waiting: false,
             engines: _SEARCHWP_VARS.data.engines,
             initialFingerprint: '',
@@ -117,7 +125,7 @@ export default {
             let d = new Date();
             let engineHash = 'searchwp_engine_hash_' + md5( 'searchwp_engine_hash_' + d.getTime() );
 
-            Vue.set(this.engines, engineHash, this.$root.engine_model);
+            Vue.set(this.engines, engineHash, JSON.parse(JSON.stringify(this.$root.engine_model)));
         },
         saveEngines() {
             let self = this;
@@ -262,12 +270,13 @@ export default {
             };
 
             // Find all enabled post types
-            for (let engine in this.engines) {
-                if (this.engines.hasOwnProperty(engine)){
-                    for (let postType in this.engines[ engine ]) {
-                        if (this.engines[ engine ].hasOwnProperty(postType)){
-                            if (this.engines[ engine ][ postType ].hasOwnProperty('enabled')) {
-                                let enginePostType = this.engines[ engine ][ postType ];
+            let engines = this.engines;
+            for (let engine in engines) {
+                if (engines.hasOwnProperty(engine)){
+                    for (let postType in engines[ engine ]) {
+                        if (engines[ engine ].hasOwnProperty(postType)){
+                            if (engines[ engine ][ postType ].hasOwnProperty('enabled')) {
+                                let enginePostType = engines[ engine ][ postType ];
 
                                 if (enginePostType.enabled) {
                                     fingerprint.postTypes.push(postType);
@@ -349,6 +358,11 @@ export default {
             // We also need to tell the root that the index is no longer dirty
             Vue.set(self.$root.$data.misc, 'index_dirty', false);
         });
+
+        // Rebuild the index after database table recreation.
+        EventBus.$on('databaseTablesRecreated', function() {
+            self.resetIndex();
+        });
     }
 }
 </script>
@@ -368,6 +382,7 @@ export default {
         background: transparent !important;
         border-color: transparent !important;
         box-shadow: none !important;
+        display: flex;
 
         .dashicons {
             width: 26px;

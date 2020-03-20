@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) || ! class_exists( 'SearchWP_System_Info' ) || ! cla
 	<h2><?php esc_html_e( 'SearchWP Help', 'searchwp' ); ?></h2>
 	<?php if ( 'valid' !== SWP()->status ) { ?>
 		<p><?php echo wp_kses( __( 'Support is available only to <strong>active license holders</strong>. You must activate your license to receive support. If you do not have a license you may purchase one at any time.', 'searchwp' ), array( 'strong' => array() ) ); ?></p>
-		<p><a class="button" href="<?php echo esc_url( add_query_arg( array( 'page' => 'searchwp', 'tab' => 'license' ) ), admin_url( 'options-general.php' ) ); ?>"><?php esc_html_e( 'Activate License', 'searchwp' ); ?></a> <a class="button-primary" href="https://searchwp.com/buy/"><?php esc_html_e( 'Purchase License', 'searchwp' ); ?></a></p>
+		<p><a class="button" href="<?php echo esc_url( add_query_arg( array( 'page' => 'searchwp', 'tab' => 'license' ) ), admin_url( 'options-general.php' ) ); ?>"><?php esc_html_e( 'Activate License', 'searchwp' ); ?></a> <a class="button-primary" href="https://searchwp.com/buy/" target="_blank"><?php esc_html_e( 'Purchase License', 'searchwp' ); ?></a></p>
 		<style type="text/css">
 			.swpnotice {
 				text-align:center;
@@ -67,9 +67,9 @@ if ( ! defined( 'ABSPATH' ) || ! class_exists( 'SearchWP_System_Info' ) || ! cla
 <div class="searchwp-system-info">
 	<h3><?php esc_html_e( 'System Information', 'searchwp' ); ?></h3>
 	<?php $search_template = locate_template( 'search.php' ) ? locate_template( 'search.php' ) : locate_template( 'index.php' ); ?>
-	<p><?php echo wp_kses( sprintf( __( 'When submitting this information to support staff it will also be helpful if you can create a <a href="%s">Gist</a> of your search results template which is found here:', 'searchwp' ), 'https://gist.github.com' ), array( 'a' => array( 'href' => array() ) ) ); ?></p>
+	<p><?php echo wp_kses( sprintf( __( 'When submitting this information to support staff it will also be helpful if you can <a href="%s" target="_blank">create a snippet</a> of your search results template which is found here:', 'searchwp' ), 'https://searchwp.com/snippet/' ), array( 'a' => array( 'href' => array(), 'target' => array() ) ) ); ?></p>
 	<p><code><?php echo esc_html( $search_template ); ?></code></p>
-	<p class="description"><?php echo wp_kses( sprintf( __( 'Please provide this information (ideally as a link to a <a href="%s">Gist</a>) when requested by support staff', 'searchwp' ), 'https://gist.github.com' ), array( 'a' => array( 'href' => array() ) ) ); ?></p>
+	<p class="description"><?php echo wp_kses( sprintf( __( 'Please provide this information (ideally as a link to a <a href="%s" target="_blank">snippet</a>) when requested by support staff', 'searchwp' ), 'https://searchwp.com/snippet/' ), array( 'a' => array( 'href' => array(), 'target' => array() ) ) ); ?></p>
 	<?php
 	$searchwp_system_info = new SearchWP_System_Info();
 	$searchwp_system_info->output();

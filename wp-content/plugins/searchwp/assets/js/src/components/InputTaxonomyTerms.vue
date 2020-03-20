@@ -21,6 +21,7 @@
                 @closed="closed = true"
                 @search-change="asyncFind">
                 <span slot="noResult">{{ i18n.noTermsFound }}</span>
+                <span slot="noOptions">{{ i18n.searchToFindTerms }}</span>
             </multiselect>
         </div>
     </div>
@@ -40,8 +41,9 @@ export default {
             open: false,
             closed: true,
             i18n: {
-                findTerms: _SEARCHWP_VARS.i18n.find_terms,
-                noTermsFound: _SEARCHWP_VARS.i18n.no_terms_found
+                findTerms: _SEARCHWP_VARS.i18n.search_terms,
+                noTermsFound: _SEARCHWP_VARS.i18n.no_terms_found,
+                searchToFindTerms: _SEARCHWP_VARS.i18n.search_to_choose_terms
             }
         }
     },

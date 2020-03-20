@@ -3,9 +3,9 @@
 
         <h3 class="hndle">
             <span v-if="!editingLabel"
-                @click="settings.hasOwnProperty('searchwp_engine_label') ? editingLabel = true : editingLabel = false"
-                :class="{ 'searchwp-hndle-default' : ! settings.hasOwnProperty('searchwp_engine_label') }">{{ label }}
-                <span class="dashicons dashicons-edit" v-if="settings.hasOwnProperty('searchwp_engine_label')"></span>
+                @click="settings.hasOwnProperty('searchwp_engine_label') && !isAdminEngine ? editingLabel = true : editingLabel = false"
+                :class="{ 'searchwp-hndle-default' : ! settings.hasOwnProperty('searchwp_engine_label') || isAdminEngine }">{{ label }}
+                <span class="dashicons dashicons-edit" v-if="settings.hasOwnProperty('searchwp_engine_label') && !isAdminEngine"></span>
             </span>
             <input v-model="label"
                     @input="updateName()"
@@ -22,6 +22,7 @@
         <div class="inside">
 
             <p v-if="!settings.hasOwnProperty('searchwp_engine_label')" class="description searchwp-engine-note"><span class="dashicons dashicons-info"></span>{{ i18n.defaultEngineNote }}</p>
+            <p v-else-if="isAdminEngine" class="description searchwp-engine-note"><span class="dashicons dashicons-lightbulb"></span>{{ i18n.adminEngineNote }}</p>
             <p v-else class="description searchwp-engine-note">{{ i18n.engineNote }}</p>
 
             <p v-if="!hasPostTypes" class="description searchwp-engine-note"><strong>{{ i18n.note }}</strong> {{ i18n.engineNoteNone }}</p>
@@ -42,7 +43,7 @@
                         <searchwp-remove
                             v-if="details.includes(postTypeName)"
                             :text="i18n.exclude"
-                            @click.native.prevent="removePostType(postTypeName)"/>
+                            @click.native.prevent="removePostType(postTypeName)"></searchwp-remove>
                     </h4>
 
                     <div v-if="details.includes(postTypeName)" class="searchwp-engine-post-type__details">
@@ -69,7 +70,7 @@
                                             {{ supports }}
                                             <searchwp-remove
                                                 :icon="true"
-                                                @click.native.prevent="model.objects[ postTypeName ].weights[ supportsKey ] = 0"/>
+                                                @click.native.prevent="model.objects[ postTypeName ].weights[ supportsKey ] = 0"></searchwp-remove>
                                         </td>
                                         <td>
                                             <searchwp-slider v-model="model.objects[ postTypeName ].weights[ supportsKey ]"
@@ -98,7 +99,7 @@
                                             {{ attributes[ postTypeName ].taxonomies[ taxonomyKey ].label }}
                                             <searchwp-remove
                                                 :icon="true"
-                                                @click.native.prevent="removeTaxonomy(postTypeName, taxonomyKey)"/>
+                                                @click.native.prevent="removeTaxonomy(postTypeName, taxonomyKey)"></searchwp-remove>
                                         </td>
                                         <td>
                                             <searchwp-slider v-model="model.objects[ postTypeName ].weights.tax[ attributes[ postTypeName ].taxonomies[ taxonomyKey ].name ]"
@@ -128,7 +129,7 @@
                                             <span v-else-if="'searchwp_pdf_metadata' == model.objects[ postTypeName ].weights.cf[ metakeyKey ].metakey">{{ i18n.pdfMetadata }}</span>
                                             <searchwp-remove
                                                 :icon="true"
-                                                @click.native.prevent="removeMetakey( postTypeName, metakeyKey )"/>
+                                                @click.native.prevent="removeMetakey( postTypeName, metakeyKey )"></searchwp-remove>
                                         </td>
                                         <td>
                                             <searchwp-slider v-model="model.objects[ postTypeName ].weights.cf[ metakeyKey ].weight"
@@ -163,7 +164,7 @@
                                             </span>
                                             <searchwp-remove
                                                 :icon="true"
-                                                @click.native.prevent="removeMetakey( postTypeName, metakeyKey )"/>
+                                                @click.native.prevent="removeMetakey( postTypeName, metakeyKey )"></searchwp-remove>
                                         </td>
                                         <td>
                                             <searchwp-slider v-model="model.objects[ postTypeName ].weights.cf[ metakeyKey ].weight"
@@ -190,7 +191,7 @@
                                 v-if="unusedAttributes(postTypeName)"
                                 :type="'contentTypes'"
                                 :postType="postTypeName"
-                                :buttonText="i18n.addAttribute"/>
+                                :buttonText="i18n.addAttribute"></searchwp-dropdown>
 
                             <div class="searchwp-document-notes" v-if="'attachment' == postTypeName && (!$root.misc.ziparchive || !$root.misc.domdocument)">
                                 <p v-if="!$root.misc.ziparchive" class="description"><strong>{{ i18n.note }}</strong> <code>ZipArchive</code> {{ i18n.notAvailableNoIndex }}</p>
@@ -207,12 +208,12 @@
                                     :label="i18n.transferWeightTo"
                                     :placeholder="i18n.singlePostId"
                                     v-if="$root.objects[ postTypeName ].attribution == 'id'"
-                                    v-model="model.objects[ postTypeName ].options.attribute_to"/>
+                                    v-model="model.objects[ postTypeName ].options.attribute_to"></searchwp-input-text>
                                 <searchwp-input-checkbox
                                     :label="i18n.transferWeightToParent"
                                     :checked="model.objects[ postTypeName ].options.parent"
                                     v-if="$root.objects[ postTypeName ].attribution == 'parent'"
-                                    v-model="model.objects[ postTypeName ].options.parent"/>
+                                    v-model="model.objects[ postTypeName ].options.parent"></searchwp-input-checkbox>
                             </div>
 
                             <div v-if="stemming_supported">
@@ -220,7 +221,7 @@
                                 <searchwp-input-checkbox
                                     :label="i18n.useKeywordStem"
                                     :checked="model.objects[ postTypeName ].options.stem"
-                                    v-model="model.objects[ postTypeName ].options.stem"/>
+                                    v-model="model.objects[ postTypeName ].options.stem"></searchwp-input-checkbox>
                             </div>
 
                             <div>
@@ -228,7 +229,7 @@
                                 <searchwp-input-text
                                     :label="i18n.excludedIds"
                                     :placeholder="i18n.commaSeparatedIds"
-                                    v-model="model.objects[ postTypeName ].options.exclude"/>
+                                    v-model="model.objects[ postTypeName ].options.exclude"></searchwp-input-text>
 
                                 <div v-if="'attachment' == postTypeName" class="searchwp-input-taxonomy-terms">
                                     <label>Limit to file type</label>
@@ -260,7 +261,7 @@
                                     :mode="'exclude'"
                                     :postType="postTypeName"
                                     @termsUpdated="excludedTermsUpdated"
-                                    :taxonomy="attributes[ postTypeName ].taxonomies[ taxonomyKey ].name"/>
+                                    :taxonomy="attributes[ postTypeName ].taxonomies[ taxonomyKey ].name"></searchwp-input-taxonomy-terms>
 
                                 <!-- Taxonomy limiters -->
                                 <searchwp-input-taxonomy-terms
@@ -271,13 +272,13 @@
                                     :mode="'limit_to'"
                                     :postType="postTypeName"
                                     @termsUpdated="limitedToTermsUpdated"
-                                    :taxonomy="attributes[ postTypeName ].taxonomies[ taxonomyKey ].name"/>
+                                    :taxonomy="attributes[ postTypeName ].taxonomies[ taxonomyKey ].name"></searchwp-input-taxonomy-terms>
 
                                 <searchwp-dropdown
                                     :type="'rules'"
                                     v-if="attributes[ postTypeName ].taxonomies.length"
                                     :postType="postTypeName"
-                                    :buttonText="i18n.addLimitExcludeRule"/>
+                                    :buttonText="i18n.addLimitExcludeRule"></searchwp-dropdown>
                             </div>
 
                         </div>
@@ -293,9 +294,9 @@
                         v-if="unusedPostTypes().length"
                         :type="'postTypes'"
                         :position="'below'"
-                        :buttonText="i18n.addPostType"/>
+                        :buttonText="i18n.addPostType"></searchwp-dropdown>
                 </li>
-                <li v-if="model.name !== 'default'" class="searchwp-remove-engine">
+                <li v-if="model.name !== 'default' && !isAdminEngine" class="searchwp-remove-engine">
                     <searchwp-remove :text="i18n.deleteEngine" @click.native.prevent="removeEngine()"></searchwp-remove>
                 </li>
             </ul>
@@ -571,9 +572,9 @@ export default {
         unusedAttributes( postType ) {
             return this.unusedNativeAttributes(postType).length || this.unusedTaxonomies(postType).length || this.unusedMetakeys(postType, true).length;
         },
-        addContentType(selectedOption) {
-            console.log(selectedOption);
-        },
+        // addContentType(selectedOption) {
+        //     // console.log(selectedOption);
+        // },
         toggleDetails(postType) {
             if (this.details.includes(postType)) {
                 this.details = this.details.filter(function (item){
@@ -623,6 +624,7 @@ export default {
                 addContentType: _SEARCHWP_VARS.i18n.add_content_type,
                 addLimitExcludeRule: _SEARCHWP_VARS.i18n.add_limit_exclude_rule,
                 addPostType: _SEARCHWP_VARS.i18n.add_post_type,
+                adminEngineNote: _SEARCHWP_VARS.i18n.admin_engine_note,
                 anyCustomField: _SEARCHWP_VARS.i18n.any_custom_field,
                 assignWeightTo: _SEARCHWP_VARS.i18n.assign_weight_to,
                 attribute: _SEARCHWP_VARS.i18n.attribute,
@@ -677,6 +679,10 @@ export default {
             type: String,
             default: 'default',
             required: true
+        },
+        isAdminEngine: {
+            type: Boolean,
+            default: false
         }
     },
     created: function() {
@@ -940,7 +946,7 @@ export default {
 
     .searchwp-engine-actions {
         margin: 0;
-        padding: 0.5em 0 0;
+        padding: 1em 0 0;
         list-style: none;
         display: flex;
         align-items: center;
