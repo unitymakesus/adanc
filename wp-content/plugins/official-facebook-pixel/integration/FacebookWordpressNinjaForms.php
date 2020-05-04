@@ -59,7 +59,9 @@ class FacebookWordpressNinjaForms extends FacebookWordpressIntegrationBase {
         $event = ServerEventFactory::safeCreateEvent(
           'Lead',
           array(__CLASS__, 'readFormData'),
-          array($form_data)
+          array($form_data),
+          self::TRACKING_NAME,
+          true
         );
         FacebookServerSideEvent::getInstance()->track($event);
 

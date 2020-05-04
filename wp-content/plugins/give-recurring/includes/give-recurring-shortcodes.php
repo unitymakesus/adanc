@@ -134,6 +134,7 @@ class Give_Recurring_Shortcodes {
 	 * @return void
 	 */
 	private function verify_profile_update_action( $user_id ) {
+		$subscriptionId = $this->getSubscriptionIdFromPostedData();
 
 		$passed_nonce = isset( $_POST['give_recurring_update_nonce'] )
 			? give_clean( $_POST['give_recurring_update_nonce'] )
@@ -143,14 +144,14 @@ class Give_Recurring_Shortcodes {
 			give_set_error( 'give_recurring_invalid_payment_update', __( 'Invalid Payment Update', 'give-recurring' ) );
 		}
 
-		$verified = wp_verify_nonce( $passed_nonce, 'update-payment' );
+		$verified = wp_verify_nonce( $passed_nonce, "update-payment-{$subscriptionId}" );
 
 		if ( 1 !== $verified || empty( $user_id ) ) {
 			give_set_error( 'give_recurring_unable_payment_update', __( 'Unable to verify payment update. Please try again later.', 'give-recurring' ) );
 		}
 
 		// Check if a subscription_id is passed to use the new update methods
-		if ( isset( $_POST['subscription_id'] ) && is_numeric( $_POST['subscription_id'] ) ) {
+		if ( $subscriptionId ) {
 			do_action( 'give_recurring_update_subscription_payment_method', $user_id, absint( $_POST['subscription_id'] ), $verified );
 		}
 
@@ -186,6 +187,7 @@ class Give_Recurring_Shortcodes {
 	 * @param  int $user_id The User ID to update.
 	 */
 	private function verify_subscription_update_action( $user_id ) {
+		$subscriptionId = $this->getSubscriptionIdFromPostedData();
 
 		// Get subscription update nonce.
 		$passed_nonce = isset( $_POST['give_recurring_subscription_update_nonce'] )
@@ -198,7 +200,7 @@ class Give_Recurring_Shortcodes {
 		}
 
 		// Check nonce.
-		$verified = wp_verify_nonce( $passed_nonce, 'update-subscription' );
+		$verified = wp_verify_nonce( $passed_nonce, "update-subscription-{$subscriptionId}" );
 
 		// Set error if nonce verification failed.
 		if ( 1 !== $verified || empty( $user_id ) ) {
@@ -206,7 +208,7 @@ class Give_Recurring_Shortcodes {
 		}
 
 		// Check if a subscription_id is passed to use the new update methods.
-		if ( isset( $_POST['subscription_id'] ) && is_numeric( $_POST['subscription_id'] ) ) {
+		if ( $subscriptionId ) {
 
 			/**
 			 * Update renewal subscription.
@@ -255,49 +257,20 @@ class Give_Recurring_Shortcodes {
 			}
 		}
 
-		ob_start();
-
-		$email_access = give_get_option( 'email_access' );
-
-		/**
-		 * Access granted for:
-		 * a: For logged in users
-		 * b: active sessions
-		 * c: valid email access tokens
-		 */
-		if ( is_user_logged_in() ||
-		     Give()->session->get_session_expiration() ||
-		     Give_Recurring()->subscriber_has_email_access()
-		) {
-
-			echo Give_Recurring()->subscriptions_view();
-
-		} // Email Access Enabled & no valid token.
-		elseif (
-			give_is_setting_enabled( $email_access )
-			&& ! Give_Recurring()->subscriber_has_email_access()
-		) {
-
-			ob_start();
-
-			give_get_template_part( 'email-login-form' );
-
-			echo ob_get_clean();
-
-		} //No email access, user access denied
-		else {
-
-			Give()->notices->print_frontend_notice( __( 'You must be logged in to view your subscriptions.', 'give-recurring' ), true, 'warning' );
-
-			echo give_login_form( give_get_current_page_url() );
-
-		}
-
-
-		return ob_get_clean();
-
+		return Give_Recurring()->subscriptions_view();
 	}
 
+
+	/**
+	 * Get subscription id from posted data
+	 *
+	 * @since 1.11.0
+	 *
+	 * @return int|null
+	 */
+	private function getSubscriptionIdFromPostedData(){
+		return ! empty( $_POST['subscription_id'] ) ? absint( $_POST['subscription_id'] ) : null;
+	}
 
 }
 

@@ -5,52 +5,8 @@
  * @copyright  : http://opensource.org/licenses/gpl-2.0.php GNU Public License
  * @since      : 1.8
  */
-
-/**
- * Determine access
- *
- * a. Check if a user is logged in and does a session exists
- * b. Does an email-access token exist?
- */
-if (
-	! is_user_logged_in()
-	&& false === Give()->session->get_session_expiration()
-	&& (
-		give_is_setting_enabled( give_get_option( 'email_access' ) )
-		&& ! Give()->email_access->token_exists
-	)
-) {
-	ob_start();
-
-	give_get_template_part( 'email-login-form' );
-
-	$email_login_template = ob_get_clean();
-	echo wp_kses_post( $email_login_template );
-
-	return false;
-}
-
-// Get subscription.
-$current_user_id = get_current_user_id();
-if ( ! empty( $current_user_id ) ) {
-	//pull by user_id
-	$subscriber = new Give_Recurring_Subscriber( $current_user_id, true );
-} elseif ( Give()->session->get_session_expiration() ) {
-	//pull by email
-	$subscriber_email = maybe_unserialize( Give()->session->get( 'give_purchase' ) );
-	$subscriber_email = isset( $subscriber_email['user_email'] ) ? $subscriber_email['user_email'] : '';
-	$subscriber       = new Give_Recurring_Subscriber( $subscriber_email, false );
-} else {
-	//pull by email access
-	$subscriber = new Give_Recurring_Subscriber( Give()->email_access->token_email, false );
-}
-
-// Sanity Check: Subscribers only
-if ( $subscriber->id <= 0 ) {
-	Give()->notices->print_frontend_notice( __( 'You have not made any recurring donations.', 'give-recurring' ), true, 'warning' );
-
-	return false;
-}
+$subscriber = Give_Recurring_Subscriber::getSubscriber();
+$subscription  = new Give_Subscription( absint( $_GET['subscription_id'] ) );
 
 // If payment method has been updated.
 $is_updated = filter_input(INPUT_GET,'updated',FILTER_SANITIZE_STRING );
@@ -62,25 +18,16 @@ if ( isset( $is_updated ) && '1' === $is_updated ) {
 	);
 }
 
-// Sanity Check: Subscription ID should be valid.
-$subscription_id = filter_input( INPUT_GET,'subscription_id', FILTER_SANITIZE_NUMBER_INT );
-if ( ! isset( $subscription_id ) ) {
-	Give()->notices->print_frontend_notice( __( 'Subscription ID is Invalid.', 'give-recurring' ), true, 'warning' );
-
-	return false;
-}
-
-$subscription    = new Give_Subscription( $subscription_id );
 // Bail out if subscription can not be updated or gateway deactivated.
 if ( ! $subscription->can_update_subscription() ) {
-	Give()->notices->print_frontend_notice( __( 'Subscription can not be updated.', 'give-recurring' ), true, 'warning' );
+	Give_Notices::print_frontend_notice( __( 'Subscription can not be updated.', 'give-recurring' ), true, 'warning' );
 
 	return false;
 }
 
 // Bail out and print notice if Subscription ID is not valid.
 if ( isset( $subscription ) && empty( $subscription->id ) ) {
-	Give()->notices->print_frontend_notice( __( 'Subscription ID is Invalid.', 'give-recurring' ), true, 'warning' );
+	Give_Notices::print_frontend_notice( __( 'Subscription ID is Invalid.', 'give-recurring' ), true, 'warning' );
 
 	return false;
 }
@@ -148,7 +95,7 @@ if ( ! empty( $currency_settings ) ) {
 		}
 
 		// Crete wp nonce field.
-		wp_nonce_field( 'update-subscription', 'give_recurring_subscription_update_nonce', true, true );
+		wp_nonce_field( "update-subscription-{$subscription->id}", 'give_recurring_subscription_update_nonce', true, true );
 		?>
 
 		<div id="give_checkout_form_wrap">
@@ -158,11 +105,9 @@ if ( ! empty( $currency_settings ) ) {
 				/**
 				 *  Give Recurring before Update Subscription.
 				 *
-				 * @param int $subscription_id
-				 *
 				 * @since 1.8
 				 */
-				do_action( 'give_recurring_before_subscription_update', $subscription_id );
+				do_action( 'give_recurring_before_subscription_update', $subscription->id );
 
 				$currency_output = '<span class="give-currency-symbol give-currency-position-' . $currency_position . '">' . $currency_symbol . '</span>';
 				?>
@@ -192,11 +137,9 @@ if ( ! empty( $currency_settings ) ) {
 				/**
 				 * Give Recurring after Update Subscription.
 				 *
-				 * @param int $subscription_id
-				 *
 				 * @since 1.8
 				 */
-				do_action( 'give_recurring_after_subscription_update', $subscription_id );
+				do_action( 'give_recurring_after_subscription_update', $subscription->id );
 				?>
 			</div>
 		</div>

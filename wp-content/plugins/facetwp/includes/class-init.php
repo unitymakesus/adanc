@@ -4,7 +4,8 @@ class FacetWP_Init
 {
 
     function __construct() {
-        add_action( 'init', array( $this, 'init' ) );
+        add_action( 'init', [ $this, 'init' ] );
+        add_filter( 'woocommerce_is_rest_api_request', [ $this, 'is_rest_api_request' ] );
     }
 
 
@@ -19,22 +20,26 @@ class FacetWP_Init
         // is_plugin_active
         include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
-        // api 
-        include( FACETWP_DIR . '/includes/api/fetch.php' );
-        include( FACETWP_DIR . '/includes/api/refresh.php' );
+        $includes = [
+            'api/fetch',
+            'api/refresh',
+            'class-helper',
+            'class-ajax',
+            'class-request',
+            'class-renderer',
+            'class-diff',
+            'class-indexer',
+            'class-display',
+            'class-builder',
+            'class-overrides',
+            'class-settings-admin',
+            'class-upgrade',
+            'functions'
+        ];
 
-        // core
-        include( FACETWP_DIR . '/includes/class-helper.php' );
-        include( FACETWP_DIR . '/includes/class-ajax.php' );
-        include( FACETWP_DIR . '/includes/class-renderer.php' );
-        include( FACETWP_DIR . '/includes/class-diff.php' );
-        include( FACETWP_DIR . '/includes/class-indexer.php' );
-        include( FACETWP_DIR . '/includes/class-display.php' );
-        include( FACETWP_DIR . '/includes/class-builder.php' );
-        include( FACETWP_DIR . '/includes/class-overrides.php' );
-        include( FACETWP_DIR . '/includes/class-settings-admin.php' );
-        include( FACETWP_DIR . '/includes/class-upgrade.php' );
-        include( FACETWP_DIR . '/includes/functions.php' );
+        foreach ( $includes as $inc ) {
+            include ( FACETWP_DIR . "/includes/$inc.php" );
+        }
 
         new FacetWP_Upgrade();
         new FacetWP_Overrides();
@@ -46,6 +51,7 @@ class FacetWP_Init
         FWP()->indexer      = new FacetWP_Indexer();
         FWP()->display      = new FacetWP_Display();
         FWP()->builder      = new FacetWP_Builder();
+        FWP()->request      = new FacetWP_Request();
         FWP()->ajax         = new FacetWP_Ajax();
 
         // integrations
@@ -56,14 +62,13 @@ class FacetWP_Init
 
         // update checks
         include( FACETWP_DIR . '/includes/class-updater.php' );
-        include( FACETWP_DIR . '/includes/libraries/github-updater.php' );
 
         // hooks
-        add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-        add_action( 'wp_enqueue_scripts', array( $this, 'front_scripts' ) );
-        add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
-        add_filter( 'redirect_canonical', array( $this, 'redirect_canonical' ), 10, 2 );
-        add_filter( 'plugin_action_links_facetwp/index.php', array( $this, 'plugin_action_links' ) );
+        add_action( 'admin_menu', [ $this, 'admin_menu' ] );
+        add_action( 'wp_enqueue_scripts', [ $this, 'front_scripts' ] );
+        add_action( 'admin_enqueue_scripts', [ $this, 'admin_scripts' ] );
+        add_filter( 'redirect_canonical', [ $this, 'redirect_canonical' ], 10, 2 );
+        add_filter( 'plugin_action_links_facetwp/index.php', [ $this, 'plugin_action_links' ] );
     }
 
 
@@ -71,15 +76,12 @@ class FacetWP_Init
      * i18n support
      */
     function load_textdomain() {
-        $locale = apply_filters( 'plugin_locale', get_locale(), 'fwp' );
-        $mofile = WP_LANG_DIR . '/facetwp/fwp-' . $locale . '.mo';
 
-        if ( file_exists( $mofile ) ) {
-            load_textdomain( 'fwp', $mofile );
-        }
-        else {
-            load_plugin_textdomain( 'fwp', false, dirname( FACETWP_BASENAME ) . '/languages/' );
-        }
+        // admin-facing
+        load_plugin_textdomain( 'fwp' );
+
+        // front-facing
+        load_plugin_textdomain( 'fwp-front', false, basename( FACETWP_DIR ) . '/languages' );
     }
 
 
@@ -87,7 +89,7 @@ class FacetWP_Init
      * Register the FacetWP settings page
      */
     function admin_menu() {
-        add_options_page( 'FacetWP', 'FacetWP', 'manage_options', 'facetwp', array( $this, 'settings_page' ) );
+        add_options_page( 'FacetWP', 'FacetWP', 'manage_options', 'facetwp', [ $this, 'settings_page' ] );
     }
 
 
@@ -104,8 +106,7 @@ class FacetWP_Init
      */
     function admin_scripts( $hook ) {
         if ( 'settings_page_facetwp' == $hook ) {
-            wp_enqueue_style( 'media-views' );
-            wp_enqueue_script( 'jquery-powertip', FACETWP_URL . '/assets/vendor/jquery-powertip/jquery.powertip.min.js', array( 'jquery' ), '1.2.0' );
+            wp_enqueue_script( 'jquery-powertip', FACETWP_URL . '/assets/vendor/jquery-powertip/jquery.powertip.min.js', [ 'jquery' ], '1.2.0' );
         }
     }
 
@@ -137,6 +138,23 @@ class FacetWP_Init
         $settings_link = '<a href=" ' . $settings_link . '">' . __( 'Settings', 'fwp' )  . '</a>';
         array_unshift( $links, $settings_link );
         return $links;
+    }
+
+
+    /**
+     * WooCommerce 3.6+ doesn't load its frontend includes for REST API requests
+     * We need to force-load these includes for FacetWP refreshes
+     * See includes() within class-woocommerce.php
+     * 
+     * This code isn't within /integrations/woocommerce/ because it runs *before* init
+     * 
+     * @since 3.3.10
+     */
+    function is_rest_api_request( $request ) {
+        if ( false !== strpos( $_SERVER['REQUEST_URI'], 'facetwp' ) ) {
+            return false;
+        }
+        return $request;
     }
 }
 

@@ -118,7 +118,10 @@ SGPBPopup.listeners = function () {
 	sgAddEvent(window, 'sgpbDidOpen', function(e) {
 		/*for mobile landscape issue*/
 		if (typeof (Event) === 'function') {
-			var event = new Event('resize');
+			var event = new CustomEvent('resize', {
+					bubbles: true,
+					cancelable: true
+				});
 		}
 		else {
 			if (SGPBPopup.isIE()) {
@@ -438,6 +441,15 @@ SGPBPopup.prototype.prepareOpen = function()
 
 	function decodeEntities(encodedString)
 	{
+		if (typeof encodedString == 'undefined') {
+			return '';
+		}
+		var suspiciousStrings = ['document.createElement', 'createElement', 'String.fromCharCode', 'fromCharCode'];
+		for (var i in suspiciousStrings) {
+			if (encodedString.indexOf(suspiciousStrings[i]) > 0) {
+				return '';
+			}
+		}
 		var textArea = document.createElement('textarea');
 		textArea.innerHTML = encodedString;
 

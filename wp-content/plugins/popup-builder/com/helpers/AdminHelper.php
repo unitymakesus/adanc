@@ -1677,9 +1677,14 @@ class AdminHelper
 		$defaultData = \ConfigDataHelper::defaultData();
 
 		// get scripts
-		$jsPostMeta = @$postMeta['js'];
+		if (!isset($postMeta['js'])) {
+			$postMeta['js'] = array();
+		}
+		$jsPostMeta = $postMeta['js'];
 		$jsDefaultData = $defaultData['customEditorContent']['js']['helperText'];
+		$suspiciousStrings = array('document.createElement', 'createElement', 'String.fromCharCode', 'fromCharCode', '<!--', '-->');
 		$finalContent = '';
+		$suspiciousStringFound = false;
 		if (!empty($jsPostMeta)) {
 			$customScripts = '<script id="sgpb-custom-script-'.$popupId.'">';
 			foreach ($jsDefaultData as $key => $value) {
@@ -1689,6 +1694,17 @@ class AdminHelper
 				}
 				$content = @$jsPostMeta['sgpb-'.$key];
 				$content = str_replace('popupId', $popupId, $content);
+				$content = str_replace("<", "&lt;", $content);
+				$content = str_replace(">", "&gt;", $content);
+				foreach ($suspiciousStrings as $string) {
+					if (strpos($content, $string)) {
+						$suspiciousStringFound = true;
+						break;
+					}
+				}
+				if ($suspiciousStringFound) {
+					break;
+				}
 				$content = html_entity_decode($content, ENT_QUOTES, 'UTF-8');
 
 				$finalContent .= 'sgAddEvent(window, "'.$eventName.'", function(e) {';
@@ -1699,6 +1715,9 @@ class AdminHelper
 			}
 			$customScripts .= $finalContent;
 			$customScripts .= '</script>';
+			if (empty($finalContent)) {
+				$customScripts = '';
+			}
 			$finalResult .= $customScripts;
 		}
 
@@ -1820,7 +1839,7 @@ class AdminHelper
 				$key = $singleExntensionData['options']['licence']['key'];
 				$name = $singleExntensionData['options']['licence']['itemName'];
 				$licenseKey = __('No license');
-				if (!empty(self::getOption('sgpb-license-key-'.$key))) {
+				if (!empty($key)) {
 					$licenseKey = self::getOption('sgpb-license-key-'.$key);
 				}
 				$licenseStatus = 'Inactive';
@@ -1974,7 +1993,7 @@ class AdminHelper
 		}
 	}
 
-	public function getBrowser()
+	public static function getBrowser()
 	{
 		$uAgent = 'Unknown';
 		if (isset($_SERVER['HTTP_USER_AGENT'])) {
@@ -2115,6 +2134,9 @@ class AdminHelper
 			$rolesToBeRestricted = $savedUserRoles;
 		}
 		foreach ($rolesToBeRestricted as $roleToBeRestricted) {
+			if ($roleToBeRestricted == 'administrator' || $roleToBeRestricted == 'admin') {
+				continue;
+			}
 			foreach ($caps as $cap) {
 				// only for the activation hook we need to add our capabilities back
 				if ($hook == 'activate') {

@@ -56,7 +56,7 @@ class FacetWP_Facet_Dropdown extends FacetWP_Facet
             $values = FWP()->helper->sort_taxonomy_values( $params['values'], $facet['orderby'] );
         }
 
-        $label_any = empty( $facet['label_any'] ) ? __( 'Any', 'fwp' ) : $facet['label_any'];
+        $label_any = empty( $facet['label_any'] ) ? __( 'Any', 'fwp-front' ) : $facet['label_any'];
         $label_any = facetwp_i18n( $label_any );
 
         $output .= '<select class="facetwp-dropdown">';
@@ -72,7 +72,7 @@ class FacetWP_Facet_Dropdown extends FacetWP_Facet
 
             // Determine whether to show counts
             $display_value .= esc_attr( $result['facet_display_value'] );
-            $show_counts = apply_filters( 'facetwp_facet_dropdown_show_counts', true, array( 'facet' => $facet ) );
+            $show_counts = apply_filters( 'facetwp_facet_dropdown_show_counts', true, [ 'facet' => $facet ] );
 
             if ( $show_counts ) {
                 $display_value .= ' (' . $result['counter'] . ')';

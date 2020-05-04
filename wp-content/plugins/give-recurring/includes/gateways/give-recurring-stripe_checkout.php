@@ -71,9 +71,6 @@ class Give_Recurring_Stripe_Checkout extends Give_Recurring_Gateway {
 			return;
 		}
 
-		// Listen to SCA payments to cancel the donation, if the payment is not authenticated.
-//		add_action( 'wp', array( $this, 'listen_sca_payments' ) );
-
 		// Bailout, if gateway is not active.
 		if ( ! give_is_gateway_active( $this->id ) ) {
 			return;
@@ -234,7 +231,7 @@ class Give_Recurring_Stripe_Checkout extends Give_Recurring_Gateway {
 		// Set Checkout Session ID as Transaction ID.
 		if ( ! empty( $session_id ) ) {
 			give_insert_payment_note( $donation_id, 'Stripe Checkout Session ID: ' . $session_id );
-			give_set_payment_transaction_id( $donation_id, $session_id );
+			give_update_meta( $donation_id, '_give_stripe_checkout_session_id', $session_id );
 		}
 
 		// Save donation summary to donation.
@@ -310,7 +307,6 @@ class Give_Recurring_Stripe_Checkout extends Give_Recurring_Gateway {
 
 				// Set Payment Intent ID.
 				give_insert_payment_note( $this->payment_id, 'Stripe Payment Intent ID: ' . $invoice->payment_intent );
-				give_set_payment_transaction_id( $this->payment_id, $invoice->payment_intent );
 
 				// Retrieve payment intent details.
 				$intent_details = $this->payment_intent->retrieve( $invoice->payment_intent );
@@ -1266,50 +1262,6 @@ class Give_Recurring_Stripe_Checkout extends Give_Recurring_Gateway {
 
 		}
 
-	}
-
-	/**
-	 * Listen to SCA authenticated payments.
-	 *
-	 * @since 1.9.4
-	 *
-	 * @return void
-	 */
-	public function listen_sca_payments() {
-
-		// Bailout, if accessed from admin.
-		if ( is_admin() ) {
-			return;
-		}
-
-		// Bailout, if not accessed from donation confirmation page.
-		if ( ! is_page( give_get_option( 'success_page' ) ) ) {
-			return;
-		}
-
-		$get_data          = give_clean( filter_input_array( INPUT_GET ) );
-
-		// Bailout, if payment intent id doesn't exists.
-		if ( ! isset( $get_data['payment_intent'] ) || empty( $get_data['payment_intent'] ) ) {
-			return;
-		}
-
-		$payment_intent_id = $get_data['payment_intent'];
-		$donation_id       = give_get_purchase_id_by_transaction_id( $payment_intent_id );
-		$payment_intent    = $this->payment_intent->retrieve( $payment_intent_id );
-
-		if ( isset( $payment_intent->last_payment_error->code ) && 'payment_intent_authentication_failure' === $payment_intent->last_payment_error->code ) {
-
-			$invoice             = $this->invoice->retrieve( $payment_intent->invoice );
-			$stripe_subscription = \Stripe\Subscription::retrieve( $invoice->subscription );
-
-			if ( 'incomplete' === $stripe_subscription->status && 'open' === $invoice->status ) {
-
-				$give_subscription = new Give_Subscription( $stripe_subscription->id, true );
-				give_update_payment_status( $donation_id, 'cancelled' );
-				give_recurring_subscription_cancel( $give_subscription->id );
-			}
-		}
 	}
 
 	/**

@@ -19,6 +19,7 @@ class SgpbPopupConfig
 		self::addDefine('SGPB_POPUP_PKG_GOLD', 3);
 		self::addDefine('SGPB_POPUP_PKG_PLATINUM', 4);
 		self::addDefine('SG_POPUP_PRO_URL', 'https://popup-builder.com/#prices');
+		self::addDefine('SG_POPUP_BUNDLE_URL', 'https://popup-builder.com/bundle/');
 		self::addDefine('SG_POPUP_EXTENSIONS_URL', 'https://popup-builder.com/#extensions');
 		self::addDefine('SG_POPUP_SUPPORT_URL', 'https://wordpress.org/support/plugin/popup-builder');
 		self::addDefine('SG_POPUP_TICKET_URL', 'https://help.popup-builder.com');

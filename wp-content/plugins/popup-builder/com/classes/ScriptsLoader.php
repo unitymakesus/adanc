@@ -61,7 +61,11 @@ class ScriptsLoader
 		$alreadyLoadedPopups = array();
 		$popups = $this->getLoadablePopups();
 		$currentPostType = AdminHelper::getCurrentPostType();
-		if ($currentPostType == SG_POPUP_POST_TYPE) {
+		$postId = 0;
+		global $wp;
+		$currentUrl = home_url( $wp->request );
+		$currentUrl = strpos($currentUrl, '/popupbuilder/');
+		if ($currentPostType == SG_POPUP_POST_TYPE && $currentUrl === false) {
 			return false;
 		}
 
@@ -69,16 +73,16 @@ class ScriptsLoader
 			return false;
 		}
 
-		if ($this->getIsAdmin()) {
-			$this->loadToAdmin();
-			return true;
-		}
-
 		global $post;
 		$postId = 0;
 
 		if (!empty($post)) {
 			$postId = $post->ID;
+		}
+
+		if ($this->getIsAdmin()) {
+			$this->loadToAdmin();
+			return true;
 		}
 
 		foreach ($popups as $popup) {

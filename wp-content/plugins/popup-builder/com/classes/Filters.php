@@ -48,6 +48,60 @@ class Filters
 		add_filter('sgpbPopupContentLoadToPage', array($this, 'popupContentLoadToPage'), 10, 2);
 		add_filter('sgpbExtraNotifications', array($this, 'sgpbExtraNotifications'), 10, 1);
 		add_filter('sgpbSystemInformation', array($this, 'systemInformation'), 10, 1);
+		add_filter('plugin_action_links', array($this, 'pluginActionLinks'), 10, 4);
+		add_filter('plugin_row_meta', array( $this, 'pluginRowMetas'), 10, 4);
+	}
+
+	public function pluginRowMetas($pluginMeta, $pluginFile, $pluginData, $status) 
+	{
+		if (empty($pluginFile)) {
+			return $pluginMeta;
+		}
+
+		$allExtensions = \SgpbDataConfig::allExtensionsKeys();
+		$allExtensions = wp_list_pluck($allExtensions, 'pluginKey');
+		$allExtensions[] = SG_POPUP_FILE_NAME;
+
+		$rowMeta = array(
+			'rateus' => '<a href="'.SG_POPUP_RATE_US_URL.'" target="_blank">'.esc_html__('Rate us', SG_POPUP_TEXT_DOMAIN).'</a>',
+			'support' => '<a href="'.SG_POPUP_SUPPORT_URL.'" target="_blank">'.esc_html__('Support', SG_POPUP_TEXT_DOMAIN).'</a>'
+		);
+
+		if (in_array($pluginFile, $allExtensions)) {
+			$pluginMeta = array_merge($pluginMeta, $rowMeta);
+		}
+
+		return $pluginMeta;
+	}
+
+	public function pluginActionLinks($actions, $pluginFile, $pluginData, $context) 
+	{
+		if (empty($pluginFile)) {
+			return $actions;
+		}
+
+		$allExtensions = \SgpbDataConfig::allExtensionsKeys();
+		$allExtensions = wp_list_pluck($allExtensions, 'pluginKey');
+		$allExtensions[] = SG_POPUP_FILE_NAME;
+		
+		$settingPageUrl = admin_url().'edit.php?post_type='.SG_POPUP_POST_TYPE.'&page='.SG_POPUP_SETTINGS_PAGE;
+
+		$links = array(
+			'settings' => '<a href="'.$settingPageUrl.'" target="_blank">'.esc_html__('Settings', SG_POPUP_TEXT_DOMAIN).'</a>',
+			'docs' => '<a href="'.SG_POPUP_TICKET_URL.'" target="_blank">'.esc_html__('Docs', SG_POPUP_TEXT_DOMAIN).'</a>'
+		);
+
+		if (in_array($pluginFile, $allExtensions)) {
+			if ($pluginFile == SG_POPUP_FILE_NAME) {
+				$getActiveExtensions = AdminHelper::getAllExtensions();
+				if (empty($getActiveExtensions['active'])) {
+					$links['upgrade'] = '<a style="color: #4364eb;" href="'.SG_POPUP_BUNDLE_URL.'" target="_blank">'.esc_html__('Upgrade', SG_POPUP_TEXT_DOMAIN).'</a>';
+				}
+			}
+			$actions = array_merge($links, $actions);	
+		} 
+
+		return $actions;
 	}
 
 	public function systemInformation($infoContent)
@@ -391,7 +445,7 @@ class Filters
 			if (empty($targets['sgpb-target'][0])) {
 				return $previewLink .= '/?sg_popup_preview_id='.$popupId;
 			}
-			$targetParams = $targets['sgpb-target'][0][0]['param'];
+			$targetParams = @$targets['sgpb-target'][0][0]['param'];
 			if ((!empty($targetParams) && $targetParams == 'not_rule') || empty($targetParams)) {
 				$previewLink = home_url();
 				$previewLink .= '/?sg_popup_preview_id='.$popupId;

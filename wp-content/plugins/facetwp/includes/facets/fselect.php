@@ -66,7 +66,7 @@ class FacetWP_Facet_fSelect extends FacetWP_Facet
 
             // Keep the facet placement intact
             if ( FWP()->helper->facet_is( $facet, 'preserve_ghosts', 'yes' ) ) {
-                $tmp = array();
+                $tmp = [];
                 foreach ( $ghost_output as $row ) {
                     $tmp[ $row['facet_value'] . ' ' ] = $row;
                 }
@@ -79,7 +79,7 @@ class FacetWP_Facet_fSelect extends FacetWP_Facet
             }
             else {
                 // Make the array key equal to the facet_value (for easy lookup)
-                $tmp = array();
+                $tmp = [];
                 foreach ( $output as $row ) {
                     $tmp[ $row['facet_value'] . ' ' ] = $row; // Force a string array key
                 }
@@ -116,7 +116,7 @@ class FacetWP_Facet_fSelect extends FacetWP_Facet
         }
 
         $multiple = FWP()->helper->facet_is( $facet, 'multiple', 'yes' ) ? ' multiple="multiple"' : '';
-        $label_any = empty( $facet['label_any'] ) ? __( 'Any', 'fwp' ) : $facet['label_any'];
+        $label_any = empty( $facet['label_any'] ) ? __( 'Any', 'fwp-front' ) : $facet['label_any'];
         $label_any = facetwp_i18n( $label_any );
 
         $output .= '<select class="facetwp-dropdown"' . $multiple . '>';
@@ -126,20 +126,15 @@ class FacetWP_Facet_fSelect extends FacetWP_Facet
             $selected = in_array( $result['facet_value'], $selected_values ) ? ' selected' : '';
             $selected .= ( 0 == $result['counter'] && '' == $selected ) ? ' disabled' : '';
 
-            $display_value = '';
-            for ( $i = 0; $i < (int) $result['depth']; $i++ ) {
-                $display_value .= '&nbsp;&nbsp;';
-            }
-
             // Determine whether to show counts
-            $display_value .= esc_html( $result['facet_display_value'] );
-            $show_counts = apply_filters( 'facetwp_facet_dropdown_show_counts', true, array( 'facet' => $facet ) );
+            $display_value = esc_html( $result['facet_display_value'] );
+            $show_counts = apply_filters( 'facetwp_facet_dropdown_show_counts', true, [ 'facet' => $facet ] );
 
             if ( $show_counts ) {
                 $display_value .= ' {{(' . $result['counter'] . ')}}';
             }
 
-            $output .= '<option value="' . esc_attr( $result['facet_value'] ) . '"' . $selected . '>' . $display_value . '</option>';
+            $output .= '<option value="' . esc_attr( $result['facet_value'] ) . '" class="d' . $result['depth'] . '"' . $selected . '>' . $display_value . '</option>';
         }
 
         $output .= '</select>';
@@ -153,7 +148,7 @@ class FacetWP_Facet_fSelect extends FacetWP_Facet
     function filter_posts( $params ) {
         global $wpdb;
 
-        $output = array();
+        $output = [];
         $facet = $params['facet'];
         $selected_values = $params['selected_values'];
 
@@ -190,15 +185,16 @@ class FacetWP_Facet_fSelect extends FacetWP_Facet
     function settings_js( $params ) {
         $facet = $params['facet'];
 
-        $label_any = empty( $facet['label_any'] ) ? __( 'Any', 'fwp' ) : $facet['label_any'];
+        $label_any = empty( $facet['label_any'] ) ? __( 'Any', 'fwp-front' ) : $facet['label_any'];
         $label_any = facetwp_i18n( $label_any );
 
-        return array(
-            'placeholder'   => $label_any,
-            'overflowText'  => __( '{n} selected', 'fwp' ),
-            'searchText'    => __( 'Search', 'fwp' ),
-            'operator'      => $facet['operator']
-        );
+        return [
+            'placeholder'       => $label_any,
+            'overflowText'      => __( '{n} selected', 'fwp-front' ),
+            'searchText'        => __( 'Search', 'fwp-front' ),
+            'noResultsText'     => __( 'No results found', 'fwp-front' ),
+            'operator'          => $facet['operator']
+        ];
     }
 
 
@@ -239,7 +235,11 @@ class FacetWP_Facet_fSelect extends FacetWP_Facet
         </div>
         <div class="facetwp-row">
             <div>
-                <?php _e( 'Multi-select?', 'fwp' ); ?>:
+                <?php _e( 'Multi-select', 'fwp' ); ?>:
+                <div class="facetwp-tooltip">
+                    <span class="icon-question">?</span>
+                    <div class="facetwp-tooltip-content"><?php _e( 'Allow multiple selections?', 'fwp' ); ?></div>
+                </div>
             </div>
             <div>
                 <label class="facetwp-switch">

@@ -51,6 +51,7 @@ use FacebookAds\Object\Values\AdCreativeAuthorizationCategoryValues;
 use FacebookAds\Object\Values\AdCreativeCategorizationCriteriaValues;
 use FacebookAds\Object\Values\AdCreativeCategoryMediaSourceValues;
 use FacebookAds\Object\Values\AdCreativeDynamicAdVoiceValues;
+use FacebookAds\Object\Values\AdCreativeInstantCheckoutSettingValues;
 use FacebookAds\Object\Values\AdCreativeOperatorValues;
 use FacebookAds\Object\Values\AdDatePresetValues;
 use FacebookAds\Object\Values\AdExecutionOptionsValues;
@@ -364,6 +365,7 @@ class AdAccount extends AbstractCrudObject {
       'image_url' => 'string',
       'instagram_actor_id' => 'string',
       'instagram_permalink_url' => 'string',
+      'instant_checkout_setting' => 'instant_checkout_setting_enum',
       'interactive_components_spec' => 'map',
       'is_dco_internal' => 'bool',
       'link_og_id' => 'string',
@@ -393,6 +395,7 @@ class AdAccount extends AbstractCrudObject {
       'categorization_criteria_enum' => AdCreativeCategorizationCriteriaValues::getInstance()->getValues(),
       'category_media_source_enum' => AdCreativeCategoryMediaSourceValues::getInstance()->getValues(),
       'dynamic_ad_voice_enum' => AdCreativeDynamicAdVoiceValues::getInstance()->getValues(),
+      'instant_checkout_setting_enum' => AdCreativeInstantCheckoutSettingValues::getInstance()->getValues(),
     );
 
     $request = new ApiRequest(
@@ -637,140 +640,6 @@ class AdAccount extends AbstractCrudObject {
     return $pending ? $request : $request->execute();
   }
 
-  public function createAdReportSchedule(array $fields = array(), array $params = array(), $pending = false) {
-    $this->assureId();
-
-    $param_types = array(
-      'actions_group_by' => 'list<actions_group_by_enum>',
-      'breakdowns' => 'list<string>',
-      'builtin_column_set' => 'builtin_column_set_enum',
-      'creation_source' => 'creation_source_enum',
-      'custom_column_set_id' => 'string',
-      'data_columns' => 'list<string>',
-      'date_interval' => 'Object',
-      'date_preset' => 'date_preset_enum',
-      'emails' => 'list<string>',
-      'export_columns' => 'Object',
-      'filters' => 'list<Object>',
-      'format_version' => 'unsigned int',
-      'insights_section' => 'Object',
-      'level' => 'level_enum',
-      'name' => 'string',
-      'normalized_filter' => 'list<Object>',
-      'schedule_frequency' => 'schedule_frequency_enum',
-      'sort' => 'list<Object>',
-      'sort_by' => 'string',
-      'sort_dir' => 'string',
-      'start_date' => 'Object',
-      'status' => 'status_enum',
-      'subscribers' => 'list<int>',
-      'time_increment' => 'string',
-      'user_attribution_windows' => 'list<string>',
-      'user_columns' => 'list<string>',
-      'user_filter' => 'list<Object>',
-    );
-    $enums = array(
-      'actions_group_by_enum' => array(
-        'action_brand',
-        'action_canvas_component_id',
-        'action_canvas_component_name',
-        'action_carousel_card_id',
-        'action_carousel_card_name',
-        'action_category',
-        'action_converted_brand_tag_id',
-        'action_converted_category_tag_id',
-        'action_converted_product_id',
-        'action_destination',
-        'action_device',
-        'action_event_channel',
-        'action_target_id',
-        'action_type',
-        'action_video_sound',
-        'action_video_type',
-        'attribution_model_type',
-        'interactive_component_sticker_id',
-        'interactive_component_sticker_response',
-      ),
-      'builtin_column_set_enum' => array(
-        '',
-        'APP_ENGAGEMENT',
-        'AUDIENCE_DIRECT',
-        'BIDDING_AND_OPTIMIZATION',
-        'CAROUSEL_ENGAGEMENT',
-        'CROSS_DEVICE',
-        'DELIVERY',
-        'ENGAGEMENT',
-        'HOUSEHOLD',
-        'MESSAGING_ENGAGEMENT',
-        'MESSENGER',
-        'OFFLINE_CONVERSIONS',
-        'PERFORMANCE',
-        'PERFORMANCE_LEGACY',
-        'TARGETING_AND_CREATIVE',
-        'VALIDATION_VIEW',
-        'VIDEO_ENGAGEMENT',
-      ),
-      'creation_source_enum' => array(
-        'adsExcelAddin',
-        'adsManagerReporting',
-        'newAdsManager',
-      ),
-      'date_preset_enum' => array(
-        'last_14d',
-        'last_28d',
-        'last_30d',
-        'last_3d',
-        'last_7d',
-        'last_90d',
-        'last_month',
-        'last_quarter',
-        'last_week_mon_sun',
-        'last_week_sun_sat',
-        'last_year',
-        'lifetime',
-        'this_month',
-        'this_quarter',
-        'this_week_mon_today',
-        'this_week_sun_today',
-        'this_year',
-        'today',
-        'yesterday',
-      ),
-      'level_enum' => array(
-        'account',
-        'ad',
-        'adgroup',
-        'campaign',
-        'campaign_group',
-        'politicalad',
-      ),
-      'schedule_frequency_enum' => array(
-        'daily',
-        'monthly',
-        'weekly',
-      ),
-      'status_enum' => array(
-        'Active',
-        'Deleted',
-        'Paused',
-      ),
-    );
-
-    $request = new ApiRequest(
-      $this->api,
-      $this->data['id'],
-      RequestInterface::METHOD_POST,
-      '/adreportschedules',
-      new AbstractCrudObject(),
-      'EDGE',
-      array(),
-      new TypeChecker($param_types, $enums)
-    );
-    $request->addParams($params);
-    $request->addFields($fields);
-    return $pending ? $request : $request->execute();
-  }
-
   public function getAdRulesHistory(array $fields = array(), array $params = array(), $pending = false) {
     $this->assureId();
 
@@ -932,7 +801,7 @@ class AdAccount extends AbstractCrudObject {
 
     $param_types = array(
       'page_id' => 'int',
-      'show_ad_limit_by_actor' => 'bool',
+      'show_breakdown_by_actor' => 'bool',
     );
     $enums = array(
     );
@@ -1668,54 +1537,6 @@ class AdAccount extends AbstractCrudObject {
     return $pending ? $request : $request->execute();
   }
 
-  public function createBatchReplace(array $fields = array(), array $params = array(), $pending = false) {
-    $this->assureId();
-
-    $param_types = array(
-      'payload' => 'list<string>',
-    );
-    $enums = array(
-    );
-
-    $request = new ApiRequest(
-      $this->api,
-      $this->data['id'],
-      RequestInterface::METHOD_POST,
-      '/batchreplace',
-      new AbstractCrudObject(),
-      'EDGE',
-      array(),
-      new TypeChecker($param_types, $enums)
-    );
-    $request->addParams($params);
-    $request->addFields($fields);
-    return $pending ? $request : $request->execute();
-  }
-
-  public function createBatchUpload(array $fields = array(), array $params = array(), $pending = false) {
-    $this->assureId();
-
-    $param_types = array(
-      'payload' => 'list<string>',
-    );
-    $enums = array(
-    );
-
-    $request = new ApiRequest(
-      $this->api,
-      $this->data['id'],
-      RequestInterface::METHOD_POST,
-      '/batchupload',
-      new AbstractCrudObject(),
-      'EDGE',
-      array(),
-      new TypeChecker($param_types, $enums)
-    );
-    $request->addParams($params);
-    $request->addFields($fields);
-    return $pending ? $request : $request->execute();
-  }
-
   public function createBlockListDraft(array $fields = array(), array $params = array(), $pending = false) {
     $this->assureId();
 
@@ -1904,6 +1725,7 @@ class AdAccount extends AbstractCrudObject {
 
     $param_types = array(
       'end_date' => 'datetime',
+      'page_id' => 'unsigned int',
       'platform' => 'platform_enum',
       'position' => 'position_enum',
       'start_date' => 'datetime',

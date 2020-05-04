@@ -7,9 +7,9 @@ Plugin URI: https://popup-builder.com
 Donate link: https://popup-builder.com
 Tags: popup, pop up, wordpress popup, popup maker, exit popup, popup builder, wordpress popup plugin
 Requires at least: 3.8
-Tested up to: 5.3
+Tested up to: 5.4
 Requires PHP: 5.3.3
-Stable tag: 3.65
+Stable tag: 3.66
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -184,6 +184,20 @@ Go to the Popup Builder settings and set your desired options.
 13. Facebook popup
 
 == Changelog ==
+
+= Version 3.66 =
+* Compatability issues fixed related to Gutenberg.
+* Minor improvements.
+* Notices fixed.
+
+= Version 3.65.2 =
+* Added support links.
+* Bug fixed related to mobile landscape view.
+* User roles compatibility issues fixed.
+* Tested with WordPress 5.4
+
+= Version 3.65.1 =
+* Added filter for custom JS input to sanitize invalid symbols.
 
 = Version 3.65 =
 * Reset the custom JS metabox to prevent code injection from versions < 3.64
@@ -1157,7 +1171,7 @@ Leave us a good review :)
 
 == Upgrade Notice ==
 
-Current Version of Popup Builder is 3.65
+Current Version of Popup Builder is 3.66
 
 == Other Notes ==
 

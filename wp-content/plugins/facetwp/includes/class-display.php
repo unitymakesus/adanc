@@ -4,27 +4,33 @@ class FacetWP_Display
 {
 
     /* (array) Facet types being used on the page */
-    public $active_types = array();
+    public $active_types = [];
 
     /* (array) Facets being used on the page */
-    public $active_facets = array();
+    public $active_facets = [];
+
+    /* (array) Extra features used on the page */
+    public $active_extras = [];
+
+    /* (array) Saved shortcode attributes */
+    public $shortcode_atts = [];
 
     /* (boolean) Whether to enable FacetWP for the current page */
     public $load_assets = false;
 
     /* (array) Scripts and stylesheets to enqueue */
-    public $assets = array();
+    public $assets = [];
 
     /* (array) Data to pass to front-end JS */
-    public $json = array();
+    public $json = [];
 
 
     function __construct() {
         add_filter( 'widget_text', 'do_shortcode' );
-        add_action( 'loop_start', array( $this, 'add_template_tag' ) );
-        add_action( 'loop_no_results', array( $this, 'add_template_tag' ) );
-        add_action( 'wp_footer', array( $this, 'front_scripts' ), 25 );
-        add_shortcode( 'facetwp', array( $this, 'shortcode' ) );
+        add_action( 'loop_start', [ $this, 'add_template_tag' ] );
+        add_action( 'loop_no_results', [ $this, 'add_template_tag' ] );
+        add_action( 'wp_footer', [ $this, 'front_scripts' ], 25 );
+        add_shortcode( 'facetwp', [ $this, 'shortcode' ] );
     }
 
 
@@ -42,6 +48,8 @@ class FacetWP_Display
      * Register shortcodes
      */
     function shortcode( $atts ) {
+        $this->shortcode_atts[] = $atts;
+
         $output = '';
         if ( isset( $atts['facet'] ) ) {
             $facet = FWP()->helper->get_facet_by_name( $atts['facet'] );
@@ -63,16 +71,13 @@ class FacetWP_Display
 
                 // Preload the template (search engine visible)
                 $temp_query = $wp_query;
-                $preload_data = FWP()->ajax->get_preload_data( $template['name'] );
+                $args = FWP()->request->process_preload_data( $template['name'] );
+                $preload_data = FWP()->facet->render( $args );
                 $wp_query = $temp_query;
 
                 $output = '<div class="facetwp-template" data-name="' . $atts['template'] . '">';
                 $output .= $preload_data['template'];
                 $output .= '</div>';
-
-                if ( apply_filters( 'facetwp_use_pager_seo', true ) ) {
-                    $output .= $this->get_pager_seo();
-                }
 
                 $this->load_assets = true;
             }
@@ -104,52 +109,32 @@ class FacetWP_Display
 
 
     /**
-     * Build a basic hidden pager for SEO purposes
-     */
-    function get_pager_seo() {
-        $page = FWP()->facet->pager_args['page'];
-        $total_pages = FWP()->facet->pager_args['total_pages'];
-        $url_var = FWP()->helper->get_setting( 'prefix' ) . 'paged';
-
-        $prev_link = ( 2 === $page ) ? remove_query_arg( $url_var ) : add_query_arg( $url_var, $page - 1 );
-        $next_link = add_query_arg( $url_var, $page + 1 );
-        $output = '';
-
-        if ( 1 < $total_pages ) {
-            $output .= ( 1 < $page ) ? '<a href="' . $prev_link . '">Prev</a>' : '';
-            $output .= ( $page < $total_pages ) ? '<a href="' . $next_link . '">Next</a>' : '';
-            $output = '<div class="facetwp-seo">' . $output . '</div>';
-        }
-
-        return $output;
-    }
-
-
-    /**
      * Output facet scripts
      */
     function front_scripts() {
 
         // Not enqueued - front.js needs to load before front_scripts()
-        if ( true === apply_filters( 'facetwp_load_assets', $this->load_assets ) ) {
-            if ( true === apply_filters( 'facetwp_load_css', true ) ) {
+        if ( apply_filters( 'facetwp_load_assets', $this->load_assets ) ) {
+
+            // Load CSS?
+            if ( apply_filters( 'facetwp_load_css', true ) ) {
                 $this->assets['front.css'] = FACETWP_URL . '/assets/css/front.css';
             }
 
+            // Load required JS
             $this->assets['front.js'] = FACETWP_URL . '/assets/js/dist/front.min.js';
 
-            // Use the REST API?
-            $ajaxurl = admin_url( 'admin-ajax.php' );
-            if ( function_exists( 'get_rest_url' ) && apply_filters( 'facetwp_use_rest_api', true ) ) {
-                $ajaxurl = get_rest_url() . 'facetwp/v1/refresh';
+            // Load a11y?
+            if ( apply_filters( 'facetwp_load_a11y', false ) ) {
+                $this->assets['accessibility.js'] = FACETWP_URL . '/assets/js/src/accessibility.js';
             }
 
             // Pass GET and URI params
-            $http_params = array(
+            $http_params = [
                 'get' => $_GET,
                 'uri' => FWP()->helper->get_uri(),
-                'url_vars' => FWP()->ajax->url_vars,
-            );
+                'url_vars' => FWP()->request->url_vars,
+            ];
 
             // See FWP()->facet->get_query_args()
             if ( ! empty( FWP()->facet->archive_args ) ) {
@@ -157,14 +142,18 @@ class FacetWP_Display
             }
 
             // Populate the FWP_JSON object
-            $this->json['loading_animation'] = FWP()->helper->get_setting( 'loading_animation' );
             $this->json['prefix'] = FWP()->helper->get_setting( 'prefix' );
             $this->json['no_results_text'] = __( 'No results found', 'fwp' );
-            $this->json['ajaxurl'] = $ajaxurl;
+            $this->json['ajaxurl'] = get_rest_url() . 'facetwp/v1/refresh';
             $this->json['nonce'] = wp_create_nonce( 'wp_rest' );
 
             if ( apply_filters( 'facetwp_use_preloader', true ) ) {
-                $this->json['preload_data'] = $this->prepare_preload_data();
+                $overrides = FWP()->request->process_preload_overrides([
+                    'facets' => $this->active_facets,
+                    'extras' => $this->active_extras,
+                ]);
+                $args = FWP()->request->process_preload_data( false, $overrides );
+                $this->json['preload_data'] = FWP()->facet->render( $args );
             }
 
             ob_start();
@@ -203,43 +192,5 @@ window.FWP_HTTP = <?php echo json_encode( $http_params ); ?>;
 </script>
 <?php
         }
-    }
-
-
-    /**
-     * On initial pageload, preload the facet data
-     * and pass it client-side through the FWP_JSON object
-     */
-    function prepare_preload_data() {
-        $overrides = array();
-        $url_vars = FWP()->ajax->url_vars;
-
-        foreach ( $this->active_facets as $name ) {
-            $selected_values = isset( $url_vars[ $name ] ) ? $url_vars[ $name ] : array();
-
-            $overrides['facets'][] = array(
-                'facet_name' => $name,
-                'selected_values' => $selected_values,
-            );
-        }
-
-        if ( isset( $this->active_extras['counts'] ) ) {
-            $overrides['extras']['counts'] = true;
-        }
-        if ( isset( $this->active_extras['pager'] ) ) {
-            $overrides['extras']['pager'] = true;
-        }
-        if ( isset( $this->active_extras['per_page'] ) ) {
-            $per_page = isset( $url_vars['per_page'] ) ? $url_vars['per_page'] : 'default';
-            $overrides['extras']['per_page'] = $per_page;
-        }
-        if ( isset( $this->active_extras['sort'] ) ) {
-            $sort = isset( $url_vars['sort'] ) ? $url_vars['sort'] : 'default';
-            $overrides['extras']['sort'] = $sort;
-        }
-
-        $overrides['first_load'] = 1; // skip the template
-        $output = FWP()->ajax->get_preload_data( false, $overrides );
-        return $output;
     }
 }

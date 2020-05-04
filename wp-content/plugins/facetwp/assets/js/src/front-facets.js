@@ -13,7 +13,7 @@
 
     var ac_selected = false;
 
-    wp.hooks.addAction('facetwp/refresh/autocomplete', function($this, facet_name) {
+    FWP.hooks.addAction('facetwp/refresh/autocomplete', function($this, facet_name) {
         var val = $this.find('.facetwp-autocomplete').val() || '';
         FWP.facets[facet_name] = val;
     });
@@ -23,7 +23,15 @@
             var $this = $(this);
             var $parent = $this.closest('.facetwp-facet');
             var facet_name = $parent.attr('data-name');
-            var opts = wp.hooks.applyFilters('facetwp/set_options/autocomplete', {
+
+            // ignore the current facet's selections
+            var post_data = FWP.build_post_data();
+            var facet_values = JSON.parse(JSON.stringify(FWP.facets)); // clone
+            facet_values[facet_name] = ''; // clear value
+            post_data.facets = JSON.stringify(facet_values);
+
+            // initialize
+            var opts = FWP.hooks.applyFilters('facetwp/set_options/autocomplete', {
                 serviceUrl: ('wp' === FWP.template) ? document.URL : FWP_JSON.ajaxurl,
                 type: 'POST',
                 minChars: 3,
@@ -38,7 +46,7 @@
                 params: {
                     action: 'facetwp_autocomplete_load',
                     facet_name: facet_name,
-                    data: FWP.build_post_data()
+                    data: post_data
                 }
             }, { 'facet_name': facet_name });
             $this.autocomplete(opts);
@@ -61,7 +69,7 @@
 
     /* ======== Checkboxes ======== */
 
-    wp.hooks.addAction('facetwp/refresh/checkboxes', function($this, facet_name) {
+    FWP.hooks.addAction('facetwp/refresh/checkboxes', function($this, facet_name) {
         var selected_values = [];
         $this.find('.facetwp-checkbox.checked').each(function() {
             selected_values.push($(this).attr('data-value'));
@@ -69,7 +77,7 @@
         FWP.facets[facet_name] = selected_values;
     });
 
-    wp.hooks.addFilter('facetwp/selections/checkboxes', function(output, params) {
+    FWP.hooks.addFilter('facetwp/selections/checkboxes', function(output, params) {
         var choices = [];
         $.each(params.selected_values, function(idx, val) {
             var choice = params.el.find('.facetwp-checkbox[data-value="' + val + '"]').clone();
@@ -109,7 +117,7 @@
             $el.text($el.text().replace('{num}', num));
         });
 
-        // are children visible?
+        // add toggle feature
         $('.facetwp-type-checkboxes').each(function() {
             var $facet = $(this);
             var name = $facet.attr('data-name');
@@ -119,26 +127,22 @@
                 return;
             }
 
-            // hierarchy toggles
+            // expand children
             if ('yes' === FWP.settings[name]['show_expanded']) {
                 $facet.find('.facetwp-depth').addClass('visible');
             }
 
             if (1 > $facet.find('.facetwp-expand').length) {
+
+                // expand groups with selected items
+                $facet.find('.facetwp-checkbox.checked').each(function() {
+                    $(this).parents('.facetwp-depth').addClass('visible');
+                });
+
+                // add the toggle button
                 $facet.find('.facetwp-depth').each(function() {
                     var which = $(this).hasClass('visible') ? 'collapse' : 'expand';
                     $(this).prev('.facetwp-checkbox').append(' <span class="facetwp-expand">' + FWP_JSON[which] + '</span>');
-                });
-
-                // un-hide groups with selected items
-                $facet.find('.facetwp-checkbox.checked').each(function() {
-                    $(this).parents('.facetwp-depth').each(function() {
-                        $(this).prev('.facetwp-checkbox').find('.facetwp-expand').html(FWP_JSON['collapse']);
-                        $(this).addClass('visible');
-                    });
-
-                    // show children of selected items
-                    $(this).find('.facetwp-expand').trigger('click');
                 });
             }
         });
@@ -146,15 +150,18 @@
 
     /* ======== Radio ======== */
 
-    wp.hooks.addAction('facetwp/refresh/radio', function($this, facet_name) {
+    FWP.hooks.addAction('facetwp/refresh/radio', function($this, facet_name) {
         var selected_values = [];
         $this.find('.facetwp-radio.checked').each(function() {
-            selected_values.push($(this).attr('data-value'));
+            var val = $(this).attr('data-value');
+            if ('' !== val) {
+                selected_values.push(val);
+            }
         });
         FWP.facets[facet_name] = selected_values;
     });
 
-    wp.hooks.addFilter('facetwp/selections/radio', function(output, params) {
+    FWP.hooks.addFilter('facetwp/selections/radio', function(output, params) {
         var choices = [];
         $.each(params.selected_values, function(idx, val) {
             var choice = params.el.find('.facetwp-radio[data-value="' + val + '"]').clone();
@@ -178,22 +185,22 @@
 
     /* ======== Date Range ======== */
 
-    wp.hooks.addAction('facetwp/refresh/date_range', function($this, facet_name) {
+    FWP.hooks.addAction('facetwp/refresh/date_range', function($this, facet_name) {
         var min = $this.find('.facetwp-date-min').pVal() || '';
         var max = $this.find('.facetwp-date-max').pVal() || '';
         FWP.facets[facet_name] = ('' !== min || '' !== max) ? [min, max] : [];
     });
 
-    wp.hooks.addFilter('facetwp/selections/date_range', function(output, params) {
+    FWP.hooks.addFilter('facetwp/selections/date_range', function(output, params) {
         var vals = params.selected_values;
         var $el = params.el;
         var out = '';
 
         if ('' !== vals[0]) {
-            out += ' from ' + $el.find('.facetwp-date-min').next().val();
+            out += ' ' + FWP_JSON.datepicker.fromText + ' ' + $el.find('.facetwp-date-min').next().val();
         }
         if ('' !== vals[1]) {
-            out += ' to ' + $el.find('.facetwp-date-max').next().val();
+            out += ' ' + FWP_JSON.datepicker.toText + ' ' + $el.find('.facetwp-date-max').next().val();
         }
         return out;
     });
@@ -229,7 +236,7 @@
             var facet_name = $this.closest('.facetwp-facet').attr('data-name');
             flatpickr_opts.altFormat = FWP.settings[facet_name].format;
 
-            var opts = wp.hooks.applyFilters('facetwp/set_options/date_range', flatpickr_opts, {
+            var opts = FWP.hooks.applyFilters('facetwp/set_options/date_range', flatpickr_opts, {
                 'facet_name': facet_name,
                 'element': $this
             });
@@ -240,13 +247,14 @@
 
     /* ======== Dropdown ======== */
 
-    wp.hooks.addAction('facetwp/refresh/dropdown', function($this, facet_name) {
+    FWP.hooks.addAction('facetwp/refresh/dropdown', function($this, facet_name) {
         var val = $this.find('.facetwp-dropdown').val();
         FWP.facets[facet_name] = val ? [val] : [];
     });
 
-    wp.hooks.addFilter('facetwp/selections/dropdown', function(output, params) {
-        return params.el.find('.facetwp-dropdown option:selected').text();
+    FWP.hooks.addFilter('facetwp/selections/dropdown', function(output, params) {
+        var text = params.el.find('.facetwp-dropdown option:selected').text();
+        return text.replace(/\(\d+\)$/, '');
     });
 
     $(document).on('change', '.facetwp-type-dropdown select', function() {
@@ -261,7 +269,7 @@
 
     /* ======== fSelect ======== */
 
-    wp.hooks.addAction('facetwp/refresh/fselect', function($this, facet_name) {
+    FWP.hooks.addAction('facetwp/refresh/fselect', function($this, facet_name) {
         var val = $this.find('select').val();
         if (null === val || '' === val) {
             val = [];
@@ -272,7 +280,7 @@
         FWP.facets[facet_name] = val;
     });
 
-    wp.hooks.addFilter('facetwp/selections/fselect', function(output, params) {
+    FWP.hooks.addFilter('facetwp/selections/fselect', function(output, params) {
         var choices = [];
         $.each(params.selected_values, function(idx, val) {
             var choice = params.el.find('.facetwp-dropdown option[value="' + val + '"]').text();
@@ -288,16 +296,16 @@
         $('.facetwp-type-fselect select:not(.ready)').each(function() {
             var facet_name = $(this).closest('.facetwp-facet').attr('data-name');
             var settings = FWP.settings[facet_name];
-            var opts = wp.hooks.applyFilters('facetwp/set_options/fselect', {
-                placeholder: settings.placeholder,
-                overflowText: settings.overflowText,
-                searchText: settings.searchText,
-                optionFormatter: function(row) {
-                    row = row.replace(/{{/g, '<span class="facetwp-counter">');
-                    row = row.replace(/}}/g, '<span>');
-                    return row;
-                }
-            }, { 'facet_name': facet_name });
+
+            settings.optionFormatter = function(row) {
+                row = row.replace(/{{/g, '<span class="facetwp-counter">');
+                row = row.replace(/}}/g, '<span>');
+                return row;
+            };
+
+            var opts = FWP.hooks.applyFilters('facetwp/set_options/fselect', settings, {
+                'facet_name': facet_name
+            });
 
             $(this).fSelect(opts);
             $(this).addClass('ready');
@@ -336,7 +344,7 @@
 
     /* ======== Hierarchy ======== */
 
-    wp.hooks.addAction('facetwp/refresh/hierarchy', function($this, facet_name) {
+    FWP.hooks.addAction('facetwp/refresh/hierarchy', function($this, facet_name) {
         var selected_values = [];
         $this.find('.facetwp-link.checked').each(function() {
             selected_values.push($(this).attr('data-value'));
@@ -344,7 +352,7 @@
         FWP.facets[facet_name] = selected_values;
     });
 
-    wp.hooks.addFilter('facetwp/selections/hierarchy', function(output, params) {
+    FWP.hooks.addFilter('facetwp/selections/hierarchy', function(output, params) {
         return params.el.find('.facetwp-link.checked').text();
     });
 
@@ -364,13 +372,13 @@
 
     /* ======== Number Range ======== */
 
-    wp.hooks.addAction('facetwp/refresh/number_range', function($this, facet_name) {
+    FWP.hooks.addAction('facetwp/refresh/number_range', function($this, facet_name) {
         var min = $this.find('.facetwp-number-min').val() || '';
         var max = $this.find('.facetwp-number-max').val() || '';
         FWP.facets[facet_name] = ('' !== min || '' !== max) ? [min, max] : [];
     });
 
-    wp.hooks.addFilter('facetwp/selections/number_range', function(output, params) {
+    FWP.hooks.addFilter('facetwp/selections/number_range', function(output, params) {
         return params.selected_values[0] + ' - ' + params.selected_values[1];
     });
 
@@ -387,43 +395,51 @@
             return;
         }
 
+        if (! FWP.loaded) {
+            window.FWP_MAP = window.FWP_MAP || {};
+            FWP_MAP.sessionToken = new google.maps.places.AutocompleteSessionToken();
+            FWP_MAP.autocompleteService = new google.maps.places.AutocompleteService();
+            FWP_MAP.placesService = new google.maps.places.PlacesService(
+                document.createElement('div')
+            );
+
+            // We need FWP_JSON available to grab the queryDelay
+            $(document).on('input', '.facetwp-location', FWP.helper.debounce(function() {
+                var val = $(this).val();
+                var $facet = $(this).closest('.facetwp-facet');
+
+                if ('' == val || val.length < FWP_JSON['proximity']['minLength']) {
+                    $facet.find('.location-results').addClass('facetwp-hidden');
+                    return;
+                }
+
+                var options = FWP_JSON['proximity']['autocomplete_options'];
+                options.sessionToken = FWP_MAP.sessionToken;
+                options.input = val;
+
+                FWP_MAP.autocompleteService.getPredictions(options, function(results, status) {
+                    if (status === google.maps.places.PlacesServiceStatus.OK) {
+                        var html = '';
+
+                        results.forEach(function(result, index) {
+                            var css = (0 === index) ? ' active' : '';
+                            html += '<div class="location-result' + css + '" data-id="' + result.place_id + '" data-index="' + index + '">';
+                            html += '<span class="result-main">' + result.structured_formatting.main_text + '</span> ';
+                            html += '<span class="result-secondary">' + result.structured_formatting.secondary_text + '</span>';
+                            html += '<span class="result-description facetwp-hidden">' + result.description + '</span>';
+                            html += '</div>';
+                        });
+
+                        $facet.find('.location-results').html(html).removeClass('facetwp-hidden');
+                    }
+                });
+            }, FWP_JSON['proximity']['queryDelay']));
+        }
+
         $locations.each(function(idx, el) {
             var $input = $(this);
 
             if ($input.closest('.location-wrap').length < 1) {
-
-                // Select the first choice
-                (function pacSelectFirst(input) {
-                    var _addEventListener = input.addEventListener;
-
-                    function addEventListenerWrapper(type, listener) {
-                        if ('keydown' === type) {
-                            var orig_listener = listener;
-                            listener = function(event) {
-                                if (13 === event.which && 0 === $('.pac-container .pac-item-selected').length) {
-                                    var simulated_downarrow = $.Event('keydown', {keyCode: 40, which: 40});
-                                    orig_listener.apply(input, [simulated_downarrow]); // down arrow
-                                }
-                                orig_listener.apply(input, [event]); // original event
-                            }
-                        }
-                        _addEventListener.apply(input, [type, listener]);
-                    }
-                    input.addEventListener = addEventListenerWrapper;
-
-                    var options = FWP_JSON['proximity']['autocomplete_options'];
-                    var autocomplete = new google.maps.places.Autocomplete(input, options);
-
-                    google.maps.event.addListener(autocomplete, 'place_changed', function() {
-                        var place = autocomplete.getPlace();
-                        if ('undefined' !== typeof place.geometry) {
-                            var $facet = $(input).closest('.facetwp-facet');
-                            $facet.find('.facetwp-lat').val(place.geometry.location.lat());
-                            $facet.find('.facetwp-lng').val(place.geometry.location.lng());
-                            FWP.autoload();
-                        }
-                    });
-                })($input[0]);
 
                 // Preserve CSS IDs
                 if (0 === idx) {
@@ -434,10 +450,31 @@
                 // Add the "Locate me" icon
                 $input.wrap('<span class="location-wrap"></span>');
                 $input.before('<i class="locate-me"></i>');
+                $input.after('<div class="location-results facetwp-hidden"></div>');
             }
 
             $input.trigger('keyup');
         });
+    });
+
+    $(document).on('click', '.location-result', function() {
+        var $facet = $(this).closest('.facetwp-facet');
+        var place_id = $(this).attr('data-id');
+        var description = $(this).find('.result-description').text();
+
+        FWP_MAP.placesService.getDetails({
+            placeId: place_id,
+            fields: ['geometry']
+        }, function(place, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                $facet.find('.facetwp-lat').val(place.geometry.location.lat());
+                $facet.find('.facetwp-lng').val(place.geometry.location.lng());
+                FWP.autoload();
+            }
+        });
+
+        $('.facetwp-location').val(description);
+        $('.location-results').addClass('facetwp-hidden');
     });
 
     $(document).on('click', '.facetwp-type-proximity .locate-me', function(e) {
@@ -450,7 +487,7 @@
         // reset
         if ($this.hasClass('f-reset')) {
             $lat.val('');
-            $lat.val('');
+            $lng.val('');
             $input.val('');
             FWP.autoload();
             return;
@@ -481,15 +518,60 @@
             });
 
             $this.removeClass('f-loading');
+
+            FWP.hooks.doAction('facetwp/geolocation/success', {
+                'facet': $facet,
+                'position': position
+            });
         },
-        function() {
+        function(error) {
             $this.removeClass('f-loading');
+
+            FWP.hooks.doAction('facetwp/geolocation/error', {
+                'facet': $facet,
+                'error': error
+            });
         });
     });
 
-    $(document).on('keyup', '.facetwp-location', function() {
+    $(document).on('keyup', '.facetwp-location', function(e) {
         var $facet = $(this).closest('.facetwp-facet');
         $facet.find('.locate-me').toggleClass('f-reset', ('' !== $(this).val()));
+
+        if (38 === e.which || 40 === e.which || 13 === e.which) {
+            var curr_index = parseInt($facet.find('.location-result.active').attr('data-index'));
+            var max_index = parseInt($facet.find('.location-result:last').attr('data-index'));
+        }
+
+        if (38 === e.which) { // up
+            var new_index = (0 < curr_index) ? (curr_index - 1) : max_index;
+            $facet.find('.location-result.active').removeClass('active');
+            $facet.find('.location-result[data-index=' + new_index + ']').addClass('active');
+        }
+        else if (40 === e.which) { // down
+            var new_index = (curr_index < max_index) ? (curr_index + 1) : 0;
+            $facet.find('.location-result.active').removeClass('active');
+            $facet.find('.location-result[data-index=' + new_index + ']').addClass('active');
+        }
+        else if (13 === e.which) { // enter
+            $facet.find('.location-result.active').trigger('click');
+        }
+    });
+
+    $(document).on('click focusout', function(e) {
+        var $el = $(e.target);
+        var $wrap = $el.closest('.location-wrap');
+
+        if ($wrap.length < 1 || $el.hasClass('f-reset')) {
+            $('.location-results').addClass('facetwp-hidden');
+        }
+    });
+
+    $(document).on('focusin', '.facetwp-location', function() {
+        var $facet = $(this).closest('.facetwp-facet');
+        if ('' != $(this).val()) {
+            $facet.find('.location-results').removeClass('facetwp-hidden');
+        }
     });
 
     $(document).on('change', '.facetwp-radius', function() {
@@ -504,7 +586,7 @@
         $facet.find('.facetwp-radius-dist').text(e.target.value);
     });
 
-    wp.hooks.addAction('facetwp/refresh/proximity', function($this, facet_name) {
+    FWP.hooks.addAction('facetwp/refresh/proximity', function($this, facet_name) {
         var lat = $this.find('.facetwp-lat').val();
         var lng = $this.find('.facetwp-lng').val();
         var radius = $this.find('.facetwp-radius').val();
@@ -514,7 +596,7 @@
             [lat, lng, radius, location] : [];
     });
 
-    wp.hooks.addFilter('facetwp/selections/proximity', function(label, params) {
+    FWP.hooks.addFilter('facetwp/selections/proximity', function(label, params) {
         return FWP_JSON['proximity']['clearText'];
     });
 
@@ -524,12 +606,12 @@
         delay_refresh: FWP.helper.debounce(function(facet_name) {
             FWP.frozen_facets[facet_name] = 'soft';
             FWP.autoload();
-        }, 250)
+        }, 500)
     };
 
-    wp.hooks.addAction('facetwp/refresh/search', function($this, facet_name) {
-        var val = $this.find('.facetwp-search').val() || '';
-        FWP.facets[facet_name] = val;
+    FWP.hooks.addAction('facetwp/refresh/search', function($this, facet_name) {
+        var $input = $this.find('.facetwp-search');
+        FWP.facets[facet_name] = $input.val() || '';
     });
 
     $(document).on('keyup', '.facetwp-type-search .facetwp-search', function(e) {
@@ -552,18 +634,25 @@
 
     /* ======== Slider ======== */
 
-    wp.hooks.addAction('facetwp/refresh/slider', function($this, facet_name) {
+    FWP.hooks.addAction('facetwp/refresh/slider', function($this, facet_name) {
         FWP.facets[facet_name] = [];
 
         // settings have already been loaded
         if ('undefined' !== typeof FWP.frozen_facets[facet_name]) {
             if ('undefined' !== typeof $this.find('.facetwp-slider')[0].noUiSlider) {
                 FWP.facets[facet_name] = $this.find('.facetwp-slider')[0].noUiSlider.get();
+
+                // prevent changes during loading
+                $this.find('.facetwp-slider')[0].setAttribute('disabled', true);
             }
         }
     });
 
-    wp.hooks.addAction('facetwp/set_label/slider', function($this) {
+    FWP.hooks.addAction('facetwp/loaded', function() {
+        $('.facetwp-type-slider .facetwp-slider').removeAttr('disabled');
+    });
+
+    FWP.hooks.addAction('facetwp/set_label/slider', function($this) {
         var facet_name = $this.attr('data-name');
         var min = FWP.settings[facet_name]['lower'];
         var max = FWP.settings[facet_name]['upper'];
@@ -590,7 +679,7 @@
         $this.find('.facetwp-slider-label').html(label);
     });
 
-    wp.hooks.addFilter('facetwp/selections/slider', function(output, params) {
+    FWP.hooks.addFilter('facetwp/selections/slider', function(output, params) {
         return params.el.find('.facetwp-slider-label').text();
     });
 
@@ -619,12 +708,12 @@
             if (parseFloat(opts.range.min) >= parseFloat(opts.range.max)) {
                 FWP.settings[facet_name]['lower'] = opts.range.min;
                 FWP.settings[facet_name]['upper'] = opts.range.max;
-                wp.hooks.doAction('facetwp/set_label/slider', $parent);
+                FWP.hooks.doAction('facetwp/set_label/slider', $parent);
                 return;
             }
 
             // custom slider options
-            var slider_opts = wp.hooks.applyFilters('facetwp/set_options/slider', {
+            var slider_opts = FWP.hooks.applyFilters('facetwp/set_options/slider', {
                 range: opts.range,
                 start: opts.start,
                 step: parseFloat(opts.step),
@@ -637,7 +726,7 @@
             slider.noUiSlider.on('update', function(values, handle) {
                 FWP.settings[facet_name]['lower'] = values[0];
                 FWP.settings[facet_name]['upper'] = values[1];
-                wp.hooks.doAction('facetwp/set_label/slider', $parent);
+                FWP.hooks.doAction('facetwp/set_label/slider', $parent);
             });
             slider.noUiSlider.on('set', function() {
                 FWP.frozen_facets[facet_name] = 'hard';
@@ -662,7 +751,7 @@
 
     /* ======== Rating ======== */
 
-    wp.hooks.addAction('facetwp/refresh/rating', function($this, facet_name) {
+    FWP.hooks.addAction('facetwp/refresh/rating', function($this, facet_name) {
         var selected_values = [];
         $this.find('.facetwp-star.selected').each(function() {
             var val = $(this).attr('data-value');
@@ -700,6 +789,52 @@
             $(this).addClass('selected');
         }
         FWP.autoload();
+    });
+
+    /* ======== Pager ======== */
+
+    FWP.hooks.addAction('facetwp/refresh/pager', function($this, facet_name) {
+        FWP.facets[facet_name] = [];
+    });
+
+    FWP.hooks.addFilter('facetwp/template_html', function(resp, params) {
+        if (FWP.is_load_more) {
+            FWP.is_load_more = false;
+
+            // layout builder
+            if ( 0 < $('.fwpl-layout').length ) {
+                $('.fwpl-layout').append($(params.html).html());
+            }
+            // other
+            else {
+                $('.facetwp-template').append(params.html);
+            }
+            return true;
+        }
+        return resp;
+    });
+
+    $(document).on('click', '.facetwp-load-more', function() {
+        var loading_text = $(this).attr('data-loading');
+        $(this).html(loading_text);
+
+        FWP.is_load_more = true; // set the flag
+        FWP.load_more_paged += 1; // next page
+        FWP.paged = FWP.load_more_paged; // grab the next page of results
+        FWP.soft_refresh = true; // don't process facets
+        FWP.is_reset = true; // don't parse facets
+        FWP.refresh();
+    });
+
+    $(document).on('facetwp-loaded', function() {
+        var is_visible = (FWP.settings.pager.page < FWP.settings.pager.total_pages);
+        $('.facetwp-load-more').toggle(is_visible);
+    });
+
+    $(document).on('facetwp-refresh', function() {
+        if (! FWP.loaded || ! FWP.is_load_more) {
+            FWP.load_more_paged = 1;
+        }
     });
 
 })(jQuery);

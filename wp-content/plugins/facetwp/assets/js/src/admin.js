@@ -9,7 +9,7 @@
 
         Vue.config.devtools = true;
 
-        Vue.component('multiselect', VueMultiselect.default);
+        Vue.component('v-select', VueSelect.VueSelect);
 
         Vue.filter('i18n', str => FWP.__(str));
 
@@ -169,7 +169,7 @@
                         custom_css: {
                             type: 'textarea',
                             title: FWP.__('Custom CSS'),
-                            tab: 'advanced'
+                            tab: 'style'
                         },
                         grid_template_columns: {
                             type: 'text',
@@ -184,13 +184,7 @@
                             type: 'select',
                             title: FWP.__('Image size'),
                             defaultValue: 'thumbnail',
-                            choices: {
-                                'thumbnail': 'Thumbnail (150px)',
-                                'medium': 'Medium (300px)',
-                                'medium_large': 'Medium Large (768px)',
-                                'large': 'Large (1024px)',
-                                'full': 'Original'
-                            },
+                            choices: FWP.image_sizes,
                             v_show: [
                                 { type: 'source', value: 'featured_image' }
                             ]
@@ -282,8 +276,7 @@
                         is_hidden: {
                             type: 'checkbox',
                             defaultValue: false,
-                            suffix: FWP.__('Hide item?'),
-                            tab: 'advanced'
+                            suffix: FWP.__('Hide item?')
                         },
                         padding: {
                             type: 'utrbl',
@@ -299,13 +292,12 @@
                         },
                         name: {
                             type: 'text',
-                            title: FWP.__('Unique name'),
-                            tab: 'advanced'
+                            title: FWP.__('Name')
                         },
                         css_class: {
                             type: 'text',
                             title: FWP.__('CSS class'),
-                            tab: 'advanced'
+                            tab: 'style'
                         }
                     };
 
@@ -326,7 +318,7 @@
                     let fields = [];
 
                     if ('layout' == type) {
-                        fields.push('num_columns', 'grid_gap', 'custom_css');
+                        fields.push('num_columns', 'grid_gap');
                     }
 
                     if ('row' == type) {
@@ -344,7 +336,7 @@
                             fields.push('button_text', 'button_text_color', 'button_color', 'button_padding', 'button_border', 'link');
                         }
                         if ('post_date' == source || 'post_modified' == source) {
-                            fields.push('date_format', 'input_format');
+                            fields.push('date_format');
                         }
                         if ('post_title' == source) {
                             fields.push('link');
@@ -355,17 +347,26 @@
                         if (0 === source.indexOf('cf/')) {
                             fields.push('field_type', 'date_format', 'input_format', 'number_format', 'link');
                         }
+                        if (0 === source.indexOf('woo/')) {
+                            fields.push('field_type', 'date_format', 'input_format', 'number_format');
+                        }
                         if (0 === source.indexOf('tax/')) {
                             fields.push('separator', 'term_link');
                         }
                         if (!['html', 'button', 'featured_image'].includes(source)) {
                             fields.push('prefix', 'suffix');
                         }
-
-                        fields.push('is_hidden');
                     }
 
                     fields.push('border', 'background_color', 'padding', 'text_color', 'text_style', 'font_size', 'name', 'css_class');
+
+                    if ('layout' == type) {
+                        fields.push('custom_css');
+                    }
+
+                    if ('item' == type) {
+                        fields.push('is_hidden');
+                    }
 
                     return fields;
                 },
@@ -396,23 +397,29 @@
                 query_obj: {
                     type: Object,
                     required: true
+                },
+                template: {
+                    type: Object,
+                    required: true
                 }
             },
             template: `
             <div class="qb-wrap">
+                <div class="side-link">
+                    <a href="javascript:;" @click="$root.getQueryArgs(template)">{{ 'Convert to query args' | i18n }}</a>
+                </div>
+
                 <div>
                     {{ 'Fetch' | i18n }}
-                    <multiselect
+                    <v-select
                         v-model="query_obj.post_type"
+                        :options="$root.query_data.post_types"
                         :multiple="true"
                         :searchable="false"
-                        :options="$root.query_data.post_types"
                         :close-on-select="false"
-                        :show-labels="false"
-                        label="label"
-                        track-by="value"
                         placeholder="All post types">
-                    </multiselect>
+                    </v-select>
+
                     {{ 'and show' | i18n }}
                     <input type="number" v-model.number="query_obj.posts_per_page" class="qb-posts-per-page" />
                     {{ 'per page' | i18n }}
@@ -424,7 +431,7 @@
                 </div>
 
                 <div v-for="(row, index) in query_obj.orderby" class="qb-condition">
-                    <select v-model="row.key" class="qb-object">
+                    <fselect :row="row">
                         <optgroup label="Posts">
                             <option value="ID">ID</option>
                             <option value="title">{{ 'Post Title' | i18n }}</option>
@@ -438,7 +445,7 @@
                         <optgroup label="Custom Fields">
                             <option v-for="(label, name) in $root.data_sources.custom_fields.choices" :value="name">{{ label }}</option>
                         </optgroup>
-                    </select>
+                    </fselect>
                     <select v-model="row.type" v-show="row.key.substr(0, 3) == 'cf/'" class="qb-type">
                         <option value="CHAR">TEXT</option>
                         <option value="NUMERIC">NUMERIC</option>
@@ -458,15 +465,16 @@
                 </div>
 
                 <div v-for="(row, index) in query_obj.filters" class="qb-condition">
-                    <select v-model="row.key" class="qb-object">
+                    <fselect :row="row">
                         <optgroup v-for="data in $root.query_data.filter_by" :label="data.label">
                             <option v-for="(label, name) in data.choices" :value="name" v-html="label"></option>
                         </optgroup>
-                    </select>
+                    </fselect>
 
                     <select v-model="row.type" v-show="row.key.substr(0, 3) == 'cf/'" class="qb-type">
                         <option value="CHAR">TEXT</option>
                         <option value="NUMERIC">NUMERIC</option>
+                        <option value="DATE">DATE</option>
                     </select>
 
                     <select v-model="row.compare" class="qb-compare">
@@ -482,18 +490,16 @@
                         <option v-if="showCompare('NOT EXISTS', row)" value="NOT EXISTS">NOT EXISTS</option>
                     </select>
 
-                    <multiselect
+                    <v-select
                         v-model="row.value"
                         v-show="row.compare != 'EXISTS' && row.compare != 'NOT EXISTS'"
-                        v-on:tag="addTag($event, row.value)"
+                        :options="[]"
                         :multiple="true"
                         :taggable="true"
-                        :show-labels="false"
-                        :options="[]"
-                        :closeOnSelect="false"
-                        :placeholder="getPlaceholder(row)"
-                        tag-placeholder="Hit Enter">
-                    </multiselect>
+                        :close-on-select="false"
+                        :placeholder="getPlaceholder(row)">
+                    </v-select>
+
                     <span @click="deleteFilterCriteria(index)" class="qb-remove">
                         <i class="fas fa-minus-circle"></i>
                     </span>
@@ -512,19 +518,24 @@
                 getPlaceholder({key}) {
                     return ('tax/' == key.substr(0, 4)) ? FWP.__('Enter term slugs') : FWP.__('Enter values');
                 },
-                showCompare(option, {key}) {
+                showCompare(option, {key, type}) {
                     if ('tax/' == key.substr(0, 4)) {
                         if (!['IN', 'NOT IN', 'EXISTS', 'NOT EXISTS'].includes(option)) {
                             return false;
                         }
                     }
-                    if (['ID', 'post_author', 'post_status', 'post_name'].includes(key)) {
+                    else if (['ID', 'post_author', 'post_status', 'post_name'].includes(key)) {
                         if (option != 'IN' && option != 'NOT IN') {
                             return false;
                         }
                     }
-                    if ('post_date' == key || 'post_modified' == key) {
+                    else if ('DATE' == type || 'post_date' == key || 'post_modified' == key) {
                         if (!['>', '>=', '<', '<='].includes(option)) {
+                            return false;
+                        }
+                    }
+                    else if ('CHAR' == type) {
+                        if (['>', '>=', '<', '<='].includes(option)) {
                             return false;
                         }
                     }
@@ -554,6 +565,36 @@
             }
         });
 
+        Vue.component('fselect', {
+            props: ['row'],
+            template: `
+            <select :id="rand" v-model="row.key" class="qb-object">
+                <slot></slot>
+            </select>
+            `,
+            methods: {
+                fSelectChanged(event, $wrap) {
+
+                    // only update this current instance
+                    if (0 < $($wrap).find('#' + this.rand).length) {
+                        this.row.key = this.$el.value;
+                    }
+                }
+            },
+            created() {
+
+                // create a random ID for each fSelect instance
+                this.rand = 'fs-' + Math.random().toString(36).substring(7);
+            },
+            mounted() {
+                $(this.$el).fSelect();
+                $(document).on('fs:changed', this.fSelectChanged);
+            },
+            beforeDestroy() {
+                $(document).off('fs:changed', this.fSelectChanged);
+            }
+        });
+
         /* ================ layout builder ================ */
 
 
@@ -567,7 +608,7 @@
                     <div class="builder-canvas">
                         <div class="builder-edge"></div>
                         <div class="builder-edge vertical"></div>
-                        <draggable :list="layout.items" :options="{ handle: '.builder-row-actions.not-child' }">
+                        <draggable :list="layout.items" handle=".builder-row-actions.not-child">
                             <builder-row
                                 v-for="(row, index) in layout.items"
                                 :row="row"
@@ -672,12 +713,40 @@
 
         Vue.component('setting-color', {
             props: ['settings', 'name', 'meta'],
-            template: '<input type="text" v-model="settings[name]" class="minicolors" />',
+            template: `
+            <div class="color-wrap">
+                <div class="color-canvas">
+                    <span class="color-preview"></span>
+                    <input type="text" class="color-input" v-model="settings[name]" />
+                </div>
+                <span class="color-clear">X</span>
+            </div>`,
             mounted() {
                 let self = this;
-                $(this.$el).minicolors();
-                $(this.$el).on('change', function() {
-                    self.settings[self.name] = this.value;
+                let $canvas = self.$el.getElementsByClassName('color-canvas')[0];
+                let $preview = self.$el.getElementsByClassName('color-preview')[0];
+                let $input = self.$el.getElementsByClassName('color-input')[0];
+                let $clear = self.$el.getElementsByClassName('color-clear')[0];
+                $preview.style.backgroundColor = $input.value;
+
+                let picker = new Picker({
+                    parent: $canvas,
+                    popup: 'left',
+                    alpha: false,
+                    onDone(color) {
+                        let hex = color.hex().substr(0, 7);
+                        self.settings[self.name] = hex;
+                        $preview.style.backgroundColor = hex;
+                    }
+                });
+
+                picker.onOpen = function(color) {
+                    picker.setColor($input.value);
+                };
+
+                $clear.addEventListener('click', function() {
+                    self.settings[self.name] = '';
+                    $preview.style.backgroundColor = '';
                 });
             }
         });
@@ -829,7 +898,6 @@
                     <div class="template-tabs">
                         <span @click="setActiveTab('content')" :class="isActiveTab('content')">{{ 'Content' | i18n }}</span>
                         <span @click="setActiveTab('style')" :class="isActiveTab('style')">{{ 'Style' | i18n }}</span>
-                        <span @click="setActiveTab('advanced')" :class="isActiveTab('advanced')">{{ 'Advanced' | i18n }}</span>
                     </div>
                     <setting-wrap
                         v-for="name in settingsFields"
@@ -906,10 +974,10 @@
             template: `
             <div class="builder-row">
                 <div class="builder-row-actions" :class="classIsChild">
-                    <span @click="editRow"><i class="fas fa-cog"></i></span>
-                    <span @click="addCol"><i class="fas fa-columns"></i></span>
-                    <span @click="addRow"><i class="fas fa-plus"></i></span>
-                    <span @click="deleteRow"><i class="fas fa-times"></i></span>
+                    <span @click="editRow" title="Edit row"><i class="fas fa-cog"></i></span>
+                    <span @click="addCol" title="Add columm"><i class="fas fa-columns"></i></span>
+                    <span @click="addRow" title="Add row"><i class="fas fa-plus"></i></span>
+                    <span @click="deleteRow" title="Delete row"><i class="fas fa-times"></i></span>
                 </div>
                 <div class="builder-row-inner" :style="{ gridTemplateColumns: row.settings.grid_template_columns }">
                     <builder-col
@@ -979,12 +1047,11 @@
                 <col-resizer :cols="cols" :index="index" v-show="index < (cols.length - 1)"></col-resizer>
                 <popover :col="col" v-if="adding_item" v-on-clickaway="away"></popover>
                 <div class="builder-col-actions">
-                    <span @click="editCol"><i class="fas fa-cog"></i></span>
-                    <span @click="addItem"><i class="fas fa-plus"></i></span>
-                    <span @click="deleteCol"><i class="fas fa-times"></i></span>
+                    <span @click="editCol" title="Edit columm"><i class="fas fa-cog"></i></span>
+                    <span @click="deleteCol" title="Delete column"><i class="fas fa-times"></i></span>
                 </div>
                 <div class="builder-col-inner" :class="[ !col.items.length ? 'empty-col' : '' ]">
-                    <draggable v-model="col.items" :options="{ group: 'builder-items', handle: '.item-drag' }" class="draggable">
+                    <draggable v-model="col.items" handle=".item-drag" group="drag-across-columns" class="draggable">
                         <div v-for="(item, index) in col.items" :key="index">
                         <builder-item
                             v-if="item.type != 'row'"
@@ -1000,7 +1067,7 @@
                             :is_child="true">
                         </builder-row>
                         </div>
-                        <div class="builder-empty-view" @click="addItem" v-if="!col.items.length">
+                        <div class="builder-empty-view" @click="addItem">
                             <div class="builder-first-add">+</div>
                         </div>
                     </draggable>
@@ -1111,7 +1178,7 @@
             template: `
             <div class="builder-item">
                     <div class="builder-item-actions">
-                    <span @click="deleteItem"><i class="fas fa-times"></i></span>
+                    <span @click="deleteItem" title="Delete item"><i class="fas fa-times"></i></span>
                 </div>
                 <div class="builder-item-inner" @click="editItem" :class="[ item.settings.is_hidden ? 'is-hidden' : '' ]">
                     <span class="item-drag" v-html="$root.layout_data[item.source]"></span>
@@ -1199,36 +1266,78 @@
         Vue.component('facets', {
             props: ['facets'],
             template: `
-            <draggable class="facetwp-cards" v-model="$root.app.facets" :options="{ handle: '.card-label' }">
+            <draggable class="facetwp-cards" v-model="$root.app.facets" handle=".card-drag">
                 <div
                     class="facetwp-card"
                     v-for="(facet, index) in facets"
-                    v-show="$root.isMatch(facet)"
                     @click="$root.editItem('facet', facet)"
                 >
+                    <div class="card-drag">&#9776;</div>
+                    <div class="card-label" :title="facet.name">
+                        {{ facet.label }}
+                        <span v-if="facet._code">&nbsp; <i class="fas fa-lock"></i></span>
+                    </div>
                     <div class="card-delete" @click.stop="$root.deleteItem('facet', index)"></div>
-                    <div class="card-label">{{ facet.label }}</div>
                     <div class="card-type">{{ facet.type }}</div>
+                    <div class="card-source" v-html="getSource(facet.source)"></div>
+                    <div class="card-rows">{{ getRowCount(facet.name) }}</div>
                 </div>
             </draggable>
-            `
+            `,
+            methods: {
+                getSource(source) {
+                    return FWP.layout_data[source] || '-';
+                },
+                getRowCount(facet_name) {
+                    if (this.$root.is_indexing) {
+                        return '...';
+                    }
+                    return this.$root.row_counts[facet_name] || '-';
+                }
+            }
         });
 
         Vue.component('templates', {
             props: ['templates'],
             template: `
-            <draggable class="facetwp-cards" v-model="$root.app.templates" :options="{ handle: '.card-label' }">
+            <draggable class="facetwp-cards" v-model="$root.app.templates" handle=".card-drag">
                 <div
                     class="facetwp-card"
                     v-for="(template, index) in templates"
-                    v-show="$root.isMatch(template)"
                     @click="$root.editItem('template', template)"
                 >
+                    <div class="card-drag">&#9776;</div>
+                    <div class="card-label" :title="template.name">
+                        {{ template.label }}
+                        <span v-if="template._code">&nbsp;<i class="fas fa-lock"></i></span>
+                    </div>
                     <div class="card-delete" @click.stop="$root.deleteItem('template', index)"></div>
-                    <div class="card-label">{{ template.label }}</div>
+                    <div class="card-display-mode">{{ getDisplayMode(index) }}</div>
+                    <div class="card-post-types">{{ getPostTypes(index) }}</div>
                 </div>
             </draggable>
-            `
+            `,
+            methods: {
+                getDisplayMode(index) {
+                    let template = this.templates[index];
+                    return ('undefined' !== typeof template.modes) ? template.modes.display : 'advanced';
+                },
+                getPostTypes(index) {
+                    let template = this.templates[index];
+                    if ('undefined' !== typeof template.modes) {
+                        if ('visual' == template.modes.query) {
+                            let post_types = template.query_obj.post_type;
+                            if (0 === post_types.length) {
+                                return '<any>';
+                            }
+                            else {
+                                return post_types.map(type => type.label).join(', ');
+                            }
+                        }
+                    }
+                    return '<raw query>';
+                }
+            }
         });
 
         Vue.component('facet-edit', {
@@ -1240,51 +1349,59 @@
             created() {
                 this.facet = this.$root.editing;
             },
+            methods: {
+                setName(e) {
+                    this.facet.name = this.$root.sanitizeName(e.target.innerHTML);
+                },
+                unlock() {
+                    Vue.delete(this.facet, '_code');
+                }
+            },
             template: `
-            <div class="facetwp-content" :class="[ 'type-' + facet.type ]">
-                <div class="facetwp-row">
-                    <div>{{ 'Label' | i18n }}:</div>
-                    <div>
-                        <input
-                            type="text"
-                            v-model="facet.label"
-                            @focus="$root.isNameEditable(facet)"
-                            @keyup="$root.maybeEditName(facet)"
-                        />
-                        &nbsp; &nbsp; {{ 'Name' | i18n }}:
-                        <input
-                            type="text"
-                            class="item-name"
-                            v-model="facet.name"
-                        />
-                    </div>
+            <div>
+                <div class="item-locked" v-if="facet._code">
+                    This facet is registered in code. Click to allow edits:
+                    <span @click="unlock"><i class="fas fa-lock-open"></i></span>
                 </div>
-                <div class="facetwp-row">
-                    <div>{{ 'Facet type' | i18n }}:</div>
-                    <div>
-                        <facet-types
-                            :facet="facet"
-                            :selected="facet.type"
-                            :types="$root.facet_types">
-                        </facet-types>
-                        &nbsp; &nbsp;
-                        <span class="facetwp-btn" @click="$root.copyToClipboard(facet.name, $event)">
-                            {{ 'Copy shortcode' | i18n }}
-                        </span>
+                <div class="facetwp-content" :class="[ 'type-' + facet.type, { locked: facet._code } ]">
+                    <div class="facetwp-row">
+                        <div>{{ 'Label' | i18n }}:</div>
+                        <div>
+                            <input
+                                type="text"
+                                v-model="facet.label"
+                                @focus="$root.isNameEditable(facet)"
+                                @keyup="$root.maybeEditName(facet)"
+                            />
+                            <code class="item-name" contenteditable v-text="facet.name" @blur="setName" @keydown.enter.prevent autocorrect="off"></code>
+                            <span class="facetwp-btn" @click="$root.copyToClipboard(facet.name, 'facet', $event)">
+                                {{ 'Copy shortcode' | i18n }}
+                            </span>
+                        </div>
                     </div>
-                </div>
-                <div class="facetwp-row field-data-source">
-                    <div>{{ 'Data source' | i18n }}:</div>
-                    <div>
-                        <data-sources
-                            :facet="facet"
-                            :selected="facet.source"
-                            :sources="$root.data_sources">
-                        </data-sources>
+                    <div class="facetwp-row">
+                        <div>{{ 'Facet type' | i18n }}:</div>
+                        <div>
+                            <facet-types
+                                :facet="facet"
+                                :selected="facet.type"
+                                :types="$root.facet_types">
+                            </facet-types>
+                        </div>
                     </div>
+                    <div class="facetwp-row field-data-source">
+                        <div>{{ 'Data source' | i18n }}:</div>
+                        <div>
+                            <data-sources
+                                :facet="facet"
+                                :selected="facet.source"
+                                :sources="$root.data_sources">
+                            </data-sources>
+                        </div>
+                    </div>
+                    <hr />
+                    <facet-settings :facet="facet"></facet-settings>
                 </div>
-                <hr />
-                <facet-settings :facet="facet"></facet-settings>
             </div>
             `
         });
@@ -1324,62 +1441,72 @@
                 }
             },
             methods: {
+                setName(e) {
+                    this.template.name = this.$root.sanitizeName(e.target.innerHTML);
+                },
                 isMode(mode) {
                     return this.template.modes[this.tab] === mode;
                 },
                 switchMode() {
                     const now = this.template.modes[this.tab];
                     this.template.modes[this.tab] = ('visual' === now) ? 'advanced' : 'visual';
+                },
+                unlock() {
+                    Vue.delete(this.template, '_code');
                 }
             },
             template: `
-            <div class="facetwp-content">
-                <div class="table-row">
-                    <input
-                        type="text"
-                        v-model="template.label"
-                        @focus="$root.isNameEditable(template)"
-                        @keyup="$root.maybeEditName(template)"
-                    />
-                    &nbsp; &nbsp; Name:
-                    <input
-                        type="text"
-                        class="item-name"
-                        v-model="template.name"
-                    />
+            <div>
+                <div class="item-locked" v-if="template._code">
+                    This template is registered in code. Click to allow edits:
+                    <span @click="unlock"><i class="fas fa-lock-open"></i></span>
                 </div>
-
-                <div @click="switchMode()" v-show="isMode('visual')" class="side-link">{{ 'Switch to advanced mode' | i18n }}</div>
-                <div @click="switchMode()" v-show="isMode('advanced')" class="side-link">{{ 'Switch to visual mode' | i18n }}</div>
-
-                <div class="template-tabs top-level">
-                    <span @click="tab = 'display'" :class="{ active: tab == 'display' }">{{ 'Display' | i18n }}</span>
-                    <span @click="tab = 'query'" :class="{ active: tab == 'query' }">{{ 'Query' | i18n }}</span>
-                </div>
-
-                <div v-show="tab == 'display'">
-                    <div class="table-row" v-show="template.modes.display == 'visual'">
-                        <builder :layout="template.layout"></builder>
+                <div class="facetwp-content" :class="{ locked: template._code }">
+                    <div class="table-row">
+                        <input
+                            type="text"
+                            v-model="template.label"
+                            @focus="$root.isNameEditable(template)"
+                            @keyup="$root.maybeEditName(template)"
+                        />
+                        <code class="item-name" contenteditable v-text="template.name" @blur="setName" @keydown.enter.prevent autocorrect="off"></code>
+                        <span class="facetwp-btn" @click="$root.copyToClipboard(template.name, 'template', $event)">
+                            {{ 'Copy shortcode' | i18n }}
+                        </span>
                     </div>
-                    <div class="table-row" v-show="template.modes.display == 'advanced'">
-                        <div class="side-link">
-                            <a href="https://facetwp.com/documentation/template-configuration/#display-code" target="_blank">{{ 'Help' | i18n }}</a>
+
+                    <div @click="switchMode()" v-show="isMode('visual')" class="side-link">{{ 'Switch to advanced mode' | i18n }}</div>
+                    <div @click="switchMode()" v-show="isMode('advanced')" class="side-link">{{ 'Switch to visual mode' | i18n }}</div>
+
+                    <div class="template-tabs top-level">
+                        <span @click="tab = 'display'" :class="{ active: tab == 'display' }">{{ 'Display' | i18n }}</span>
+                        <span @click="tab = 'query'" :class="{ active: tab == 'query' }">{{ 'Query' | i18n }}</span>
+                    </div>
+
+                    <div v-show="tab == 'display'">
+                        <div class="table-row" v-show="template.modes.display == 'visual'">
+                            <builder :layout="template.layout"></builder>
                         </div>
-                        <div class="row-label">{{ 'Display Code' | i18n }}</div>
-                        <textarea v-model="template.template"></textarea>
-                    </div>
-                </div>
-
-                <div v-show="tab == 'query'">
-                    <div class="table-row" v-show="template.modes.query == 'visual'">
-                        <query-builder :query_obj="template.query_obj"></query-builder>
-                    </div>
-                    <div class="table-row" v-show="template.modes.query == 'advanced'">
-                        <div class="side-link">
-                            <a href="https://facetwp.com/documentation/template-configuration/#query-arguments" target="_blank">{{ 'Help' | i18n }}</a>
+                        <div class="table-row" v-show="template.modes.display == 'advanced'">
+                            <div class="side-link">
+                                <a href="https://facetwp.com/documentation/templates/advanced-mode/" target="_blank">{{ 'Help' | i18n }}</a>
+                            </div>
+                            <div class="row-label">{{ 'Display Code' | i18n }}</div>
+                            <textarea v-model="template.template"></textarea>
                         </div>
-                        <div class="row-label">{{ 'Query Arguments' | i18n }}</div>
-                        <textarea v-model="template.query"></textarea>
+                    </div>
+
+                    <div v-show="tab == 'query'">
+                        <div class="table-row" v-show="template.modes.query == 'visual'">
+                            <query-builder :query_obj="template.query_obj" :template="template"></query-builder>
+                        </div>
+                        <div class="table-row" v-show="template.modes.query == 'advanced'">
+                            <div class="side-link">
+                                <a href="https://facetwp.com/documentation/templates/advanced-mode/" target="_blank">{{ 'Help' | i18n }}</a>
+                            </div>
+                            <div class="row-label">{{ 'Query Arguments' | i18n }}</div>
+                            <textarea v-model="template.query"></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1412,7 +1539,7 @@
                 tableToDivs() {
                     const self = this;
                     let html = this.$root.clone[this.facet.type];
-                    let custom_settings = [];
+                    let custom_settings = ['_code'];
 
                     // Backwards compatibility
                     html = html.replace(/<tr>/g, '<div class="facetwp-row">');
@@ -1428,7 +1555,7 @@
                     // Add setting names by parsing the DOM
                     $(html).find('input, textarea, select').each(function() {
                         let $el = $(this);
-                        let setting_name = $el.attr('class').replace(/-/g, '_').substr(6);
+                        let setting_name = $el.attr('class').split(' ')[0].replace(/-/g, '_').substr(6);
                         custom_settings.push(setting_name);
 
                         let is_new_type = (self.facet.type !== self.original_facet_type);
@@ -1481,6 +1608,12 @@
                 this.original_facet_type = this.facet.type;
             },
             watch: {
+                'facet.type': function(val) {
+                    if ('search' == val || 'pager' == val) {
+                        this.facet.source = '';
+                    }
+                    this.facet.source_other = '';
+                },
                 'facet.ghosts': function(val) {
                     if ('no' == val) {
                         this.facet.preserve_ghosts = 'no';
@@ -1505,7 +1638,7 @@
                 }
             },
             template: `
-            <select :id="rand" v-model="modelName">
+            <select :id="rand" v-model="dataSourcesModel">
                 <option v-if="settingName != 'source'" value="">{{ 'None' | i18n }}</option>
                 <optgroup v-for="optgroup in sources" :label="optgroup.label">
                     <option v-for="(label, key) in optgroup.choices" :value="key" :selected="selected == key">{{ label }}</option>
@@ -1522,7 +1655,13 @@
                 }
             },
             computed: {
-                modelName() {
+                dataSourcesModel() {
+
+                    // create the setting if needed
+                    if ('undefined' === typeof this.facet[this.settingName]) {
+                        Vue.set(this.facet, this.settingName, '');
+                    }
+
                     return this.facet[this.settingName];
                 }
             },
@@ -1548,20 +1687,20 @@
                 editing: {},
                 editing_facet: false,
                 editing_template: false,
+                row_counts: {},
                 facet_types: FWP.facet_types,
                 data_sources: FWP.data_sources,
                 layout_data: FWP.layout_data,
                 query_data: FWP.query_data,
                 support_html: FWP.support_html,
                 clone: FWP.clone,
-                active_tab: 'basics',
+                active_tab: 'facets',
                 active_subnav: 'general',
                 is_support_loaded: false,
                 is_name_editable: false,
                 is_rebuild_open: false,
                 is_indexing: false,
-                timeout: null,
-                keywords: ''
+                timeout: null
             },
             methods: {
                 addItem(type) {
@@ -1587,27 +1726,46 @@
                 editItem(type, data) {
                     this['editing_' + type] = true;
                     this.editing = data;
+                    window.scrollTo(0, 0);
                 },
                 doneEditing() {
                     this.editing_template = false;
                     this.editing_facet = false;
                     this.editing = {};
                 },
+                tabClick(which) {
+                    this.doneEditing();
+                    this.active_tab = which;
+                    if ('support' === which) {
+                        this.is_support_loaded = true;
+                    }
+                },
+                getItemLabel() {
+                    return this.editing.label;
+                },
                 deleteItem(type, index) {
-                    this.app[type + 's'].splice(index, 1);
+                    if (confirm(FWP.__('Delete item?'))) {
+                        this.app[type + 's'].splice(index, 1);
+                    }
                 },
                 saveChanges() {
                     $('.facetwp-response').html(FWP.__('Saving') + '...');
                     $('.facetwp-response').addClass('visible');
 
+                    let data = JSON.parse(JSON.stringify(FWP.data));
+
+                    // Remove code-based facets and templates
+                    data.facets = data.facets.filter(obj => 'undefined' === typeof obj['_code']);
+                    data.templates = data.templates.filter(obj => 'undefined' === typeof obj['_code']);
+
                     // Settings save hook
-                    const data = wp.hooks.applyFilters('facetwp/save_settings', FWP.data);
+                    data = FWP.hooks.applyFilters('facetwp/save_settings', data);
 
                     $.ajax(ajaxurl, {
                         method: 'POST',
                         dataType: 'json',
                         data: {
-                            action: 'facetwp_save',
+                            action: 'facetwp_save_settings',
                             nonce: FWP.nonce,
                             data: JSON.stringify(data)
                         }
@@ -1661,20 +1819,25 @@
                 getProgress() {
                     let self = this;
 
-                    $.post(ajaxurl, {
-                        action: 'facetwp_heartbeat',
-                        nonce: FWP.nonce
-                    }, response => {
-
-                        // Remove extra spaces added by some themes
-                        var response = response.trim();
-
-                        if ('-1' == response) {
+                    $.ajax(ajaxurl, {
+                        method: 'POST',
+                        dataType: 'json',
+                        data: {
+                            action: 'facetwp_heartbeat',
+                            nonce: FWP.nonce
+                        }
+                    }).done(function(data) {
+                        if ('-1' == data.pct) {
                             $('.facetwp-response').html(FWP.__('Indexing complete'));
                             self.is_indexing = false;
+
+                            // Update the row counts
+                            $.each(data.rows, function(facet_name, count) {
+                                Vue.set(self.row_counts, facet_name, count);
+                            });
                         }
-                        else if ($.isNumeric(response)) {
-                            $('.facetwp-response').html(FWP.__('Indexing') + '... ' + response + '%');
+                        else if ($.isNumeric(data.pct)) {
+                            $('.facetwp-response').html(FWP.__('Indexing') + '... ' + data.pct + '%');
                             $('.facetwp-response').addClass('visible');
                             self.is_indexing = true;
 
@@ -1683,7 +1846,7 @@
                             }, 5000);
                         }
                         else {
-                            $('.facetwp-response').html(response);
+                            $('.facetwp-response').html(data);
                             self.is_indexing = false;
                         }
                     });
@@ -1706,6 +1869,25 @@
                         $('.facetwp-response').html(status + ' ' + errorThrown);
                     });
                 },
+                getQueryArgs(template) {
+                    let self = this;
+
+                    template.modes.query = 'advanced';
+                    template.query = FWP.__('Loading') + '...';
+
+                    $.post(ajaxurl, {
+                        action: 'facetwp_get_query_args',
+                        query_obj: template.query_obj,
+                        nonce: FWP.nonce
+                    }, (message) => {
+                        var json = JSON.stringify(message, null, 2);
+                        json = "<?php\nreturn " + json + ';';
+                        json = json.replace(/[\{]/g, '[');
+                        json = json.replace(/[\}]/g, ']');
+                        json = json.replace(/":/g, '" =>');
+                        template.query = json;
+                    }, 'json');
+                },
                 showIndexerStats() {
                     this.getInfo('indexer_stats', 'Looking');
                 },
@@ -1715,14 +1897,14 @@
                 purgeIndexTable() {
                     this.getInfo('purge_index_table', 'Purging');
                 },
-                copyToClipboard(name, {target}) {
+                copyToClipboard(name, type, {target}) {
                     const $this = $(target);
                     const $el = $('.facetwp-clipboard');
                     const orig_text = $this.text();
 
                     try {
                         $el.removeClass('hidden');
-                        $el.val('[facetwp facet="' + name + '"]');
+                        $el.val('[facetwp ' + type + '="' + name + '"]');
                         $el.select();
                         document.execCommand('copy');
                         $el.addClass('hidden');
@@ -1746,32 +1928,21 @@
                         $('.facetwp-activation-status').html(message);
                     }, 'json');
                 },
-                isMatch(obj) {
-                    let bool = ('' == this.keywords) ? true : false;
-
-                    if (false === bool) {
-                        ['name', 'label', 'type'].forEach((key) => {
-                            if (obj.hasOwnProperty(key)) {
-                                if (obj[key].includes(this.keywords)) {
-                                    bool = true;
-                                }
-                            }
-                        });
-                    }
-
-                    return bool;
-                },
                 isNameEditable({name}) {
                     this.is_name_editable = ('' == name || 'new_' == name.substr(0, 4));
                 },
                 maybeEditName(item) {
                     if (this.is_name_editable) {
-                        let val = $.trim(item.label).toLowerCase();
-                        val = val.replace(/[^\w- ]/g, ''); // strip invalid characters
-                        val = val.replace(/[- ]/g, '_'); // replace space and hyphen with underscore
-                        val = val.replace(/[_]{2,}/g, '_'); // strip consecutive underscores
-                        item.name = val;
+                        item.name = this.sanitizeName(item.label);
                     }
+                },
+                sanitizeName(name) {
+                    let val = $.trim(name).toLowerCase();
+                    val = val.replace(/[^\w- ]/g, ''); // strip invalid characters
+                    val = val.replace(/[- ]/g, '_'); // replace space and hyphen with underscore
+                    val = val.replace(/[_]{2,}/g, '_'); // strip consecutive underscores
+                    val = ('pager' == val) ? val + '_' : val; // reserved
+                    return val;
                 },
                 documentClick({target}) {
                     let el = target;

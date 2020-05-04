@@ -25,7 +25,7 @@ if ( ! class_exists( 'Give_Recurring_Stripe_Webhooks' ) ) {
 
 		/**
 		 * Recurring Stripe to call Give_Recurring_Stripe class.
-		 * 
+		 *
 		 * @since  1.9.0
 		 * @access public
 		 *
@@ -211,7 +211,7 @@ if ( ! class_exists( 'Give_Recurring_Stripe_Webhooks' ) ) {
 		 * Process customer.subscription.deleted event posted to webhooks.
 		 *
 		 * @param \Stripe\Event $stripe_event Stripe Event.
-		 * 
+		 *
 		 * @since  1.9.0
 		 * @access public
 		 *
@@ -270,18 +270,27 @@ if ( ! class_exists( 'Give_Recurring_Stripe_Webhooks' ) ) {
 		 * @return void
 		 */
 		public function process_checkout_session_completed( $donation_id, $event ) {
-
-			// Bail out, if incorrect event type received.
-			if ( 'checkout.session.completed' !== $event->type ) {
-				return;
-			}
-
+			/* @var stdClass $checkout_session */
 			$checkout_session = $event->data->object;
 
 			// Make sure we have an invoice object.
 			if ( 'checkout.session' !== $checkout_session->object ) {
 				return;
 			}
+
+			$donation_id = absint( Give()->payment_meta->get_column_by( 'donation_id', 'meta_value', $checkout_session->id ) );
+
+
+			// Exit if not any donation attached with checkout session id.
+			if( ! $donation_id ) {
+				return;
+			}
+
+			// Update payment status to donation.
+			give_update_payment_status( $donation_id, 'publish' );
+
+			// Insert donation note to inform admin that charge succeeded.
+			give_insert_payment_note( $donation_id, __( 'Charge succeeded in Stripe.', 'give-recurring' ) );
 
 			$subscription      = give_recurring_get_subscription_by( 'payment', $donation_id );
 			$give_subscription = new Give_Subscription($subscription->id);

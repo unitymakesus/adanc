@@ -3,16 +3,16 @@ Contributors: givewp
 Tags: donations, donation, ecommerce, e-commerce, fundraising, fundraiser, paymill, gateway
 Requires at least: 4.8
 Tested up to: 5.4
-Stable tag: 1.9.14
+Stable tag: 1.10.0
 Requires Give: 2.5.5
 License: GPLv3
 License URI: https://opensource.org/licenses/GPL-3.0
 
-Create powerful subscription based donations with the Give Recurring Donation Add-on.
+Create powerful subscription based donations with the GiveWP Recurring Donation Add-on.
 
 == Description ==
 
-This plugin requires the Give plugin activated to function properly. When activated, it adds the ability to accept recurring (subscription) donations to various payment gateways such as PayPal Standard, Stripe, PayPal Pro, and more.
+This plugin requires the GiveWP core plugin activated to function properly. When activated, it adds the ability to accept recurring (subscription) donations to various payment gateways such as PayPal Standard, Stripe, PayPal Pro, and more.
 
 == Installation ==
 
@@ -38,6 +38,13 @@ The manual installation method involves downloading our donation plugin and uplo
 Automatic updates should work like a charm; as always though, ensure you backup your site just in case.
 
 == Changelog ==
+
+= 1.10.1: April 17th, 2020 =
+* Important: In this version we have patched an important security vulnerability. The fix prevents malicious actors from gaining unauthorized access to donor subscriptions where they would then be able to update subscription amounts or cancel the subscription. Please note: no credit card data or information was ever compromised as we never store card sensitive information to your database. Please update immediately and [contact our support](https://givewp.com/support/) if you have any issues or questions.
+
+= 1.10.0: March 30th, 2020 =
+* New: Added the Stripe payment gateway SEPA Direct Debit as a compatible gateway option to accept recurring donations through. This is a popular payment method in Europe and only requires a single IBAN payment field to process a one time or recurring donation.
+* Fix: Resolved an issue with the "Subscription Payment Failed Email" formatting being incorrect for new installs and also a typo contained within the email's default content.
 
 = 1.9.14: March 17th, 2020 =
 * Fix: The Authorize.net eCheck renewals were recording under the incorrect Authorize.net payment option. Now when eChecks renew they will display properly as coming from the eCheck integration.

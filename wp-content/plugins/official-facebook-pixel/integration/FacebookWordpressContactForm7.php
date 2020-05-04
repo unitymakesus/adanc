@@ -46,7 +46,9 @@ class FacebookWordpressContactForm7 extends FacebookWordpressIntegrationBase {
     $server_event = ServerEventFactory::safeCreateEvent(
       'Lead',
       array(__CLASS__, 'readFormData'),
-      array($form)
+      array($form),
+      self::TRACKING_NAME,
+      true
     );
     FacebookServerSideEvent::getInstance()->track($server_event);
 

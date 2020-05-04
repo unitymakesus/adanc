@@ -7,9 +7,9 @@ class FacetWP_Overrides
 
 
     function __construct() {
-        add_filter( 'facetwp_index_row', array( $this, 'index_row' ), 5, 2 );
-        add_filter( 'facetwp_index_row', array( $this, 'format_numbers' ), 15, 2 );
-        add_filter( 'facetwp_is_main_query', array( $this, 'ignore_post_types' ), 10, 2 );
+        add_filter( 'facetwp_index_row', [ $this, 'index_row' ], 5, 2 );
+        add_filter( 'facetwp_index_row', [ $this, 'format_numbers' ], 15, 2 );
+        add_filter( 'facetwp_is_main_query', [ $this, 'ignore_post_types' ], 10, 2 );
     }
 
 
@@ -23,20 +23,20 @@ class FacetWP_Overrides
 
         $facet = FWP()->helper->get_facet_by_name( $params['facet_name'] );
 
+        // Store raw numbers to format later
+        if ( in_array( $facet['type'], [ 'number_range', 'slider' ] ) ) {
+            $this->raw = [
+                'value' => $params['facet_value'],
+                'label' => $params['facet_display_value']
+            ];
+        }
+
         // Support "Other data source" values
         if ( ! empty( $facet['source_other'] ) ) {
             $other_params = $params;
             $other_params['facet_source'] = $facet['source_other'];
             $rows = $class->get_row_data( $other_params );
             $params['facet_display_value'] = $rows[0]['facet_display_value'];
-        }
-
-        // Store raw numbers to format later, if needed
-        if ( in_array( $facet['type'], array( 'number_range', 'slider' ) ) ) {
-            $this->raw = array(
-                'value' => $params['facet_value'],
-                'label' => $params['facet_display_value']
-            );
         }
 
         return $params;
@@ -48,12 +48,12 @@ class FacetWP_Overrides
      */
     function format_numbers( $params, $class ) {
 
-        $value = $params['facet_value'];
-        $label = $params['facet_display_value'];
-
         if ( empty( $this->raw ) ) {
             return $params;
         }
+
+        $value = $params['facet_value'];
+        $label = $params['facet_display_value'];
 
         // Only format if un-altered
         if ( $this->raw['value'] === $value && $this->raw['label'] === $label ) {
@@ -71,10 +71,15 @@ class FacetWP_Overrides
      * Ignore certain post types
      */
     function ignore_post_types( $is_main_query, $query ) {
-        $blacklist = array( 'carts', 'advanced_ads', 'ms_relationship', 'wc_user_membership', 'edd_wish_list' );
+        $blacklist = [ 'carts', 'advanced_ads', 'ms_relationship', 'wc_user_membership', 'edd_wish_list' ];
         $post_type = $query->get( 'post_type' );
 
         if ( is_string( $post_type ) && in_array( $post_type, $blacklist ) ) {
+            $is_main_query = false;
+        }
+
+        // Ignore the "WP GDPR Compliance" plugin
+        if ( '[wpgdprc_access_request_form]' == $query->get( 's' ) ) {
             $is_main_query = false;
         }
 

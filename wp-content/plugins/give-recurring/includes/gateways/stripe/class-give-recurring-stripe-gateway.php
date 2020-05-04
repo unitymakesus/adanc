@@ -510,20 +510,19 @@ if ( ! class_exists( 'Give_Recurring_Stripe_Gateway' ) ) {
 
 					// Set Application Information.
 					give_stripe_set_app_info();
-					
+
 					$subscription                      = \Stripe\Subscription::create( $args, give_stripe_get_connected_account_options() );
 					$this->subscriptions['profile_id'] = $subscription->id;
 
 					// Need additional authentication steps as subscription is still incomplete.
 					if ( ! give_stripe_is_checkout_enabled() && 'incomplete' ===  $subscription->status ) {
-						
+
 						// Verify the initial payment with invoice created during subscription.
 						$invoice = $this->stripe_invoice->retrieve( $subscription->latest_invoice );
 
 						// Set Payment Intent ID.
 						give_insert_payment_note( $this->payment_id, 'Stripe Charge/Payment Intent ID: ' . $invoice->payment_intent );
-						give_set_payment_transaction_id( $this->payment_id, $invoice->payment_intent );
-						
+
 						// Retrieve payment intent details.
 						$intent_details = $this->stripe_payment_intent->retrieve( $invoice->payment_intent );
 

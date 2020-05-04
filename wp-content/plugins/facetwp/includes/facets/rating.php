@@ -20,13 +20,13 @@ class FacetWP_Facet_Rating extends FacetWP_Facet
         // Facet in "OR" mode
         $where_clause = $this->get_where_clause( $facet );
 
-        $output = array(
+        $output = [
             1 => 0,
             2 => 0,
             3 => 0,
             4 => 0,
             5 => 0
-        );
+        ];
 
         $sql = "
         SELECT COUNT(*) AS `count`, FLOOR(f.facet_value) AS `rating`
@@ -107,7 +107,7 @@ class FacetWP_Facet_Rating extends FacetWP_Facet
      * Output front-end scripts
      */
     function front_scripts() {
-        FWP()->display->json['rating']['& up'] = __( '& up', 'fwp' );
-        FWP()->display->json['rating']['Undo'] = __( 'Undo', 'fwp' );
+        FWP()->display->json['rating']['& up'] = __( '& up', 'fwp-front' );
+        FWP()->display->json['rating']['Undo'] = __( 'Undo', 'fwp-front' );
     }
 }

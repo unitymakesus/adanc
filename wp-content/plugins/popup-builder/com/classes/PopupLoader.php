@@ -49,7 +49,10 @@ class PopupLoader
 
 	public function addPopupFromUrl($popupsToLoad)
 	{
-		if (isset($_GET['sg_popup_id']) || isset($_GET['sg_popup_preview_id'])) {
+		global $wp;
+		$currentUrl = home_url( $wp->request );
+		$currentUrl = strpos($currentUrl, '/popupbuilder/');
+		if (isset($_GET['sg_popup_id']) || isset($_GET['sg_popup_preview_id']) || $currentUrl !== false) {
 			$args = array();
 			$previewPopups = array();
 			$getterId = isset($_GET['sg_popup_id']) ? (int)$_GET['sg_popup_id'] : 0;
@@ -60,6 +63,9 @@ class PopupLoader
 			}
 			if (function_exists('sgpb\sgpGetCorrectPopupId')) {
 				$getterId = sgpGetCorrectPopupId($getterId);
+			}
+			if ($currentUrl !== false) {
+				$getterId = $_GET['preview_id'];
 			}
 
 			$popupFromUrl = SGPopup::find($getterId, $args);

@@ -13,6 +13,7 @@ window.FWP = window.FWP || {};
         'is_reset': false,
         'is_refresh': false,
         'is_bfcache': false,
+        'is_hash_click': false,
         'auto_refresh': true,
         'soft_refresh': false,
         'frozen_facets':{},
@@ -30,21 +31,27 @@ window.FWP = window.FWP || {};
         }
     }
 
-    // Safari popstate fix
-    $(window).on('load', function() {
+    window.addEventListener('load', function() {
         setTimeout(function() {
-            $(window).on('popstate', function() {
+            window.addEventListener('popstate', function() {
 
                 // Detect browser "back-foward" cache
                 if (FWP.is_bfcache) {
                     FWP.loaded = false;
                 }
 
-                if ((FWP.loaded || FWP.is_bfcache) && ! FWP.is_refresh) {
+                if ((FWP.loaded || FWP.is_bfcache) && ! FWP.is_refresh && ! FWP.is_hash_click) {
                     FWP.is_popstate = true;
                     FWP.refresh();
                     FWP.is_popstate = false;
                 }
+
+                FWP.is_hash_click = false;
+            });
+
+            // Prevent hash clicks from triggering a refresh
+            $(document).on('click', 'a[href^="#"]', function() {
+                FWP.is_hash_click = true;
             });
         }, 0);
     });
@@ -105,7 +112,10 @@ window.FWP = window.FWP || {};
 
     FWP.helper.detect_loop = function(node) {
         var curNode = null;
-        var iterator = document.createNodeIterator(node, NodeFilter.SHOW_COMMENT, FWP.helper.node_filter, false);
+        var iterator = document.createNodeIterator(node, NodeFilter.SHOW_COMMENT, function() {
+            return NodeFilter.FILTER_ACCEPT; /* IE expects a function */
+        }, false);
+
         while (curNode = iterator.nextNode()) {
             if (8 === curNode.nodeType && 'fwp-loop' === curNode.nodeValue) {
                 return curNode.parentNode;
@@ -113,11 +123,6 @@ window.FWP = window.FWP || {};
         }
 
         return false;
-    }
-
-
-    FWP.helper.node_filter = function() {
-        return NodeFilter.FILTER_ACCEPT;
     }
 
 
@@ -185,23 +190,14 @@ window.FWP = window.FWP || {};
             FWP.facet_type[facet_name] = facet_type;
 
             // Plugin hook
-            wp.hooks.doAction('facetwp/refresh/' + facet_type, $this, facet_name);
+            FWP.hooks.doAction('facetwp/refresh/' + facet_type, $this, facet_name);
 
             // Support custom loader
-            var do_loader = true;
-            if (FWP.loaded) {
-                if (FWP.soft_refresh || isset(FWP.frozen_facets[facet_name])) {
-                    do_loader = false;
-                }
-            }
-
-            if (do_loader) {
-                FWP.loading_handler({
-                    'element': $this,
-                    'facet_name': facet_name,
-                    'facet_type': facet_type
-                });
-            }
+            FWP.loading_handler({
+                'element': $this,
+                'facet_name': facet_name,
+                'facet_type': facet_type
+            });
         });
 
         // Add pagination to the URL hash
@@ -222,24 +218,22 @@ window.FWP = window.FWP || {};
 
 
     FWP.loading_handler = function(args) {
-        if ('fade' == FWP_JSON.loading_animation) {
-            if (! FWP.loaded) {
-                var $el = args.element;
-                $(document).on('facetwp-refresh', function() {
-                    $el.prepend('<div class="facetwp-overlay">');
-                    $el.find('.facetwp-overlay').css({
-                        width: $el.width(),
-                        height: $el.height()
-                    });
-                });
+        if (! FWP.loaded) {
+            var $el = args.element;
+            $(document).on('facetwp-refresh', function() {
 
-                $(document).on('facetwp-loaded', function() {
-                    $el.find('.facetwp-overlay').remove();
+                $el.addClass('is-loading');
+                $el.prepend('<div class="facetwp-overlay">');
+                $el.find('.facetwp-overlay').css({
+                    width: $el.width(),
+                    height: $el.height()
                 });
-            }
-        }
-        else if ('' == FWP_JSON.loading_animation) {
-            args.element.html('<div class="facetwp-loading"></div>');
+            });
+
+            $(document).on('facetwp-loaded', function() {
+                $el.removeClass('is-loading');
+                $el.find('.facetwp-overlay').remove();
+            });
         }
     }
 
@@ -287,7 +281,10 @@ window.FWP = window.FWP || {};
         FWP_HTTP.get = {};
         window.location.search.replace('?', '').split('&').forEach(function(el) {
             var item = el.split('=');
-            FWP_HTTP.get[item[0]] = item[1];
+
+            if ('' != item[0]) {
+                FWP_HTTP.get[item[0]] = item[1];
+            }
         });
     }
 
@@ -392,7 +389,7 @@ window.FWP = window.FWP || {};
             }
         };
 
-        settings = wp.hooks.applyFilters('facetwp/ajax_settings', settings );
+        settings = FWP.hooks.applyFilters('facetwp/ajax_settings', settings );
         FWP.jqXHR = $.ajax(endpoint, settings);
     }
 
@@ -431,7 +428,7 @@ window.FWP = window.FWP || {};
         }
 
         if (false !== inject) {
-            if (! wp.hooks.applyFilters('facetwp/template_html', false, { 'response': response, 'html': inject })) {
+            if (! FWP.hooks.applyFilters('facetwp/template_html', false, { 'response': response, 'html': inject })) {
                 $('.facetwp-template').html(inject);
             }
         }
@@ -481,7 +478,7 @@ window.FWP = window.FWP || {};
         $(document).trigger('facetwp-loaded');
 
         // Allow final actions
-        wp.hooks.doAction('facetwp/loaded');
+        FWP.hooks.doAction('facetwp/loaded');
 
         // Detect "back-forward" cache
         FWP.is_bfcache = true;
@@ -491,34 +488,50 @@ window.FWP = window.FWP || {};
     }
 
 
-    FWP.reset = function(facet_name, facet_value) {
-        FWP.parse_facets();
+    FWP.reset = function(facets) {
+        FWP.parse_facets;
 
-        if (isset(facet_name)) {
-            var values = FWP.facets[facet_name];
-            if (isset(facet_value) && values.length > 1) {
-                var arr_idx = values.indexOf(facet_value);
-                if (-1 < arr_idx) {
-                    values.splice(arr_idx, 1);
-                    FWP.facets[facet_name] = values;
-                }
+        var opts = {};
+
+        if ('string' === typeof facets) {
+            opts[facets] = '';
+        }
+        else if (Array.isArray(facets)) {
+            $.each(facets, function(key, facet_name) {
+                opts[facet_name] = '';
+            });
+        }
+        else if ('object' === typeof facets && !! facets) {
+            opts = facets;
+        }
+
+        var reset_all = Object.keys(opts).length < 1;
+
+        $.each(FWP.facets, function(facet_name, vals) {
+            var has_reset = isset(opts[facet_name]);
+            var selected_vals = Array.isArray(vals) ? vals : [vals];
+
+            if (has_reset && -1 < selected_vals.indexOf(opts[facet_name])) {
+                var pos = selected_vals.indexOf(opts[facet_name]);
+                selected_vals.splice(pos, 1); // splice() is mutable!
+                FWP.facets[facet_name] = selected_vals;
             }
-            else {
-                FWP.facets[facet_name] = [];
+
+            if (has_reset && (selected_vals.length < 1 || '' === opts[facet_name])) {
                 delete FWP.frozen_facets[facet_name];
             }
-        }
-        else {
-            $.each(FWP.facets, function(f) {
-                FWP.facets[f] = [];
-            });
 
+            if (reset_all || (has_reset && '' === opts[facet_name])) {
+                FWP.facets[facet_name] = [];
+            }
+        });
+
+        if (reset_all) {
             FWP.extras.sort = 'default';
             FWP.frozen_facets = {};
         }
 
-        wp.hooks.doAction('facetwp/reset');
-
+        FWP.hooks.doAction('facetwp/reset');
         FWP.is_reset = true;
         FWP.refresh();
     }
@@ -567,11 +580,11 @@ window.FWP = window.FWP || {};
             console.error('Facets should not be inside the "facetwp-template" container');
         }
 
-        wp.hooks.doAction('facetwp/ready');
+        FWP.hooks.doAction('facetwp/ready');
 
         // Generate the user selections
         if (FWP.extras.selections) {
-            wp.hooks.addAction('facetwp/loaded', function() {
+            FWP.hooks.addAction('facetwp/loaded', function() {
                 var selections = '';
                 $.each(FWP.facets, function(key, val) {
                     if (val.length < 1 || ! isset(FWP.settings.labels[key])) {
@@ -580,7 +593,7 @@ window.FWP = window.FWP || {};
 
                     var choices = val;
                     var facet_type = $('.facetwp-facet-' + key).attr('data-type');
-                    choices = wp.hooks.applyFilters('facetwp/selections/' + facet_type, choices, {
+                    choices = FWP.hooks.applyFilters('facetwp/selections/' + facet_type, choices, {
                         'el': $('.facetwp-facet-' + key),
                         'selected_values': choices
                     });
@@ -618,7 +631,9 @@ window.FWP = window.FWP || {};
             var facet_value = $(this).attr('data-value');
 
             if ('' != facet_value) {
-                FWP.reset(facet_name, facet_value);
+                var obj = {};
+                obj[facet_name] = facet_value;
+                FWP.reset(obj);
             }
             else {
                 FWP.reset(facet_name);
@@ -626,7 +641,7 @@ window.FWP = window.FWP || {};
         });
 
         // Pagination
-        $(document).on('click', '.facetwp-page', function() {
+        $(document).on('click', '.facetwp-page[data-page]', function() {
             $('.facetwp-page').removeClass('active');
             $(this).addClass('active');
 

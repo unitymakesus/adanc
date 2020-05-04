@@ -71,7 +71,8 @@ class RegisterPostType
 			'capability_type'     => array('sgpb_popup', 'sgpb_popups'),
 			'menu_position'       => 10,
 			'supports'            => apply_filters('sgpbPostTypeSupport', array('title', 'editor')),
-			'menu_icon'           => 'dashicons-menu-icon-sgpb'
+			'menu_icon'           => 'dashicons-menu-icon-sgpb',
+			'show_in_rest'        => true
 		);
 
 		if (is_admin()) {
@@ -134,6 +135,7 @@ class RegisterPostType
 			'sort'                  => 12,
 			'update_count_callback' => '_update_post_term_count',
 			'query_var'             => true,
+			'show_in_rest'          => true,
 			'capabilities' => array(
 				'manage_terms' => 'manage_popup_categories_terms',
 				'edit_terms' => 'manage_popup_categories_terms',

@@ -3,238 +3,40 @@
 class FacetWP_Ajax
 {
 
-    /* (array) FacetWP-related GET variables */
-    public $url_vars = array();
-
-    /* (boolean) FWP template shortcode? */
-    public $is_shortcode = false;
-
-    /* (boolean) Is a FacetWP refresh? */
-    public $is_refresh = false;
-
-    /* (boolean) Initial load? */
-    public $is_preload;
-
-
     function __construct() {
 
+        $valid_actions = [
+            'save_settings',
+            'rebuild_index',
+            'get_info',
+            'get_query_args',
+            'heartbeat',
+            'license',
+            'backup'
+        ];
+
+        $action = isset( $_POST['action'] ) ? $_POST['action'] : '';
+        $is_valid = false;
+
+        if ( 0 === strpos( $action, 'facetwp_' ) ) {
+            $action = substr( $action, 8 );
+            $is_valid = in_array( $action, $valid_actions );
+        }
+
         // Authenticated
-        if ( current_user_can( 'manage_options' ) ) {
+        if ( $is_valid && current_user_can( 'manage_options' ) ) {
             if ( check_ajax_referer( 'fwp_admin_nonce', 'nonce', false ) ) {
-                add_action( 'wp_ajax_facetwp_save', array( $this, 'save_settings' ) );
-                add_action( 'wp_ajax_facetwp_rebuild_index', array( $this, 'rebuild_index' ) );
-                add_action( 'wp_ajax_facetwp_get_info', array( $this, 'get_info' ) );
-                add_action( 'wp_ajax_facetwp_heartbeat', array( $this, 'heartbeat' ) );
-                add_action( 'wp_ajax_facetwp_license', array( $this, 'license' ) );
-                add_action( 'wp_ajax_facetwp_backup', array( $this, 'backup' ) );
+                add_action( 'wp_ajax_facetwp_' . $action, [ $this, $action ] );
             }
         }
 
         // Non-authenticated
-        add_action( 'facetwp_refresh', array( $this, 'refresh' ) );
-        add_action( 'wp_ajax_nopriv_facetwp_resume_index', array( $this, 'resume_index' ) );
+        add_action( 'facetwp_refresh', [ $this, 'refresh' ] );
+        add_action( 'wp_ajax_nopriv_facetwp_resume_index', [ $this, 'resume_index' ] );
 
-        // Deprecated
-        add_action( 'wp_ajax_facetwp_refresh', array( $this, 'refresh' ) );
-        add_action( 'wp_ajax_nopriv_facetwp_refresh', array( $this, 'refresh' ) );
-
-        // Intercept the template if needed
-        $this->intercept_request();
-    }
-
-
-    /**
-     * If AJAX and the template is "wp", return the buffered HTML
-     * Otherwise, store the GET variables for later use
-     */
-    function intercept_request() {
-        $action = isset( $_POST['action'] ) ? $_POST['action'] : '';
-
-        $valid_actions = array(
-            'facetwp_refresh',
-            'facetwp_autocomplete_load'
-        );
-
-        $this->is_refresh = ( 'facetwp_refresh' == $action );
-        $this->is_preload = ! in_array( $action, $valid_actions );
-        $prefix = FWP()->helper->get_setting( 'prefix' );
-        $tpl = isset( $_POST['data']['template'] ) ? $_POST['data']['template'] : '';
-
-        // Pageload
-        if ( $this->is_preload ) {
-
-            // Store GET variables
-            foreach ( $_GET as $key => $val ) {
-                if ( 0 === strpos( $key, $prefix ) ) {
-                    $new_key = substr( $key, strlen( $prefix ) );
-                    $new_val = stripslashes( $val );
-                    if ( ! in_array( $new_key, array( 'paged', 'per_page', 'sort' ) ) ) {
-                        $new_val = explode( ',', $new_val );
-                    }
-
-                    $this->url_vars[ $new_key ] = $new_val;
-                }
-            }
-
-            $this->url_vars = apply_filters( 'facetwp_preload_url_vars', $this->url_vars );
-        }
-
-        if ( $this->is_preload || 'wp' == $tpl ) {
-            add_action( 'pre_get_posts', array( $this, 'sacrificial_lamb' ), 998 );
-            add_action( 'pre_get_posts', array( $this, 'update_query_vars' ), 999 );
-        }
-
-        if ( ! $this->is_preload && 'wp' == $tpl && 'facetwp_autocomplete_load' != $action ) {
-            add_action( 'shutdown', array( $this, 'inject_template' ), 0 );
-            ob_start();
-        }
-    }
-
-
-    function sacrificial_lamb( $query ) {
-        // Fix for WP core issue #40393
-    }
-
-
-    /**
-     * Force FacetWP to use the default WP query
-     */
-    function update_query_vars( $query ) {
-
-        // Only run once
-        if ( isset( $this->query_vars ) ) {
-            return;
-        }
-
-        // Skip shortcode template
-        if ( $this->is_shortcode ) {
-            return;
-        }
-
-        // Skip admin
-        if ( is_admin() && ! wp_doing_ajax() ) {
-            return;
-        }
-
-        $is_main_query = ( $query->is_archive || $query->is_search || ( $query->is_main_query() && ! $query->is_singular ) );
-        $is_main_query = ( true === $query->get( 'suppress_filters', false ) ) ? false : $is_main_query; // skip get_posts()
-        $is_main_query = ( wp_doing_ajax() && ! $this->is_refresh ) ? false : $is_main_query; // skip other ajax
-        $is_main_query = ( $query->is_feed ) ? false : $is_main_query; // skip feeds
-        $is_main_query = ( '' !== $query->get( 'facetwp' ) ) ? (bool) $query->get( 'facetwp' ) : $is_main_query; // flag
-        $is_main_query = apply_filters( 'facetwp_is_main_query', $is_main_query, $query );
-
-        if ( $is_main_query ) {
-
-            // Set the flag
-            $query->set( 'facetwp', true );
-
-            // Store the default WP query vars
-            $this->query_vars = $query->query_vars;
-
-            // Notify
-            do_action( 'facetwp_found_main_query' );
-
-            // No URL variables
-            if ( $this->is_preload && empty( $this->url_vars ) ) {
-                return;
-            }
-
-            // Generate the FWP output
-            if ( $this->is_preload ) {
-                $this->get_preload_data( 'wp' );
-            }
-            else {
-                $this->output = FWP()->facet->render(
-                    $this->process_post_data()
-                );
-            }
-
-            // Set up the updated query_vars
-            $query->query_vars = FWP()->facet->query_args;
-        }
-    }
-
-
-    /**
-     * Preload the AJAX response so search engines can see it
-     * @since 2.0
-     */
-    function get_preload_data( $template_name, $overrides = array() ) {
-
-        if ( false === $template_name ) {
-            $template_name = isset( $this->template_name ) ? $this->template_name : 'wp';
-        }
-
-        $this->template_name = $template_name;
-
-        // Is this a template shortcode?
-        $this->is_shortcode = ( 'wp' != $template_name );
-
-        $params = array(
-            'facets'            => array(),
-            'template'          => $template_name,
-            'http_params'       => array(
-                'get'       => $_GET,
-                'uri'       => FWP()->helper->get_uri(),
-                'url_vars'  => FWP()->ajax->url_vars,
-            ),
-            'frozen_facets'     => array(),
-            'soft_refresh'      => 0,
-            'is_preload'        => 1,
-            'is_bfcache'        => 0,
-            'first_load'        => 0, // force load template
-            'extras'            => array(),
-            'paged'             => 1,
-        );
-
-        foreach ( $this->url_vars as $key => $val ) {
-            if ( 'paged' == $key ) {
-                $params['paged'] = $val;
-            }
-            elseif ( 'per_page' == $key ) {
-                $params['extras']['per_page'] = $val;
-            }
-            elseif ( 'sort' == $key ) {
-                $params['extras']['sort'] = $val;
-            }
-            else {
-                $params['facets'][] = array(
-                    'facet_name' => $key,
-                    'selected_values' => $val,
-                );
-            }
-        }
-
-        // Override the defaults
-        $params = array_merge( $params, $overrides );
-
-        return FWP()->facet->render( $params );
-    }
-
-
-    /**
-     * Inject the page HTML into the JSON response
-     * We'll cherry-pick the content from the HTML using front.js
-     */
-    function inject_template() {
-        $html = ob_get_clean();
-
-        // Throw an error
-        if ( empty( $this->output['settings'] ) ) {
-            $html = __( 'FacetWP was unable to auto-detect the post listing', 'fwp' );
-        }
-        // Grab the <body> contents
-        else {
-            preg_match( "/<body(.*?)>(.*?)<\/body>/s", $html, $matches );
-
-            if ( ! empty( $matches ) ) {
-                $html = trim( $matches[2] );
-            }
-        }
-
-        $this->output['template'] = $html;
-        do_action( 'facetwp_inject_template', $this->output );
-        wp_send_json( $this->output );
+        // Backwards compatibility
+        $this->url_vars = FWP()->request->url_vars;
+        $this->is_preload = FWP()->request->is_preload;
     }
 
 
@@ -247,18 +49,19 @@ class FacetWP_Ajax
 
         // Check for valid JSON
         if ( isset( $json_test['settings'] ) ) {
-            update_option( 'facetwp_settings', $settings );
-            $response = array(
+            update_option( 'facetwp_settings', $settings, 'no' );
+
+            $response = [
                 'code' => 'success',
                 'message' => __( 'Settings saved', 'fwp' ),
                 'reindex' => FWP()->diff->is_reindex_needed()
-            );
+            ];
         }
         else {
-            $response = array(
+            $response = [
                 'code' => 'error',
                 'message' => __( 'Error: invalid JSON', 'fwp' )
-            );
+            ];
         }
 
         wp_send_json( $response );
@@ -269,19 +72,8 @@ class FacetWP_Ajax
      * Rebuild the index table
      */
     function rebuild_index() {
+        update_option( 'facetwp_indexing_cancelled', 'no', 'no' );
         FWP()->indexer->index();
-        exit;
-    }
-
-
-    /**
-     * Resume stalled indexer
-     */
-    function resume_index() {
-        $touch = (int) FWP()->indexer->get_transient( 'touch' );
-        if ( 0 < $touch && $_POST['touch'] == $touch ) {
-            FWP()->indexer->index();
-        }
         exit;
     }
 
@@ -290,14 +82,14 @@ class FacetWP_Ajax
         $type = $_POST['type'];
 
         if ( 'post_types' == $type ) {
-            $post_types = get_post_types( array( 'exclude_from_search' => false, '_builtin' => false ) );
-            $post_types = array( 'post', 'page' ) + $post_types;
+            $post_types = get_post_types( [ 'exclude_from_search' => false, '_builtin' => false ] );
+            $post_types = [ 'post', 'page' ] + $post_types;
             sort( $post_types );
 
-            $response = array(
+            $response = [
                 'code' => 'success',
                 'message' => implode( ', ', $post_types )
-            );
+            ];
         }
         elseif ( 'indexer_stats' == $type ) {
             global $wpdb;
@@ -307,18 +99,18 @@ class FacetWP_Ajax
             $last_indexed = get_option( 'facetwp_last_indexed' );
             $last_indexed = $last_indexed ? human_time_diff( $last_indexed ) . ' ago' : 'N/A';
 
-            $response = array(
+            $response = [
                 'code' => 'success',
                 'message' => "rows: $row_count, facets: $facet_count, last re-index: $last_indexed"
-            );
+            ];
         }
         elseif ( 'cancel_reindex' == $type ) {
-            update_option( 'facetwp_indexing', '' );
+            update_option( 'facetwp_indexing_cancelled', 'yes' );
 
-            $response = array(
+            $response = [
                 'code' => 'success',
                 'message' => 'Indexing cancelled'
-            );
+            ];
         }
         elseif ( 'purge_index_table' == $type ) {
             global $wpdb;
@@ -326,10 +118,10 @@ class FacetWP_Ajax
             $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}facetwp_index" );
             delete_option( 'facetwp_version' );
 
-            $response = array(
+            $response = [
                 'code' => 'success',
                 'message' => __( 'Done, please re-index', 'fwp' )
-            );
+            ];
         }
 
         wp_send_json( $response );
@@ -337,54 +129,16 @@ class FacetWP_Ajax
 
 
     /**
-     * Generate a $params array that can be passed directly into FWP()->facet->render()
+     * Return query arguments based on a Query Builder object
      */
-    function process_post_data() {
-        $data = stripslashes_deep( $_POST['data'] );
-        $facets = json_decode( $data['facets'], true );
-        $extras = isset( $data['extras'] ) ? $data['extras'] : array();
-        $frozen_facets = isset( $data['frozen_facets'] ) ? $data['frozen_facets'] : array();
+    function get_query_args() {
+        $query_obj = $_POST['query_obj'];
 
-        $params = array(
-            'facets'            => array(),
-            'template'          => $data['template'],
-            'frozen_facets'     => $frozen_facets,
-            'http_params'       => $data['http_params'],
-            'extras'            => $extras,
-            'soft_refresh'      => (int) $data['soft_refresh'],
-            'is_bfcache'        => (int) $data['is_bfcache'],
-            'first_load'        => (int) $data['first_load'],
-            'paged'             => (int) $data['paged'],
-        );
-
-        foreach ( $facets as $facet_name => $selected_values ) {
-            $params['facets'][] = array(
-                'facet_name'        => $facet_name,
-                'selected_values'   => $selected_values,
-            );
+        if ( is_array( $query_obj ) ) {
+            $query_args = FWP()->builder->parse_query_obj( $query_obj );
         }
 
-        return $params;
-    }
-
-
-    /**
-     * The AJAX facet refresh handler
-     */
-    function refresh() {
-
-        global $wpdb;
-
-        $params = $this->process_post_data();
-        $output = FWP()->facet->render( $params );
-        $data = stripslashes_deep( $_POST['data'] );
-        $output = json_encode( $output );
-
-        echo apply_filters( 'facetwp_ajax_response', $output, array(
-            'data' => $data
-        ) );
-
-        exit;
+        wp_send_json( $query_args );
     }
 
 
@@ -392,7 +146,46 @@ class FacetWP_Ajax
      * Keep track of indexing progress
      */
     function heartbeat() {
-        echo FWP()->indexer->get_progress();
+        $output = [
+            'pct' => FWP()->indexer->get_progress()
+        ];
+
+        if ( -1 == $output['pct'] ) {
+            $output['rows'] = FWP()->helper->get_row_counts();
+        }
+
+        wp_send_json( $output );
+    }
+
+
+    /**
+     * License activation
+     */
+    function license() {
+        $license = $_POST['license'];
+
+        $request = wp_remote_post( 'http://api.facetwp.com', [
+            'body' => [
+                'action'        => 'activate',
+                'slug'          => 'facetwp',
+                'license'       => $license,
+                'host'          => FWP()->helper->get_http_host(),
+            ]
+        ] );
+
+        if ( ! is_wp_error( $request ) || 200 == wp_remote_retrieve_response_code( $request ) ) {
+            update_option( 'facetwp_license', $license );
+            update_option( 'facetwp_activation', $request['body'] );
+            update_option( 'facetwp_updater_last_checked', 0 );
+            echo $request['body'];
+        }
+        else {
+            echo json_encode( [
+                'status'    => 'error',
+                'message'   => __( 'Error', 'fwp' ) . ': ' . $request->get_error_message(),
+            ] );
+        }
+
         exit;
     }
 
@@ -402,7 +195,7 @@ class FacetWP_Ajax
      */
     function backup() {
         $action_type = $_POST['action_type'];
-        $output = array();
+        $output = [];
 
         if ( 'export' == $action_type ) {
             $items = $_POST['items'];
@@ -431,10 +224,10 @@ class FacetWP_Ajax
                 exit;
             }
 
-            $status = array(
-                'imported' => array(),
-                'skipped' => array(),
-            );
+            $status = [
+                'imported' => [],
+                'skipped' => [],
+            ];
 
             foreach ( $import_code as $object_type => $object_items ) {
                 foreach ( $object_items as $object_item ) {
@@ -475,33 +268,40 @@ class FacetWP_Ajax
 
 
     /**
-     * License activation
+     * The AJAX facet refresh handler
      */
-    function license() {
-        $license = $_POST['license'];
+    function refresh() {
 
-        $request = wp_remote_post( 'http://api.facetwp.com', array(
-            'body' => array(
-                'action'        => 'activate',
-                'slug'          => 'facetwp',
-                'license'       => $license,
-                'host'          => FWP()->helper->get_http_host(),
-            )
-        ) );
+        global $wpdb;
 
-        if ( ! is_wp_error( $request ) || 200 == wp_remote_retrieve_response_code( $request ) ) {
-            update_option( 'facetwp_license', $license );
-            update_option( 'facetwp_activation', $request['body'] );
-            update_option( 'facetwp_updater_last_checked', 0 );
-            echo $request['body'];
+        $params = FWP()->request->process_post_data();
+        $output = FWP()->facet->render( $params );
+        $data = stripslashes_deep( $_POST['data'] );
+
+        // Ignore invalid UTF-8 characters in PHP 7.2+
+        if ( version_compare( phpversion(), '7.2', '<' ) ) {
+            $output = json_encode( $output );
         }
         else {
-            echo json_encode( array(
-                'status'    => 'error',
-                'message'   => __( 'Error', 'fwp' ) . ': ' . $request->get_error_message(),
-            ) );
+            $output = json_encode( $output, JSON_INVALID_UTF8_IGNORE );
         }
 
+        echo apply_filters( 'facetwp_ajax_response', $output, [
+            'data' => $data
+        ] );
+
+        exit;
+    }
+
+
+    /**
+     * Resume stalled indexer
+     */
+    function resume_index() {
+        $touch = (int) FWP()->indexer->get_transient( 'touch' );
+        if ( 0 < $touch && $_POST['touch'] == $touch ) {
+            FWP()->indexer->index();
+        }
         exit;
     }
 }

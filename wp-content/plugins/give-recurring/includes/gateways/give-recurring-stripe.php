@@ -35,7 +35,7 @@ class Give_Recurring_Stripe extends Give_Recurring_Gateway {
 			return false;
 		}
 
-		add_action( 'init', array( $this, 'listen_sca_payments' ) );
+		add_action( 'template_redirect', array( $this, 'listen_sca_payments' ) );
 
 		// Bailout, if gateway is not active.
 		if ( ! give_is_gateway_active( $this->id ) ) {
@@ -190,7 +190,6 @@ class Give_Recurring_Stripe extends Give_Recurring_Gateway {
 
 					// Set Payment Intent ID.
 					give_insert_payment_note( $this->payment_id, 'Stripe Payment Intent ID: ' . $invoice->payment_intent );
-					give_set_payment_transaction_id( $this->payment_id, $invoice->payment_intent );
 
 					// Retrieve payment intent details.
 					$intent_details = $this->payment_intent->retrieve( $invoice->payment_intent );
@@ -1260,8 +1259,6 @@ class Give_Recurring_Stripe extends Give_Recurring_Gateway {
 		}
 
 		$payment_intent_id = $get_data['payment_intent'];
-		$donation_id       = give_get_purchase_id_by_transaction_id( $payment_intent_id );
-
 		$payment_intent    = $this->payment_intent->retrieve( $payment_intent_id );
 
 		if ( isset( $payment_intent->last_payment_error->code ) && 'payment_intent_authentication_failure' === $payment_intent->last_payment_error->code ) {
@@ -1270,9 +1267,8 @@ class Give_Recurring_Stripe extends Give_Recurring_Gateway {
 			$stripe_subscription = \Stripe\Subscription::retrieve( $invoice->subscription );
 
 			if ( 'incomplete' === $stripe_subscription->status && 'open' === $invoice->status ) {
-
 				$give_subscription = new Give_Subscription( $stripe_subscription->id, true );
-				give_update_payment_status( $donation_id, 'cancelled' );
+				give_update_payment_status( $give_subscription->parent_payment_id, 'cancelled' );
 				give_recurring_subscription_cancel( $give_subscription->id );
 			}
 		}

@@ -14,8 +14,8 @@ final class FacetWP_Helper
 
 
     function __construct() {
-        $this->settings = $this->load_settings();
         $this->facet_types = $this->get_facet_types();
+        $this->settings = $this->load_settings();
     }
 
 
@@ -49,7 +49,7 @@ final class FacetWP_Helper
 
         include( FACETWP_DIR . '/includes/facets/base.php' );
 
-        $types = array(
+        $types = [
             'checkboxes'    => 'Facetwp_Facet_Checkboxes',
             'dropdown'      => 'Facetwp_Facet_Dropdown',
             'fselect'       => 'Facetwp_Facet_fSelect',
@@ -61,10 +61,11 @@ final class FacetWP_Helper
             'number_range'  => 'Facetwp_Facet_Number_Range',
             'proximity'     => 'Facetwp_Facet_Proximity_Core',
             'radio'         => 'Facetwp_Facet_Radio_Core',
-            'rating'        => 'FacetWP_Facet_Rating'
-        );
+            'rating'        => 'FacetWP_Facet_Rating',
+            'pager'         => 'FacetWP_Facet_Pager'
+        ];
 
-        $facet_types = array();
+        $facet_types = [];
 
         foreach ( $types as $slug => $class_name ) {
             include( FACETWP_DIR . "/includes/facets/$slug.php" );
@@ -81,72 +82,74 @@ final class FacetWP_Helper
     function load_settings( $last_index = false ) {
         $name = $last_index ? 'facetwp_settings_last_index' : 'facetwp_settings';
         $option = get_option( $name );
-        $settings = ( false !== $option ) ? json_decode( $option, true ) : array();
 
-        if ( empty( $settings['facets'] ) ) {
-            $settings['facets'] = array();
-        }
-        if ( empty( $settings['templates'] ) ) {
-            $settings['templates'] = array();
-        }
-        if ( empty( $settings['settings'] ) ) {
-            $settings['settings'] = array();
-        }
-        if ( ! isset( $settings['settings']['term_permalink'] ) ) {
-            $settings['settings']['term_permalink'] = 'slug'; // Listify compat
-        }
-        if ( ! isset( $settings['settings']['thousands_separator'] ) ) {
-            $settings['settings']['thousands_separator'] = ',';
-        }
-        if ( ! isset( $settings['settings']['decimal_separator'] ) ) {
-            $settings['settings']['decimal_separator'] = '.';
-        }
-        if ( ! isset( $settings['settings']['prefix'] ) ) {
-            $settings['settings']['prefix'] = 'fwp_';
-        }
+        $defaults = [
+            'facets' => [],
+            'templates' => [],
+            'settings' => [
+                'thousands_separator' => ',',
+                'decimal_separator' => '.',
+                'prefix' => '_'
+            ]
+        ];
 
-        // Store raw facet & template names
-        $raw_names = array();
+        $settings = ( false !== $option ) ? json_decode( $option, true ) : [];
+        $settings = array_merge( $defaults, $settings );
+        $settings['settings'] = array_merge( $defaults['settings'], $settings['settings'] );
+
+        // Store DB-based facet & template names
+        $db_names = [];
 
         foreach ( $settings['facets'] as $facet ) {
-            $raw_names[ 'facet-' . $facet['name'] ] = false;
+            $db_names[ 'facet-' . $facet['name'] ] = true;
         }
 
         foreach ( $settings['templates'] as $template ) {
-            $raw_names[ 'template-' . $template['name'] ] = false;
+            $db_names[ 'template-' . $template['name'] ] = true;
         }
 
         // Programmatically registered
         $facets = apply_filters( 'facetwp_facets', $settings['facets'] );
         $templates = apply_filters( 'facetwp_templates', $settings['templates'] );
-        $settings['facets'] = $settings['templates'] = array();
 
-        // Distinguish between UI and programmatic
+        $tmp_facets = [];
+        $tmp_templates = [];
+
+        // Merge DB + code-based facets
         foreach ( $facets as $facet ) {
-            $name = 'facet-' . $facet['name'];
+            $name = $facet['name'];
+            $is_db_based = isset( $db_names[ "facet-$name" ] );
 
-            if ( ! isset( $raw_names[ $name ] ) ) {
+            if ( ! $is_db_based ) {
                 $facet['_code'] = true;
-                $settings['facets'][] = $facet;
             }
-            elseif ( false === $raw_names[ $name ] ) {
-                $raw_names[ $name ] = true;
-                $settings['facets'][] = $facet;
+
+            if ( ! $is_db_based || empty( $tmp_facets[ $name ] ) ) {
+
+                // Valid facet type?
+                if ( in_array( $facet['type'], array_keys( $this->facet_types ) ) ) {
+                    $tmp_facets[ $name ] = $facet;
+                }
             }
         }
 
+        // Merge DB + code-based templates
         foreach ( $templates as $template ) {
-            $name = 'template-' . $template['name'];
+            $name = $template['name'];
+            $is_db_based = isset( $db_names[ "template-$name" ] );
 
-            if ( ! isset( $raw_names[ $name ] ) ) {
+            if ( ! $is_db_based ) {
                 $template['_code'] = true;
-                $settings['templates'][] = $template;
             }
-            elseif ( false === $raw_names[ $name ] ) {
-                $raw_names[ $name ] = true;
-                $settings['templates'][] = $template;
+
+            if ( ! $is_db_based || empty( $tmp_templates[ $name ] ) ) {
+                $tmp_templates[ $name ] = $template;
             }
         }
+
+        // Convert back to numerical arrays
+        $settings['facets'] = array_values( $tmp_facets );
+        $settings['templates'] = array_values( $tmp_templates );
 
         // Filtered settings
         return $settings;
@@ -221,6 +224,25 @@ final class FacetWP_Helper
 
 
     /**
+     * Fetch facets using one of its settings
+     * @param string $setting_name
+     * @param mixed $setting_value
+     * @return array
+     */
+    function get_facets_by( $setting, $value ) {
+        $matches = [];
+
+        foreach ( $this->get_facets() as $facet ) {
+            if ( isset( $facet[ $setting ] ) && $value === $facet[ $setting ] ) {
+                $matches[] = $facet;
+            }
+        }
+
+        return $matches;
+    }
+
+
+    /**
      * Get an array of term information, including depth
      * @param string $taxonomy The taxonomy name
      * @return array Term information
@@ -228,10 +250,10 @@ final class FacetWP_Helper
      */
     function get_term_depths( $taxonomy ) {
 
-        $output = array();
-        $parents = array();
+        $output = [];
+        $parents = [];
 
-        $terms = get_terms( $taxonomy, array( 'hide_empty' => false ) );
+        $terms = get_terms( $taxonomy, [ 'hide_empty' => false ] );
         if ( is_wp_error( $terms ) ) {
             return $output;
         }
@@ -243,13 +265,13 @@ final class FacetWP_Helper
 
         // Build the term array
         foreach ( $terms as $term ) {
-            $output[ $term->term_id ] = array(
+            $output[ $term->term_id ] = [
                 'term_id'       => $term->term_id,
                 'name'          => $term->name,
                 'slug'          => $term->slug,
                 'parent_id'     => $term->parent,
                 'depth'         => 0
-            );
+            ];
 
             $current_parent = $term->parent;
             while ( 0 < (int) $current_parent ) {
@@ -272,10 +294,10 @@ final class FacetWP_Helper
      * The results are already sorted by depth and (name OR count), we just need
      * to move the children directly below their parents
      */
-    function sort_taxonomy_values( $values = array(), $orderby = 'count' ) {
+    function sort_taxonomy_values( $values = [], $orderby = 'count' ) {
 
         // Create an "order" sort value based on the top-level items
-        $cache = array();
+        $cache = [];
         foreach ( $values as $key => $val ) {
             if ( 0 == $val['depth'] ) {
                 $cache[ $val['term_id'] ] = $key;
@@ -307,20 +329,15 @@ final class FacetWP_Helper
         global $wpdb;
 
         if ( is_array( $input ) ) {
-            $output = array();
+            $output = [];
 
             foreach ( $input as $key => $val ) {
                 $output[ $key ] = $this->sanitize( $val );
             }
         }
         else {
-            if ( $wpdb->dbh ) {
-                if ( $wpdb->use_mysqli ) {
-                    $output = mysqli_real_escape_string( $wpdb->dbh, $input );
-                }
-                else {
-                    $output = mysql_real_escape_string( $input, $wpdb->dbh );
-                }
+            if ( $wpdb->dbh && $wpdb->use_mysqli ) {
+                $output = mysqli_real_escape_string( $wpdb->dbh, $input );
             }
             else {
                 $output = addslashes( $input );
@@ -418,41 +435,41 @@ final class FacetWP_Helper
         global $wpdb;
 
         // Get excluded meta keys
-        $excluded_fields = apply_filters( 'facetwp_excluded_custom_fields', array(
+        $excluded_fields = apply_filters( 'facetwp_excluded_custom_fields', [
             '_edit_last',
             '_edit_lock',
-        ) );
+        ] );
 
         // Get taxonomies
-        $taxonomies = get_taxonomies( array(), 'object' );
+        $taxonomies = get_taxonomies( [], 'object' );
 
         // Get custom fields
         $meta_keys = $wpdb->get_col( "SELECT DISTINCT meta_key FROM {$wpdb->postmeta} ORDER BY meta_key" );
         $custom_fields = array_diff( $meta_keys, $excluded_fields );
 
-        $sources = array(
-            'posts' => array(
+        $sources = [
+            'posts' => [
                 'label' => __( 'Posts', 'fwp' ),
-                'choices' => array(
+                'choices' => [
                     'post_type'         => __( 'Post Type', 'fwp' ),
                     'post_date'         => __( 'Post Date', 'fwp' ),
                     'post_modified'     => __( 'Post Modified', 'fwp' ),
                     'post_title'        => __( 'Post Title', 'fwp' ),
                     'post_author'       => __( 'Post Author', 'fwp' )
-                ),
+                ],
                 'weight' => 10
-            ),
-            'taxonomies' => array(
+            ],
+            'taxonomies' => [
                 'label' => __( 'Taxonomies', 'fwp' ),
-                'choices' => array(),
+                'choices' => [],
                 'weight' => 20
-            ),
-            'custom_fields' => array(
+            ],
+            'custom_fields' => [
                 'label' => __( 'Custom Fields', 'fwp' ),
-                'choices' => array(),
+                'choices' => [],
                 'weight' => 30
-            )
-        );
+            ]
+        ];
 
         foreach ( $taxonomies as $tax ) {
             $sources['taxonomies']['choices'][ 'tax/' . $tax->name ] = $tax->labels->name;
@@ -466,7 +483,7 @@ final class FacetWP_Helper
 
         $sources = apply_filters( 'facetwp_facet_sources', $sources );
 
-        uasort( $sources, array( $this, 'sort_by_weight' ) );
+        uasort( $sources, [ $this, 'sort_by_weight' ] );
 
         $this->data_sources = $sources;
 
@@ -491,6 +508,24 @@ final class FacetWP_Helper
 
 
     /**
+     * Get row counts for all facets
+     * @since 3.3.4
+     */
+    function get_row_counts() {
+        global $wpdb;
+
+        $output = [];
+        $results = $wpdb->get_results( "SELECT facet_name, COUNT(*) AS row_count FROM {$wpdb->prefix}facetwp_index GROUP BY facet_name" );
+
+        foreach ( $results as $result ) {
+            $output[ $result->facet_name ] = (int) $result->row_count;
+        }
+
+        return $output;
+    }
+
+
+    /**
      * Grab the license key
      * @since 3.0.3
      */
@@ -498,5 +533,44 @@ final class FacetWP_Helper
         $license_key = defined( 'FACETWP_LICENSE_KEY' ) ? FACETWP_LICENSE_KEY : get_option( 'facetwp_license' );
         $license_key = apply_filters( 'facetwp_license_key', $license_key );
         return sanitize_text_field( trim( $license_key ) );
+    }
+
+
+    /**
+     * Determine whether the license is active
+     * @since 3.3.0
+     */
+    function is_license_active() {
+        $activation = get_option( 'facetwp_activation' );
+
+        if ( ! empty( $activation ) ) {
+            $activation = json_decode( $activation );
+
+            if ( isset( $activation->status ) && 'success' == $activation->status ) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Get a license meta value
+     * Possible keys: status, message, expiration, payment_id, price_id
+     * @since 3.5.3
+     */
+    function get_license_meta( $key = 'status' ) {
+        $activation = get_option( 'facetwp_activation' );
+
+        if ( ! empty( $activation ) ) {
+            $data = json_decode( $activation, true );
+
+            if ( isset( $data[ $field ] ) ) {
+                return $data[ $field ];
+            }
+        }
+
+        return false;
     }
 }

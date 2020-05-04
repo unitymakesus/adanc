@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Give - Recurring Donations
  * Plugin URI:  https://givewp.com/addons/recurring-donations/
- * Description: Adds support for recurring (subscription) donations to the Give donation plugin.
- * Version:     1.9.14
+ * Description: Adds support for recurring (subscription) donations to the GiveWP donation plugin.
+ * Version:     1.10.1
  * Author:      GiveWP
  * Author URI:  https://givewp.com
  * Text Domain: give-recurring
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Plugin constants.
 if ( ! defined( 'GIVE_RECURRING_VERSION' ) ) {
-	define( 'GIVE_RECURRING_VERSION', '1.9.14' );
+	define( 'GIVE_RECURRING_VERSION', '1.10.1' );
 }
 if ( ! defined( 'GIVE_RECURRING_MIN_GIVE_VERSION' ) ) {
 	define( 'GIVE_RECURRING_MIN_GIVE_VERSION', '2.5.5' );
@@ -219,6 +219,8 @@ final class Give_Recurring {
 				'stripe_ideal'      => 'Give_Recurring_Stripe_Ideal',
 				'stripe_google_pay' => 'Give_Recurring_Stripe_Google_Pay',
 				'stripe_apple_pay'  => 'Give_Recurring_Stripe_Apple_Pay',
+				'stripe_sepa'       => 'Give_Recurring_Stripe_Sepa',
+				'stripe_becs'       => 'Give_Recurring_Stripe_Becs',
 				'razorpay'          => 'Give_Recurring_RazorPay',
 			)
 		);
@@ -322,6 +324,8 @@ final class Give_Recurring {
         require_once GIVE_RECURRING_PLUGIN_DIR . 'includes/gateways/give-recurring-stripe_apple_pay.php';
         require_once GIVE_RECURRING_PLUGIN_DIR . 'includes/gateways/give-recurring-stripe_google_pay.php';
         require_once GIVE_RECURRING_PLUGIN_DIR . 'includes/gateways/give-recurring-stripe_ideal.php';
+        require_once GIVE_RECURRING_PLUGIN_DIR . 'includes/gateways/give-recurring-stripe_sepa.php';
+        require_once GIVE_RECURRING_PLUGIN_DIR . 'includes/gateways/give-recurring-stripe_becs.php';
 
     }
 
@@ -1651,17 +1655,89 @@ final class Give_Recurring {
 		<?php endif; ?>
 
 		<?php
-		switch ( $action ) {
-			case 'update':
-				give_get_template_part( 'shortcode', 'subscription-update' );
-				break;
-			case 'edit_subscription':
-				give_get_template_part( 'shortcode', 'subscription-edit' );
-				break;
-			case 'list':
-			default:
-				give_get_template_part( 'shortcode', 'subscriptions' );
-				break;
+		$email_access = give_get_option( 'email_access' );
+		$canAccessView = Give_Recurring_Subscriber::canAccessView();
+		$subscriber = Give_Recurring_Subscriber::getSubscriber();
+		$subscriptionIsNotValid = $subscriber && $subscriber->id <= 0 ?
+			Give_Notices::print_frontend_notice(
+				__( 'You have not made any recurring donations.', 'give-recurring' ),
+				false,
+				'warning'
+			) : null;
+
+		// Handle list view. list is also a default view.
+		if( ! in_array( $action,  [ 'edit_subscription', 'update'] ) && ( $canAccessView || Give()->session->get_session_expiration() ) ) {
+			// Validate subscriber.
+			if( $subscriptionIsNotValid ) {
+				echo $subscriptionIsNotValid;
+
+				return ob_get_clean();
+			}
+			give_get_template_part( 'shortcode', 'subscriptions' );
+
+		} elseif ( $canAccessView ) {
+			// Validate subscriber.
+			if( $subscriptionIsNotValid ) {
+				echo $subscriptionIsNotValid;
+
+				return ob_get_clean();
+			}
+
+			// Sanity Check: Subscription ID should be valid.
+			if ( ! isset( $_GET['subscription_id'] ) ) {
+				Give_Notices::print_frontend_notice(
+						__( 'Subscription ID is Invalid.', 'give-recurring' ),
+						true,
+						'warning'
+				);
+
+				return ob_get_clean();
+			}
+
+			// Sanity Check: Subscription ID should be valid.
+			$subscription_id = absint( $_GET['subscription_id'] );
+			$subscription  = new Give_Subscription( $subscription_id );
+
+			// Show login form if subscription does not belongs to logged in donor.
+			if( ! Give_Recurring_Subscriber::doesSubscriptionBelongsTo( $subscription, $subscriber) ) {
+
+				$donor_mismatch_text = apply_filters(
+					'give_subscription_donor_mismatch_notice_text',
+					__( 'The subscription you are looking for either doesn\'t exist or belongs to a different donor. Please contact a site administrator for assistance.', 'give-recurring' )
+				);
+
+				echo Give_Notices::print_frontend_notice(
+					$donor_mismatch_text,
+					false,
+					'error'
+				);
+
+				return ob_get_clean();
+			}
+
+			switch ( $action ) {
+				case 'update':
+					give_get_template_part( 'shortcode', 'subscription-update' );
+					break;
+				case 'edit_subscription':
+					give_get_template_part( 'shortcode', 'subscription-edit' );
+					break;
+			}
+
+		} elseif ( give_is_setting_enabled( $email_access ) && ! Give_Recurring()->subscriber_has_email_access() ) {
+			// Email Access Enabled & no valid token.
+			give_get_template_part( 'email-login-form' );
+
+		} else {
+			//No email access, user access denied.
+			Give_Notices::print_frontend_notice(
+					__( 'You must be logged in to view your subscriptions.', 'give-recurring' ),
+					true,
+					'warning'
+			);
+
+			echo give_login_form( give_get_current_page_url() );
+
 		}
 
 		return ob_get_clean();

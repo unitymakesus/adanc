@@ -130,11 +130,11 @@ if ( ! class_exists( 'Give_Recurring_Subscription_Payment_Failed_Email' ) ) :
 		public function get_default_email_message() {
 
 			$message = esc_attr__( 'Dear {name},', 'give-recurring' ) . "\r\n\r\n";
-			$message .= esc_attr__( 'We want to inform you that your recurring payment to {sitename} was unsucessful. Your ongoing support is important to us. To continue your recurring donation, please update your payment method by clicking on this link:', 'give-recurring' ) . '\r\n\r\n';
-			$message .= '{update_payment_method_link}' . '\r\n\r\n';
-			$message .= esc_attr__( 'If no action is taken, your subscription will automatically cancel after a few more attempts. If possible, please renew your payment method before your next scheduled donation on {next_payment_attempt}.', 'give-recurring' ) . '\r\n\r\n';
-			$message .= esc_attr__( 'Sincerely,', 'give-recurring' ) . '\r\n\r\n';
-			$message .= '{sitename} \r\n';
+			$message .= esc_attr__( 'We want to inform you that your recurring payment to {sitename} was unsuccessful. Your ongoing support is important to us. To continue your recurring donation, please update your payment method by clicking on this link:', 'give-recurring' ) . "\r\n\r\n";
+			$message .= "{update_payment_method_link}\r\n\r\n";
+			$message .= esc_attr__( 'If no action is taken, your subscription will automatically cancel after a few more attempts. If possible, please renew your payment method before your next scheduled donation on {next_payment_attempt}.', 'give-recurring' ) . "\r\n\r\n";
+			$message .= esc_attr__( 'Sincerely,', 'give-recurring' ) . "\r\n\r\n";
+			$message .= "{sitename} \r\n";
 
 			/**
 			 * Filter the default email message

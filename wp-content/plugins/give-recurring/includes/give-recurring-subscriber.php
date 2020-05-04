@@ -278,7 +278,7 @@ class Give_Recurring_Subscriber extends Give_Donor {
 		}
 
 		// To support making expiration date to add 3 months instead of 3 month.
-		$period = ( 1 < $frequency && 'month' === $period ) ? $period . 's' : $period; 
+		$period = ( 1 < $frequency && 'month' === $period ) ? $period . 's' : $period;
 
 		return date( 'Y-m-d H:i:s', strtotime( '+ ' . $frequency . $period . ' 23:59:59' ) );
 	}
@@ -372,6 +372,87 @@ class Give_Recurring_Subscriber extends Give_Donor {
 		}
 
 		return apply_filters( 'give_recurring_donor_ids', $ids, $this );
+	}
+
+
+	/**
+	 * Return subscriber object.
+	 *
+	 * @since 1.11.0
+	 *
+	 * @return Give_Recurring_Subscriber|null
+	 */
+	public static function getSubscriber() {
+		// Get subscription.
+		$current_user_id = get_current_user_id();
+
+		// Get by user id.
+		if ( ! empty( $current_user_id ) ) {
+			return new static( $current_user_id, true );
+		}
+
+		// Get by email access.
+		if( Give()->email_access->token_exists ){
+			return new static( Give()->email_access->token_email, false );
+		}
+
+		// Get by email.
+		if ( Give()->session->get_session_expiration() ) {
+			$subscriber_email = maybe_unserialize( Give()->session->get( 'give_purchase' ) );
+			$subscriber_email = isset( $subscriber_email['user_email'] ) ? $subscriber_email['user_email'] : '';
+
+			return new static( $subscriber_email, false );
+		}
+
+		return null;
+	}
+
+	/**
+	 * Return boolean to determine access
+	 *
+	 * @since 1.11.0
+	 *
+	 * a. Check if a user is logged in
+	 * b. Does an email-access token exist?
+	 */
+	public static function canAccessView() {
+		return is_user_logged_in() || ( give_is_setting_enabled( give_get_option( 'email_access' ) ) && Give()->email_access->token_exists );
+	}
+
+	/**
+	 * Return boolean to determine subscription belongs to donor or not
+	 *
+	 * @param Give_Subscription $subscription
+	 * @param Give_Recurring_Subscriber $subscriber
+	 *
+	 * @return boolean
+	 */
+	public static function doesSubscriptionBelongsTo( $subscription, $subscriber = null ){
+		$subscriber = $subscriber?: self::getSubscriber();
+
+		return $subscription->donor_id === $subscriber->id;
+	}
+
+	/**
+	 * Get subscriber access type.
+	 *
+	 * @since 1.11.0
+	 * @return string
+	 */
+	public static function getAccessType(){
+		if( is_user_logged_in() ) {
+			return 'wpUser';
+		}
+
+		if(  Give()->email_access->token_exists && give_is_setting_enabled( give_get_option( 'email_access' ) ) ) {
+			return 'EmailAccess';
+		}
+
+		if( false !== Give()->session->get_session_expiration() ) {
+			return 'DonorSession';
+		}
+
+		return '';
 	}
 
 }

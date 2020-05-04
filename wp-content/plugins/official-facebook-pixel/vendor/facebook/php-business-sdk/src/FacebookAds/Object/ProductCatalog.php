@@ -291,59 +291,6 @@ class ProductCatalog extends AbstractCrudObject {
     return $pending ? $request : $request->execute();
   }
 
-  public function createBundleFolder(array $fields = array(), array $params = array(), $pending = false) {
-    $this->assureId();
-
-    $param_types = array(
-      'name' => 'string',
-    );
-    $enums = array(
-    );
-
-    $request = new ApiRequest(
-      $this->api,
-      $this->data['id'],
-      RequestInterface::METHOD_POST,
-      '/bundle_folders',
-      new DynamicItemDisplayBundleFolder(),
-      'EDGE',
-      DynamicItemDisplayBundleFolder::getFieldsEnum()->getValues(),
-      new TypeChecker($param_types, $enums)
-    );
-    $request->addParams($params);
-    $request->addFields($fields);
-    return $pending ? $request : $request->execute();
-  }
-
-  public function createBundle(array $fields = array(), array $params = array(), $pending = false) {
-    $this->assureId();
-
-    $param_types = array(
-      'additional_urls' => 'map',
-      'description' => 'string',
-      'name' => 'string',
-      'product_set' => 'string',
-      'text_tokens' => 'map',
-      'url' => 'string',
-    );
-    $enums = array(
-    );
-
-    $request = new ApiRequest(
-      $this->api,
-      $this->data['id'],
-      RequestInterface::METHOD_POST,
-      '/bundles',
-      new DynamicItemDisplayBundle(),
-      'EDGE',
-      DynamicItemDisplayBundle::getFieldsEnum()->getValues(),
-      new TypeChecker($param_types, $enums)
-    );
-    $request->addParams($params);
-    $request->addFields($fields);
-    return $pending ? $request : $request->execute();
-  }
-
   public function getCategories(array $fields = array(), array $params = array(), $pending = false) {
     $this->assureId();
 
@@ -882,10 +829,12 @@ class ProductCatalog extends AbstractCrudObject {
       'file_name' => 'string',
       'name' => 'string',
       'override_type' => 'override_type_enum',
+      'override_value' => 'string',
       'quoted_fields_mode' => 'quoted_fields_mode_enum',
       'rules' => 'list<string>',
       'schedule' => 'string',
       'update_schedule' => 'string',
+      'whitelisted_properties' => 'list<string>',
     );
     $enums = array(
       'delimiter_enum' => ProductFeedDelimiterValues::getInstance()->getValues(),
@@ -1034,36 +983,6 @@ class ProductCatalog extends AbstractCrudObject {
     return $pending ? $request : $request->execute();
   }
 
-  public function createProductSetsBatch(array $fields = array(), array $params = array(), $pending = false) {
-    $this->assureId();
-
-    $param_types = array(
-      'file' => 'file',
-      'password' => 'string',
-      'standard' => 'standard_enum',
-      'update_only' => 'bool',
-      'url' => 'string',
-      'username' => 'string',
-    );
-    $enums = array(
-      'standard_enum' => ProductCatalogStandardValues::getInstance()->getValues(),
-    );
-
-    $request = new ApiRequest(
-      $this->api,
-      $this->data['id'],
-      RequestInterface::METHOD_POST,
-      '/product_sets_batch',
-      new ProductCatalog(),
-      'EDGE',
-      ProductCatalog::getFieldsEnum()->getValues(),
-      new TypeChecker($param_types, $enums)
-    );
-    $request->addParams($params);
-    $request->addFields($fields);
-    return $pending ? $request : $request->execute();
-  }
-
   public function getProducts(array $fields = array(), array $params = array(), $pending = false) {
     $this->assureId();
 
@@ -1173,31 +1092,6 @@ class ProductCatalog extends AbstractCrudObject {
       new ProductItem(),
       'EDGE',
       ProductItem::getFieldsEnum()->getValues(),
-      new TypeChecker($param_types, $enums)
-    );
-    $request->addParams($params);
-    $request->addFields($fields);
-    return $pending ? $request : $request->execute();
-  }
-
-  public function createStoreProductItemsBatch(array $fields = array(), array $params = array(), $pending = false) {
-    $this->assureId();
-
-    $param_types = array(
-      'allow_upsert' => 'bool',
-      'requests' => 'list<map>',
-    );
-    $enums = array(
-    );
-
-    $request = new ApiRequest(
-      $this->api,
-      $this->data['id'],
-      RequestInterface::METHOD_POST,
-      '/store_product_items_batch',
-      new ProductCatalog(),
-      'EDGE',
-      ProductCatalog::getFieldsEnum()->getValues(),
       new TypeChecker($param_types, $enums)
     );
     $request->addParams($params);

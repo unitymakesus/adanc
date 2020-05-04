@@ -1,5 +1,6 @@
 <?php
 namespace sgpb;
+use sgpb\AdminHelper;
 
 class SGPBNotificationCenter
 {
@@ -109,15 +110,49 @@ class SGPBNotificationCenter
 			return array();
 		}
 		asort($notifications);
+
 		$dismissedNotifications = get_option('sgpb-all-dismissed-notifications');
 		$dismissedNotifications = json_decode($dismissedNotifications, true);
+		$extensions = AdminHelper::getAllExtensions();
+		$extensionsKeys = wp_list_pluck($extensions['active'], 'key');
 		foreach ($notifications as $notification) {
 			$id = @$notification['id'];
-			if ($hideDismissed) {
-				if (isset($dismissedNotifications[$id])) {
+
+			if (isset($notification['hideFor'])) {
+				$hideForExtensions = explode(',', $notification['hideFor']);
+				$arraysIntersect = array_intersect($extensionsKeys, $hideForExtensions);
+
+				// If only one condition -> free, single extension, bundle
+				if (count($hideForExtensions) == 1) {
+					// Free
+					if ($notification['hideFor'] == SGPB_POPUP_PKG_FREE && empty($extensionsKeys) && !class_exists('SGPBActivatorPlugin')) {
+						continue;
+					}
+					// Single extension
+					else if (in_array($notification['hideFor'], $extensionsKeys)) {
+						continue;
+					}
+					// Pro, if it is a free user
+                    else if ($notification['hideFor'] == 'pro' && count($extensionsKeys) >= 1) {
+                        continue;
+                    }
+					// Bundle
+					else if ($notification['hideFor'] == 'bundle') {
+						if (class_exists('SGPBActivatorPlugin') || count($extensionsKeys) >= 10) {
+							continue;
+						}
+					}
+				}
+				// if there is even one detected extension, don’t show notification
+				else if (count($arraysIntersect) > 0) {
 					continue;
 				}
 			}
+
+			if ($hideDismissed && isset($dismissedNotifications[$id])) {
+				continue;
+			}
+
 			$activeNotifications[] = $notification;
 		}
 		$removedNotifications = get_option('sgpb-all-removed-notifications');

@@ -17,10 +17,6 @@ class ImagePopup extends SGPopup
 			$savedImageUrl = $savedPopup->getOptionValue('sgpb-image-url');
 		}
 
-		if ($imageUrl != $savedImageUrl) {
-			$imageUrl = AdminHelper::getImageDataFromUrl($imageUrl, true);
-		}
-
 		$data['sgpb-image-url'] = $imageUrl;
 		$this->setSanitizedData($data);
 
