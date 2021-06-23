@@ -15,22 +15,44 @@
   }
 
   input:not([type]), input[type=text]:not(.browser-default), input[type=password]:not(.browser-default), input[type=email]:not(.browser-default), input[type=url]:not(.browser-default), input[type=time]:not(.browser-default), input[type=date]:not(.browser-default), input[type=datetime]:not(.browser-default), input[type=datetime-local]:not(.browser-default), input[type=tel]:not(.browser-default), input[type=number]:not(.browser-default), input[type=search]:not(.browser-default), textarea.materialize-textarea {
-    border: 1px solid $color-blue-dark;
+    border: 1px solid $color-blue;
     font-weight: 300;
+
+    html[data-contrast=true] & {
+      border: 1px solid $color-white;
+    }
+  }
+
+  label {
+    color: $color-black;
+
+    html[data-contrast=true] & {
+      color: $color-white;
+    }
   }
 
   .wpcf7-list-item-label {
     font-weight: 300;
     font-family: $font-sans;
     font-size: 14px;
+    color: $color-black;
+
+    html[data-contrast=true] & {
+      color: $color-white;
+    }
   }
 
   .wpcf7-checkbox {
     display: block;
+    color: $color-blue;
 
     .wpcf7-list-item {
       display: block;
       margin: 0;
+
+      html[data-contrast=true] & {
+        color: $color-white;
+      }
     }
   }
 
@@ -66,9 +88,9 @@
     width: 300px;
     background-image: none !important;
 
-    html[data-contrast="true"] & {
+    html[data-contrast=true] & {
       background: $color-black;
-      border: 1px solid $color-white;
+      border: 2px solid $color-white;
     }
   }
 
